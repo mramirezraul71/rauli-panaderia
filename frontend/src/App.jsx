@@ -5,7 +5,7 @@ import { db, logAudit } from "./services/dataService";
 import sentinelService from "./services/SentinelService";
 import { formatCurrency, getFeatureFlags, setBusinessConfig } from "./config/businessConfig";
 import { t } from "./i18n";
-import VoiceAssistant from "./components/VoiceAssistant";
+import RauliAssistant from "./components/RauliAssistant/RauliAssistant";
 import { CommandCenterProvider } from "./context/CommandCenterContext";
 import { RauliProvider } from "./context/RauliContext";
 import { WelcomeTourProvider } from "./components/WelcomeTour";
@@ -540,7 +540,17 @@ function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto space-y-6">
+          {location.pathname !== "/auth" && (
+            <div className="rounded-3xl border border-slate-800/60 bg-slate-900/40 backdrop-blur-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-800/60 text-xs text-slate-400">
+                Asistente RAULI siempre activo
+              </div>
+              <div className="h-[420px] lg:h-[460px] max-h-[55vh]">
+                <RauliAssistant />
+              </div>
+            </div>
+          )}
           <Outlet />
         </main>
 
@@ -578,7 +588,7 @@ function Layout() {
         </footer>
       </div>
 
-          <VoiceAssistant key="assistant-v2" onAction={handleAIAction} />
+          
         </div>
         </RauliProvider>
       </CommandCenterProvider>

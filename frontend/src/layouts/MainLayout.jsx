@@ -33,15 +33,15 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HiOutlineHome, roles: ['admin', 'gerente', 'cajero', 'inventario'] },
   { name: 'Punto de Venta', href: '/pos', icon: HiOutlineShoppingCart, roles: ['admin', 'gerente', 'cajero'] },
   { name: 'Productos', href: '/products', icon: HiOutlineCube, roles: ['admin', 'gerente', 'inventario'] },
-  { name: 'Producción', href: '/produccion', icon: Package, roles: ['admin', 'gerente', 'inventario'] },
+  { name: 'Producciï¿½n', href: '/produccion', icon: Package, roles: ['admin', 'gerente', 'inventario'] },
   { name: 'Inventario', href: '/inventory', icon: HiOutlineArchive, roles: ['admin', 'gerente', 'inventario'] },
   { name: 'Ventas', href: '/sales', icon: HiOutlineChartBar, roles: ['admin', 'gerente', 'cajero'] },
-  { name: 'Créditos (Fiado)', href: '/credits', icon: HiOutlineUsers, roles: ['admin', 'gerente', 'cajero'] },
+  { name: 'Crï¿½ditos (Fiado)', href: '/credits', icon: HiOutlineUsers, roles: ['admin', 'gerente', 'cajero'] },
   { name: 'Empleados', href: '/employees', icon: HiOutlineUsers, roles: ['admin', 'gerente'] },
   { name: 'Contabilidad', href: '/accounting', icon: HiOutlineCalculator, roles: ['admin', 'gerente'] },
   { name: 'Cont. Avanzada', href: '/accounting/advanced', icon: HiOutlineDocumentReport, roles: ['admin', 'gerente'] },
   { name: 'Reportes', href: '/reports', icon: HiOutlineDocumentReport, roles: ['admin', 'gerente'] },
-  { name: 'Configuración', href: '/settings', icon: HiOutlineCog, roles: ['admin', 'gerente', 'cajero', 'inventario'] },
+  { name: 'Configuraciï¿½n', href: '/settings', icon: HiOutlineCog, roles: ['admin', 'gerente', 'cajero', 'inventario'] },
 ];
 
 export default function MainLayout() {
@@ -148,13 +148,13 @@ export default function MainLayout() {
             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
           >
             <HiOutlineLogout className="w-5 h-5" />
-            Cerrar sesión
+            Cerrar sesiï¿½n
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 min-h-screen flex flex-col">
         {/* Header */}
         <header className="sticky top-0 z-30 h-16 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700">
           <div className="flex items-center justify-between h-full px-4">
@@ -173,7 +173,7 @@ export default function MainLayout() {
 
             {/* Right side */}
             <div className="flex items-center gap-3">
-              {/* Health Monitor (Semáforo) */}
+              {/* Health Monitor (Semï¿½foro) */}
               <HealthMonitor mode="compact" />
 
               <ActiveCurrencySelector />
@@ -224,7 +224,7 @@ export default function MainLayout() {
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-6">
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto lg:overflow-hidden">
           <Outlet />
         </main>
       </div>

@@ -44,6 +44,12 @@ const processQueuedItem = async (item) => {
   if (item.entity_type === "sales" && item.operation === "create") {
     return apiFetch("/sales", { method: "POST", body: JSON.stringify(payload) });
   }
+  if (item.entity_type === "expenses" && item.operation === "create") {
+    return apiFetch("/accounting/expenses", { method: "POST", body: JSON.stringify(payload) });
+  }
+  if (item.entity_type === "inventory_adjustments" && item.operation === "create") {
+    return apiFetch("/inventory/adjustment", { method: "POST", body: JSON.stringify(payload) });
+  }
   return { ok: false, status: 400, data: { message: "Operacion no soportada" } };
 };
 

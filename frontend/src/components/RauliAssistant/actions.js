@@ -1,5 +1,7 @@
 import { db } from "../../services/dataService";
 import SyncService from "../../services/syncService";
+import cashSession from "../../core/CashSession";
+import accountingCore from "../../core/AccountingCore";
 
 const API_BASE = "/api";
 
@@ -59,6 +61,284 @@ const buildSaleSummary = (items) => {
   }, 0);
   const total = Math.round((subtotal + Number.EPSILON) * 100) / 100;
   return { lines, total };
+};
+
+const formatSaleConfirmation = (saleItems, total) => {
+  const totalItems = saleItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const account = "4100 - Ventas de Mercancías";
+  return [
+    "Perfecto, voy a registrar la venta.",
+    `Resumen: ${totalItems} unidades en total.`,
+    `Total: ${total}.`,
+    `Se guardará en las ventas del día y se reportará como ingreso en la cuenta ${account}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatSaleResult = (saleItems, total) => {
+  const totalItems = saleItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const account = "4100 - Ventas de Mercancías";
+  return [
+    "Venta registrada correctamente.",
+    `Resumen: ${totalItems} unidades en total.`,
+    `Total: ${total}.`,
+    `Se guardó en las ventas del día y se reportó en la cuenta ${account}.`
+  ].join("\n");
+};
+
+const formatExpenseConfirmation = ({ amount, description, category, paymentMethod, accountCode }) => {
+  const expenseAccount = accountCode || "6900 - Otros Gastos";
+  const paymentAccount = paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+    ? "1120 - Bancos"
+    : "1100 - Caja General";
+  return [
+    "Perfecto, voy a registrar el gasto.",
+    `Descripción: ${description || category || "Gasto"}.`,
+    `Monto: ${amount}.`,
+    `Cuenta de gasto: ${expenseAccount}.`,
+    `Salida registrada desde: ${paymentAccount}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatExpenseResult = ({ amount, description, category, paymentMethod, accountCode }) => {
+  const expenseAccount = accountCode || "6900 - Otros Gastos";
+  const paymentAccount = paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+    ? "1120 - Bancos"
+    : "1100 - Caja General";
+  return [
+    "Gasto registrado correctamente.",
+    `Descripción: ${description || category || "Gasto"}.`,
+    `Monto: ${amount}.`,
+    `Cuenta de gasto: ${expenseAccount}.`,
+    `Salida registrada desde: ${paymentAccount}.`
+  ].join("\n");
+};
+
+const formatInventoryAdjustmentConfirmation = ({ productName, quantity, direction, reason }) => {
+  const inventoryAccount = "1300 - Inventario";
+  const offsetAccount = direction === "in"
+    ? "5100 - Costo de Ventas"
+    : "6900 - Otros Gastos";
+  const directionLabel = direction === "in" ? "aumentar" : "disminuir";
+  return [
+    "Perfecto, voy a registrar el ajuste de inventario.",
+    `Producto: ${productName}.`,
+    `Cantidad: ${quantity} (${directionLabel}).`,
+    `Motivo: ${reason || "Ajuste manual"}.`,
+    `Cuenta inventario: ${inventoryAccount}.`,
+    `Cuenta contraparte: ${offsetAccount}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatInventoryAdjustmentResult = ({ productName, quantity, direction, reason }) => {
+  const inventoryAccount = "1300 - Inventario";
+  const offsetAccount = direction === "in"
+    ? "5100 - Costo de Ventas"
+    : "6900 - Otros Gastos";
+  const directionLabel = direction === "in" ? "aumento" : "disminución";
+  return [
+    "Ajuste de inventario registrado.",
+    `Producto: ${productName}.`,
+    `Cantidad: ${quantity} (${directionLabel}).`,
+    `Motivo: ${reason || "Ajuste manual"}.`,
+    `Cuenta inventario: ${inventoryAccount}.`,
+    `Cuenta contraparte: ${offsetAccount}.`
+  ].join("\n");
+};
+
+const formatPurchaseConfirmation = ({ amount, description, paymentMethod }) => {
+  const costAccount = "5100 - Costo de Ventas";
+  const paymentAccount = paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+    ? "1120 - Bancos"
+    : "1100 - Caja General";
+  return [
+    "Perfecto, voy a registrar la compra.",
+    `Descripción: ${description || "Compra"}.`,
+    `Monto: ${amount}.`,
+    `Cuenta de costo: ${costAccount}.`,
+    `Salida registrada desde: ${paymentAccount}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatPurchaseResult = ({ amount, description, paymentMethod }) => {
+  const costAccount = "5100 - Costo de Ventas";
+  const paymentAccount = paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+    ? "1120 - Bancos"
+    : "1100 - Caja General";
+  return [
+    "Compra registrada correctamente.",
+    `Descripción: ${description || "Compra"}.`,
+    `Monto: ${amount}.`,
+    `Cuenta de costo: ${costAccount}.`,
+    `Salida registrada desde: ${paymentAccount}.`
+  ].join("\n");
+};
+
+const formatCashMovementConfirmation = ({ amount, description, direction }) => {
+  const account = "1100 - Caja General";
+  const label = direction === "in" ? "entrada de efectivo" : "salida de efectivo";
+  return [
+    `Perfecto, voy a registrar una ${label}.`,
+    `Monto: ${amount}.`,
+    `Descripción: ${description || "Movimiento de caja"}.`,
+    `Cuenta afectada: ${account}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatCashMovementResult = ({ amount, description, direction }) => {
+  const account = "1100 - Caja General";
+  const label = direction === "in" ? "Entrada" : "Salida";
+  return [
+    `${label} de efectivo registrada correctamente.`,
+    `Monto: ${amount}.`,
+    `Descripción: ${description || "Movimiento de caja"}.`,
+    `Cuenta afectada: ${account}.`
+  ].join("\n");
+};
+
+const formatCashSessionConfirmation = ({ amount, direction }) => {
+  const account = "1100 - Caja General";
+  const label = direction === "open" ? "apertura de caja" : "cierre de caja";
+  return [
+    `Perfecto, voy a registrar la ${label}.`,
+    `Monto: ${amount}.`,
+    `Cuenta afectada: ${account}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatCashSessionResult = ({ amount, direction }) => {
+  const account = "1100 - Caja General";
+  const label = direction === "open" ? "Apertura" : "Cierre";
+  return [
+    `${label} de caja registrada.`,
+    `Monto: ${amount}.`,
+    `Cuenta afectada: ${account}.`
+  ].join("\n");
+};
+
+const formatCreditPaymentConfirmation = ({ amount, customerName }) => {
+  const debitAccount = "1100 - Caja General";
+  const creditAccount = "1200 - Cuentas por Cobrar";
+  return [
+    "Perfecto, voy a registrar un cobro de crédito.",
+    `Cliente: ${customerName || "Cliente"}.`,
+    `Monto: ${amount}.`,
+    `Cuenta caja: ${debitAccount}.`,
+    `Cuenta por cobrar: ${creditAccount}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatCreditPaymentResult = ({ amount, customerName }) => {
+  const debitAccount = "1100 - Caja General";
+  const creditAccount = "1200 - Cuentas por Cobrar";
+  return [
+    "Cobro de crédito registrado.",
+    `Cliente: ${customerName || "Cliente"}.`,
+    `Monto: ${amount}.`,
+    `Cuenta caja: ${debitAccount}.`,
+    `Cuenta por cobrar: ${creditAccount}.`
+  ].join("\n");
+};
+
+const formatCreditNoteConfirmation = ({ amount, customerName, paymentMethod, reason }) => {
+  const debitAccount = "4110 - Devoluciones sobre Ventas";
+  const creditAccount = paymentMethod === "credito"
+    ? "1200 - Cuentas por Cobrar"
+    : paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+      ? "1120 - Bancos"
+      : "1100 - Caja General";
+  return [
+    "Perfecto, voy a registrar una nota de crédito.",
+    `Cliente: ${customerName || "Cliente"}.`,
+    `Monto: ${amount}.`,
+    `Motivo: ${reason || "Devolución/ajuste"}.`,
+    `Cuenta devolución: ${debitAccount}.`,
+    `Cuenta aplicada: ${creditAccount}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatCreditNoteResult = ({ amount, customerName, paymentMethod, reason }) => {
+  const debitAccount = "4110 - Devoluciones sobre Ventas";
+  const creditAccount = paymentMethod === "credito"
+    ? "1200 - Cuentas por Cobrar"
+    : paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+      ? "1120 - Bancos"
+      : "1100 - Caja General";
+  return [
+    "Nota de crédito registrada.",
+    `Cliente: ${customerName || "Cliente"}.`,
+    `Monto: ${amount}.`,
+    `Motivo: ${reason || "Devolución/ajuste"}.`,
+    `Cuenta devolución: ${debitAccount}.`,
+    `Cuenta aplicada: ${creditAccount}.`
+  ].join("\n");
+};
+
+const formatPartialRefundConfirmation = ({ amount, saleId, paymentMethod }) => {
+  const debitAccount = "4110 - Devoluciones sobre Ventas";
+  const creditAccount = paymentMethod === "credito"
+    ? "1200 - Cuentas por Cobrar"
+    : paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+      ? "1120 - Bancos"
+      : "1100 - Caja General";
+  return [
+    `Vas a registrar una devolución parcial de la venta ${saleId}.`,
+    `Monto: ${amount}.`,
+    `Cuenta devolución: ${debitAccount}.`,
+    `Cuenta aplicada: ${creditAccount}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatPartialRefundResult = ({ amount, saleId, paymentMethod }) => {
+  const debitAccount = "4110 - Devoluciones sobre Ventas";
+  const creditAccount = paymentMethod === "credito"
+    ? "1200 - Cuentas por Cobrar"
+    : paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+      ? "1120 - Bancos"
+      : "1100 - Caja General";
+  return [
+    `Devolución parcial registrada para la venta ${saleId}.`,
+    `Monto: ${amount}.`,
+    `Cuenta devolución: ${debitAccount}.`,
+    `Cuenta aplicada: ${creditAccount}.`
+  ].join("\n");
+};
+
+const formatCashVarianceConfirmation = ({ expected, counted, difference }) => {
+  const account = "1100 - Caja General";
+  const adjustment = "3999 - Ajustes por Diferencias";
+  const label = difference > 0 ? "sobrante" : "faltante";
+  return [
+    "Perfecto, voy a registrar la diferencia de caja.",
+    `Esperado: ${expected}.`,
+    `Contado: ${counted}.`,
+    `Diferencia (${label}): ${Math.abs(difference)}.`,
+    `Cuenta caja: ${account}.`,
+    `Cuenta ajuste: ${adjustment}.`,
+    "¿Todo correcto?"
+  ].join("\n");
+};
+
+const formatCashVarianceResult = ({ expected, counted, difference }) => {
+  const account = "1100 - Caja General";
+  const adjustment = "3999 - Ajustes por Diferencias";
+  const label = difference > 0 ? "Sobrante" : "Faltante";
+  return [
+    `${label} de caja registrado.`,
+    `Esperado: ${expected}.`,
+    `Contado: ${counted}.`,
+    `Diferencia: ${Math.abs(difference)}.`,
+    `Cuenta caja: ${account}.`,
+    `Cuenta ajuste: ${adjustment}.`
+  ].join("\n");
 };
 /**
  * Sistema de Acciones de RAULI Assistant
@@ -329,10 +609,10 @@ async function executeCreate(target, params = {}) {
 
     const totalItems = saleItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
     const summary = buildSaleSummary(saleItems);
-    const confirmText = `Crear venta con ${totalItems} items?\n` +
-      `${summary.lines.slice(0, 5).join("\n")}` +
+    const confirmText = `${summary.lines.slice(0, 5).join("\n")}` +
       `${summary.lines.length > 5 ? "\n..." : ""}` +
-      `\nTotal estimado: ${summary.total}`;
+      `\nTotal estimado: ${summary.total}\n` +
+      formatSaleConfirmation(saleItems, summary.total);
     if (!confirm(confirmText)) {
       return { success: false, message: "Acción cancelada." };
     }
@@ -345,7 +625,7 @@ async function executeCreate(target, params = {}) {
       })
     });
     if (api.ok) {
-      return { success: true, message: "Venta creada correctamente." };
+      return { success: true, message: formatSaleResult(saleItems, summary.total) };
     }
     if (requiresAuth(api.status)) {
       return { success: false, message: "Necesito iniciar sesión para crear ventas." };
@@ -385,7 +665,458 @@ async function executeCreate(target, params = {}) {
         items: saleItems,
         payment_method: params.payment_method || "efectivo"
       });
-      return { success: true, message: "Venta guardada en modo offline. Se sincronizará al volver la conexión." };
+      return { success: true, message: `${formatSaleResult(saleItems, summary.total)}\n\nModo offline: se sincronizará al volver la conexión.` };
+    }
+  }
+
+  if (normalized === "expense" || normalized === "gasto") {
+    const amount = Number(params.amount || params.total || 0);
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para el gasto." };
+    }
+    const description = params.description || params.detalle || "";
+    const category = params.category || params.categoria || "";
+    const paymentMethod = params.payment_method || params.metodo_pago || "efectivo";
+    const accountCode = params.account_code || params.cuenta || "6900 - Otros Gastos";
+
+    const confirmText = formatExpenseConfirmation({
+      amount,
+      description,
+      category,
+      paymentMethod,
+      accountCode
+    });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+
+    const api = await apiFetch("/accounting/expenses", {
+      method: "POST",
+      body: JSON.stringify({
+        description,
+        category,
+        amount,
+        payment_method: paymentMethod,
+        account_code: accountCode
+      })
+    });
+    if (api.ok) {
+      return { success: true, message: formatExpenseResult({ amount, description, category, paymentMethod, accountCode }) };
+    }
+    if (requiresAuth(api.status)) {
+      return { success: false, message: "Necesito iniciar sesión para registrar gastos." };
+    }
+    if (isOffline(api) && db?.expenses) {
+      const localId = await db.expenses.add({
+        date: new Date().toISOString().split("T")[0],
+        vendor: params.vendor || "",
+        category,
+        description,
+        amount,
+        payment_method: paymentMethod,
+        account_code: accountCode,
+        deleted_at: null,
+        synced: 0
+      });
+      await queueOfflineOperation("expenses", "create", {
+        id: localId,
+        date: new Date().toISOString().split("T")[0],
+        vendor: params.vendor || "",
+        category,
+        description,
+        amount,
+        payment_method: paymentMethod,
+        account_code: accountCode
+      });
+      return { success: true, message: `${formatExpenseResult({ amount, description, category, paymentMethod, accountCode })}\n\nModo offline: se sincronizará al volver la conexión.` };
+    }
+  }
+
+  if (normalized === "purchase" || normalized === "compra") {
+    const amount = Number(params.amount || params.total || 0);
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para la compra." };
+    }
+    const description = params.description || params.detalle || "Compra";
+    const paymentMethod = params.payment_method || params.metodo_pago || "efectivo";
+
+    const confirmText = formatPurchaseConfirmation({ amount, description, paymentMethod });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+
+    const api = await apiFetch("/accounting/expenses", {
+      method: "POST",
+      body: JSON.stringify({
+        description,
+        category: "Compras",
+        amount,
+        payment_method: paymentMethod,
+        account_code: "5100 - Costo de Ventas"
+      })
+    });
+    if (api.ok) {
+      return { success: true, message: formatPurchaseResult({ amount, description, paymentMethod }) };
+    }
+    if (requiresAuth(api.status)) {
+      return { success: false, message: "Necesito iniciar sesión para registrar compras." };
+    }
+    if (isOffline(api) && db?.expenses) {
+      const localId = await db.expenses.add({
+        date: new Date().toISOString().split("T")[0],
+        vendor: params.vendor || "",
+        category: "Compras",
+        description,
+        amount,
+        payment_method: paymentMethod,
+        account_code: "5100 - Costo de Ventas",
+        deleted_at: null,
+        synced: 0
+      });
+      await queueOfflineOperation("expenses", "create", {
+        id: localId,
+        date: new Date().toISOString().split("T")[0],
+        vendor: params.vendor || "",
+        category: "Compras",
+        description,
+        amount,
+        payment_method: paymentMethod,
+        account_code: "5100 - Costo de Ventas"
+      });
+      return { success: true, message: `${formatPurchaseResult({ amount, description, paymentMethod })}\n\nModo offline: se sincronizará al volver la conexión.` };
+    }
+  }
+
+  if (normalized === "inventory_adjustment" || normalized === "ajuste_inventario") {
+    const productName = params.product_name || params.name;
+    const quantity = Number(params.quantity || params.qty || 0);
+    const direction = params.direction === "in" ? "in" : "out";
+    const reason = params.reason || params.motivo || "Ajuste manual";
+    if (!productName || !quantity) {
+      return { success: false, message: "Falta producto o cantidad para el ajuste." };
+    }
+    let productId = null;
+    const list = await db.products?.where("active").equals(1).toArray();
+    const localMatch = list?.find((p) => String(p.name || "").toLowerCase() === String(productName).toLowerCase());
+    if (localMatch?.id) {
+      productId = localMatch.id;
+    } else {
+      const apiList = await apiFetch(`/products?search=${encodeURIComponent(productName)}`);
+      productId = apiList.data?.products?.[0]?.id || null;
+    }
+    if (!productId) {
+      return { success: false, message: "Producto no encontrado para ajuste." };
+    }
+    const confirmText = formatInventoryAdjustmentConfirmation({ productName, quantity, direction, reason });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    const api = await apiFetch("/inventory/adjustment", {
+      method: "POST",
+      body: JSON.stringify({
+        product_id: productId,
+        quantity: direction === "in" ? quantity : -quantity,
+        notes: reason
+      })
+    });
+    if (api.ok) {
+      return { success: true, message: formatInventoryAdjustmentResult({ productName, quantity, direction, reason }) };
+    }
+    if (requiresAuth(api.status)) {
+      return { success: false, message: "Necesito iniciar sesión para ajustar inventario." };
+    }
+    if (isOffline(api) && db?.products) {
+      const product = list?.find((p) => p.id === productId);
+      if (product) {
+        const delta = direction === "in" ? quantity : -quantity;
+        await db.products.update(product.id, { stock: (Number(product.stock) || 0) + delta, synced: 0 });
+        await db.inventoryMovements?.add({
+          product_id: product.id,
+          movement_type: direction === "in" ? "in" : "out",
+          quantity,
+          date: new Date().toISOString(),
+          reference_id: "offline_adjustment"
+        });
+      }
+      await queueOfflineOperation("inventory_adjustments", "create", {
+        product_id: productId,
+        quantity: direction === "in" ? quantity : -quantity,
+        notes: reason
+      });
+      return { success: true, message: `${formatInventoryAdjustmentResult({ productName, quantity, direction, reason })}\n\nModo offline: se sincronizará al volver la conexión.` };
+    }
+  }
+
+  if (normalized === "cash_in" || normalized === "entrada_efectivo") {
+    const amount = Number(params.amount || params.total || 0);
+    const description = params.description || params.detalle || "Entrada de efectivo";
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para entrada de efectivo." };
+    }
+    const confirmText = formatCashMovementConfirmation({ amount, description, direction: "in" });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      await cashSession.cashIn(amount, description);
+      return { success: true, message: formatCashMovementResult({ amount, description, direction: "in" }) };
+    } catch (e) {
+      return { success: false, message: e.message || "Error registrando entrada de efectivo." };
+    }
+  }
+
+  if (normalized === "cash_out" || normalized === "salida_efectivo") {
+    const amount = Number(params.amount || params.total || 0);
+    const description = params.description || params.detalle || "Salida de efectivo";
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para salida de efectivo." };
+    }
+    const confirmText = formatCashMovementConfirmation({ amount, description, direction: "out" });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      await cashSession.cashOut(amount, description);
+      return { success: true, message: formatCashMovementResult({ amount, description, direction: "out" }) };
+    } catch (e) {
+      return { success: false, message: e.message || "Error registrando salida de efectivo." };
+    }
+  }
+
+  if (normalized === "cash_open" || normalized === "abrir_caja") {
+    const amount = Number(params.amount || params.monto || 0);
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para apertura de caja." };
+    }
+    const confirmText = formatCashSessionConfirmation({ amount, direction: "open" });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      const api = await apiFetch("/sales/cash-sessions/open", {
+        method: "POST",
+        body: JSON.stringify({ opening_amount: amount })
+      });
+      if (api.ok) {
+        return { success: true, message: formatCashSessionResult({ amount, direction: "open" }) };
+      }
+      if (requiresAuth(api.status)) {
+        return { success: false, message: "Necesito iniciar sesión para abrir caja." };
+      }
+    } catch (e) {
+      return { success: false, message: e.message || "Error abriendo caja." };
+    }
+  }
+
+  if (normalized === "cash_close" || normalized === "cerrar_caja") {
+    const amount = Number(params.amount || params.monto || 0);
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para cierre de caja." };
+    }
+    const confirmText = formatCashSessionConfirmation({ amount, direction: "close" });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      const current = await apiFetch("/sales/cash-sessions/current");
+      const sessionId = current.data?.session?.id || current.data?.id;
+      if (!sessionId) {
+        return { success: false, message: "No hay caja abierta para cerrar." };
+      }
+      const api = await apiFetch(`/sales/cash-sessions/${sessionId}/close`, {
+        method: "POST",
+        body: JSON.stringify({ closing_amount: amount })
+      });
+      if (api.ok) {
+        return { success: true, message: formatCashSessionResult({ amount, direction: "close" }) };
+      }
+      if (requiresAuth(api.status)) {
+        return { success: false, message: "Necesito iniciar sesión para cerrar caja." };
+      }
+    } catch (e) {
+      return { success: false, message: e.message || "Error cerrando caja." };
+    }
+  }
+
+  if (normalized === "credit_payment" || normalized === "abono_credito") {
+    const amount = Number(params.amount || params.monto || 0);
+    const customerId = params.customer_id || params.id;
+    const customerName = params.customer_name || params.nombre;
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para el abono." };
+    }
+    const confirmText = formatCreditPaymentConfirmation({ amount, customerName });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      let customer = null;
+      if (customerId) {
+        customer = await db.customers?.get(customerId);
+      } else if (customerName) {
+        const list = await db.customers?.where("active").equals(1).toArray();
+        customer = list?.find((c) => String(c.name || "").toLowerCase() === String(customerName).toLowerCase());
+      }
+      if (!customer) {
+        return { success: false, message: "Cliente no encontrado para el abono." };
+      }
+      const nextBalance = Math.max(0, (Number(customer.balance) || 0) - amount);
+      await db.customers?.update(customer.id, { balance: nextBalance });
+      await accountingCore.recordPaymentReceived({
+        customerId: customer.id,
+        amount,
+        reference: `PAY-${customer.id}-${Date.now()}`
+      });
+      return { success: true, message: formatCreditPaymentResult({ amount, customerName: customer.name }) };
+    } catch (e) {
+      return { success: false, message: e.message || "Error registrando abono." };
+    }
+  }
+
+  if (normalized === "credit_note" || normalized === "nota_credito") {
+    const amount = Number(params.amount || params.monto || 0);
+    const paymentMethod = params.payment_method || params.metodo_pago || "efectivo";
+    const reason = params.reason || params.motivo || "Nota de crédito";
+    const customerId = params.customer_id || params.id;
+    const customerName = params.customer_name || params.nombre;
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para la nota de crédito." };
+    }
+    const confirmText = formatCreditNoteConfirmation({ amount, customerName, paymentMethod, reason });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      await accountingCore.initialize();
+      let customer = null;
+      if (paymentMethod === "credito") {
+        if (customerId) {
+          customer = await db.customers?.get(customerId);
+        } else if (customerName) {
+          const list = await db.customers?.where("active").equals(1).toArray();
+          customer = list?.find((c) => String(c.name || "").toLowerCase() === String(customerName).toLowerCase());
+        }
+        if (!customer) {
+          return { success: false, message: "Cliente no encontrado para aplicar nota de crédito." };
+        }
+        const currentBalance = Number(customer.balance) || 0;
+        if (amount > currentBalance) {
+          return { success: false, message: "El monto supera el saldo pendiente del cliente." };
+        }
+        const nextBalance = Math.max(0, currentBalance - amount);
+        await db.customers?.update(customer.id, { balance: nextBalance });
+      }
+      const creditAccount = paymentMethod === "credito"
+        ? "1200"
+        : paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+          ? "1120"
+          : "1100";
+      await accountingCore.createJournalEntry({
+        description: `Nota de crédito${customer ? ` - ${customer.name}` : ""}`,
+        reference: `CN-${Date.now()}`,
+        type: "credit_note",
+        lines: [
+          { accountCode: "4110", debit: amount, description: "Devolución sobre ventas" },
+          { accountCode: creditAccount, credit: amount, description: "Aplicación nota de crédito" }
+        ]
+      });
+      if (creditAccount === "1100") {
+        await cashSession.cashOut(amount, "Devolución por nota de crédito");
+      }
+      return { success: true, message: formatCreditNoteResult({ amount, customerName: customer?.name || customerName, paymentMethod, reason }) };
+    } catch (e) {
+      return { success: false, message: e.message || "Error registrando nota de crédito." };
+    }
+  }
+
+  if (normalized === "refund_partial" || normalized === "devolucion_parcial") {
+    const saleId = params.id || params.sale_id;
+    const amount = Number(params.amount || params.monto || 0);
+    const paymentMethod = params.payment_method || params.metodo_pago || "efectivo";
+    const customerId = params.customer_id || params.id_cliente;
+    const customerName = params.customer_name || params.nombre;
+    if (!saleId) return { success: false, message: "Falta el ID de la venta para devolución parcial." };
+    if (!amount || amount <= 0) {
+      return { success: false, message: "Monto inválido para devolución parcial." };
+    }
+    const confirmText = formatPartialRefundConfirmation({ amount, saleId, paymentMethod });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      await accountingCore.initialize();
+      let customer = null;
+      if (paymentMethod === "credito") {
+        if (customerId) {
+          customer = await db.customers?.get(customerId);
+        } else if (customerName) {
+          const list = await db.customers?.where("active").equals(1).toArray();
+          customer = list?.find((c) => String(c.name || "").toLowerCase() === String(customerName).toLowerCase());
+        }
+        if (!customer) {
+          return { success: false, message: "Cliente no encontrado para devolución a crédito." };
+        }
+        const currentBalance = Number(customer.balance) || 0;
+        const nextBalance = Math.max(0, currentBalance - amount);
+        await db.customers?.update(customer.id, { balance: nextBalance });
+      }
+      const creditAccount = paymentMethod === "credito"
+        ? "1200"
+        : paymentMethod === "tarjeta" || paymentMethod === "transferencia"
+          ? "1120"
+          : "1100";
+      await accountingCore.createJournalEntry({
+        description: `Devolución parcial venta ${saleId}`,
+        reference: `REF-${saleId}-${Date.now()}`,
+        type: "refund_partial",
+        lines: [
+          { accountCode: "4110", debit: amount, description: "Devolución sobre ventas" },
+          { accountCode: creditAccount, credit: amount, description: "Aplicación devolución parcial" }
+        ]
+      });
+      if (creditAccount === "1100") {
+        await cashSession.cashOut(amount, `Devolución parcial venta ${saleId}`);
+      }
+      return { success: true, message: formatPartialRefundResult({ amount, saleId, paymentMethod }) };
+    } catch (e) {
+      return { success: false, message: e.message || "Error registrando devolución parcial." };
+    }
+  }
+
+  if (normalized === "cash_variance" || normalized === "cierre_caja_diferencia") {
+    const expected = Number(params.expected ?? params.esperado ?? 0);
+    const counted = Number(params.counted ?? params.contado ?? 0);
+    if (!Number.isFinite(expected) || expected < 0 || !Number.isFinite(counted) || counted < 0) {
+      return { success: false, message: "Montos inválidos para diferencia de caja." };
+    }
+    const difference = Math.round((counted - expected + Number.EPSILON) * 100) / 100;
+    if (difference === 0) {
+      return { success: true, message: "No hay diferencia de caja." };
+    }
+    const confirmText = formatCashVarianceConfirmation({ expected, counted, difference });
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    try {
+      await accountingCore.initialize();
+      const lines = difference > 0
+        ? [
+            { accountCode: "1100", debit: Math.abs(difference), description: "Sobrante de caja" },
+            { accountCode: "3999", credit: Math.abs(difference), description: "Ajuste por diferencia" }
+          ]
+        : [
+            { accountCode: "3999", debit: Math.abs(difference), description: "Ajuste por diferencia" },
+            { accountCode: "1100", credit: Math.abs(difference), description: "Faltante de caja" }
+          ];
+      await accountingCore.createJournalEntry({
+        description: "Diferencia de caja",
+        reference: `CASH-DIFF-${Date.now()}`,
+        type: "cash_variance",
+        lines
+      });
+      return { success: true, message: formatCashVarianceResult({ expected, counted, difference }) };
+    } catch (e) {
+      return { success: false, message: e.message || "Error registrando diferencia de caja." };
     }
   }
 
@@ -409,7 +1140,12 @@ async function executeUpdate(target, params = {}) {
       return { success: false, message: "Producto no encontrado." };
     }
 
-    if (!confirm(`Actualizar stock de "${resolvedProduct.name}" a ${params.stock}?`)) {
+    const confirmText = [
+      `Actualizar stock de "${resolvedProduct.name}" a ${params.stock}.`,
+      "Esto afectará inventario (1300) y resultados si hay disminución.",
+      "¿Confirmas?"
+    ].join("\n");
+    if (!confirm(confirmText)) {
       return { success: false, message: "Acción cancelada." };
     }
 
@@ -418,7 +1154,7 @@ async function executeUpdate(target, params = {}) {
       body: JSON.stringify({ stock: params.stock })
     });
     if (api.ok) {
-      return { success: true, message: `Stock actualizado para ${resolvedProduct.name}.` };
+      return { success: true, message: `Stock actualizado para ${resolvedProduct.name}. Inventario (1300) ajustado.` };
     }
     if (requiresAuth(api.status)) {
       return { success: false, message: "Necesito iniciar sesión para actualizar stock." };
@@ -426,7 +1162,50 @@ async function executeUpdate(target, params = {}) {
     if (isOffline(api) && db?.products) {
       await db.products.update(resolvedProduct.id, { stock: params.stock, synced: 0 });
       await queueOfflineOperation("products", "update", { id: resolvedProduct.id, stock: params.stock });
-      return { success: true, message: `Stock actualizado offline para ${resolvedProduct.name}. Se sincronizará luego.` };
+      return { success: true, message: `Stock actualizado offline para ${resolvedProduct.name}. Inventario (1300) se sincronizará luego.` };
+    }
+  }
+
+  if (normalized === "cancel_sale" || normalized === "anular_venta") {
+    const saleId = params.id || params.sale_id;
+    if (!saleId) return { success: false, message: "Falta el ID de la venta a anular." };
+    const confirmText = [
+      `Vas a anular la venta ${saleId}.`,
+      "Esto revertirá el ingreso y el movimiento de caja/banco correspondiente.",
+      "¿Confirmas?"
+    ].join("\n");
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    const api = await apiFetch(`/sales/${saleId}/cancel`, { method: "POST", body: JSON.stringify({ reason: params.reason || "Anulación manual" }) });
+    if (api.ok) {
+      return { success: true, message: "Venta anulada. Se revirtió el ingreso y la cuenta de caja/banco." };
+    }
+    if (requiresAuth(api.status)) {
+      return { success: false, message: "Necesito iniciar sesión para anular ventas." };
+    }
+  }
+
+  if (normalized === "refund" || normalized === "devolucion") {
+    const saleId = params.id || params.sale_id;
+    if (!saleId) return { success: false, message: "Falta el ID de la venta para devolución." };
+    const confirmText = [
+      `Vas a registrar una devolución para la venta ${saleId}.`,
+      "Esto revertirá el ingreso y el movimiento de caja/banco correspondiente.",
+      "¿Confirmas?"
+    ].join("\n");
+    if (!confirm(confirmText)) {
+      return { success: false, message: "Acción cancelada." };
+    }
+    const api = await apiFetch(`/sales/${saleId}/cancel`, {
+      method: "POST",
+      body: JSON.stringify({ reason: params.reason || "Devolución" })
+    });
+    if (api.ok) {
+      return { success: true, message: "Devolución registrada. Se revirtió el ingreso y la cuenta de caja/banco." };
+    }
+    if (requiresAuth(api.status)) {
+      return { success: false, message: "Necesito iniciar sesión para registrar devoluciones." };
     }
   }
 

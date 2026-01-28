@@ -578,6 +578,8 @@ export default function RauliAssistant() {
   const [sendBursts, setSendBursts] = useState([]);
   const [receiveWaves, setReceiveWaves] = useState([]);
   const [storageInfo, setStorageInfo] = useState({ used: 0, quota: 0, percentage: 0 });
+  const [voiceConfirmOpen, setVoiceConfirmOpen] = useState(false);
+  const [voiceConfirmText, setVoiceConfirmText] = useState("");
 
   // Refs
   const messagesEndRef = useRef(null);
@@ -585,6 +587,7 @@ export default function RauliAssistant() {
   const handleSendMessageRef = useRef(null);
   const sendSoundRef = useRef(null);
   const receiveSoundRef = useRef(null);
+  const voiceConfirmRequestedRef = useRef(false);
 
   // Hooks
   const voiceInput = useVoiceInput({
@@ -888,35 +891,76 @@ export default function RauliAssistant() {
   }, [handleSendMessage]);
 
   // Manejar input de voz
+  const requestVoiceConfirm = useCallback((text) => {
+    const cleaned = String(text || "").trim();
+    if (!cleaned || voiceConfirmOpen) return;
+    voiceConfirmRequestedRef.current = true;
+    setVoiceConfirmText(cleaned);
+    setVoiceConfirmOpen(true);
+  }, [voiceConfirmOpen]);
+
+  const handleVoiceConfirmSend = useCallback(() => {
+    const text = voiceConfirmText.trim();
+    if (text && handleSendMessageRef.current) {
+      handleSendMessageRef.current(text);
+    }
+    voiceConfirmRequestedRef.current = false;
+    setVoiceConfirmOpen(false);
+    setVoiceConfirmText("");
+  }, [voiceConfirmText]);
+
+  const handleVoiceConfirmEdit = useCallback(() => {
+    setInputText(voiceConfirmText);
+    voiceConfirmRequestedRef.current = false;
+    setVoiceConfirmOpen(false);
+    setVoiceConfirmText("");
+    inputRef.current?.focus();
+  }, [voiceConfirmText]);
+
+  const handleVoiceConfirmCancel = useCallback(() => {
+    voiceConfirmRequestedRef.current = false;
+    setVoiceConfirmOpen(false);
+    setVoiceConfirmText("");
+  }, []);
+
   const handleVoiceToggle = useCallback(() => {
     if (voiceInput.isListening) {
       voiceInput.stopListening();
       setShowVoiceInput(false);
       
       // Si hay transcript, enviarlo
-      if (voiceInput.transcript && handleSendMessageRef.current) {
-        handleSendMessageRef.current(voiceInput.transcript);
+      if (voiceInput.transcript) {
+        requestVoiceConfirm(voiceInput.transcript);
       }
     } else {
       voiceInput.startListening();
       setShowVoiceInput(true);
     }
-  }, [voiceInput]);
+  }, [voiceInput, requestVoiceConfirm]);
+
+  useEffect(() => {
+    voiceInput.onComplete((fullText) => {
+      if (!fullText) return;
+      voiceInput.stopListening();
+      setShowVoiceInput(false);
+      requestVoiceConfirm(fullText);
+    });
+  }, [voiceInput, requestVoiceConfirm]);
 
   // Actualizar input con transcript
   useEffect(() => {
-    if (voiceInput.transcript && voiceInput.isListening) {
+    if (voiceInput.transcript && voiceInput.isListening && !voiceConfirmOpen) {
       setInputText(voiceInput.transcript);
     }
-  }, [voiceInput.transcript, voiceInput.isListening]);
+  }, [voiceInput.transcript, voiceInput.isListening, voiceConfirmOpen]);
 
   // Detener voz cuando termina
   useEffect(() => {
-    if (!voiceInput.isListening && showVoiceInput && voiceInput.transcript && handleSendMessageRef.current) {
+    if (!voiceInput.isListening && showVoiceInput && voiceInput.transcript && !voiceConfirmRequestedRef.current) {
       setShowVoiceInput(false);
-      handleSendMessageRef.current(voiceInput.transcript);
+      requestVoiceConfirm(voiceInput.transcript);
     }
-  }, [voiceInput.isListening, showVoiceInput, voiceInput.transcript]);
+  }, [voiceInput.isListening, showVoiceInput, voiceInput.transcript, requestVoiceConfirm]);
 
   const handleProfileChange = useCallback((profileId) => {
     setActiveProfileIdState(profileId);
@@ -1097,7 +1141,7 @@ export default function RauliAssistant() {
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         />
       {/* Header */}
-      <div className="relative flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-slate-900/70 border-b border-white/10 backdrop-blur-md overflow-hidden">
+      <div className="relative flex flex-wrap items-center justify-between gap-3 px-6 py-4 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-slate-900/70 border-b border-white/10 backdrop-blur-md overflow-hidden">
         <motion.div
           className="pointer-events-none absolute -inset-y-4 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent blur-md"
           animate={{ x: ["-60%", "160%"] }}
@@ -1142,7 +1186,7 @@ export default function RauliAssistant() {
         </motion.div>
 
         {/* Título */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-[220px] max-w-full">
           <h2 className="text-white font-bold text-lg">RAULI Assistant</h2>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-slate-400 text-xs">Asistente Inteligente con IA</p>
@@ -1202,11 +1246,11 @@ export default function RauliAssistant() {
         </div>
 
         {/* Perfil activo */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex flex-wrap items-center gap-2 w-full xl:w-auto">
           <select
             value={activeProfileId}
             onChange={(e) => handleProfileChange(e.target.value)}
-            className="bg-white/10 border border-white/10 text-slate-200 text-xs rounded-lg px-2 py-1"
+            className="bg-white/10 border border-white/10 text-slate-200 text-xs rounded-lg px-2 py-1 max-w-full"
           >
             {profiles.map((profile) => (
               <option key={profile.id} value={profile.id}>
@@ -1276,7 +1320,7 @@ export default function RauliAssistant() {
         </div>
 
         {/* Estado */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full xl:w-auto">
           <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`} />
           <span className="text-xs text-slate-400">
             {isOnline ? 'Online' : 'Offline'}
@@ -1798,6 +1842,66 @@ export default function RauliAssistant() {
                     </div>
                   );
                 })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirmación de voz */}
+      <AnimatePresence>
+        {voiceConfirmOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={handleVoiceConfirmCancel}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900/95 rounded-3xl p-6 shadow-2xl border border-white/10 max-w-xl w-full mx-4"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-white font-semibold">Confirmación por voz</h3>
+                <button
+                  type="button"
+                  className="text-slate-400 hover:text-white transition"
+                  onClick={handleVoiceConfirmCancel}
+                >
+                  <HiOutlineX className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-sm text-slate-300 mb-3">
+                Esto fue reconocido por voz. Confirma o edita antes de ejecutar:
+              </p>
+              <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 text-slate-100 text-sm whitespace-pre-wrap">
+                {voiceConfirmText}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={handleVoiceConfirmSend}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm rounded-lg"
+                >
+                  Confirmar y enviar
+                </button>
+                <button
+                  onClick={handleVoiceConfirmEdit}
+                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg"
+                >
+                  Editar texto
+                </button>
+                <button
+                  onClick={handleVoiceConfirmCancel}
+                  className="px-4 py-2 bg-red-900/40 hover:bg-red-900/60 text-red-300 text-sm rounded-lg"
+                >
+                  Cancelar
+                </button>
               </div>
             </motion.div>
           </motion.div>

@@ -5,7 +5,8 @@
 import { useState, useEffect } from 'react';
 import { 
   HiOutlineCurrencyDollar, HiOutlineRefresh, HiOutlineDocumentText,
-  HiOutlineChartPie, HiOutlineLibrary, HiOutlineCreditCard, HiOutlineScale
+  HiOutlineChartPie, HiOutlineLibrary, HiOutlineCreditCard, HiOutlineScale,
+  HiOutlineChevronDown, HiOutlineChevronRight
 } from 'react-icons/hi';
 import { accounting } from '../services/api';
 import { db, logAudit } from '../services/dataService';
@@ -31,6 +32,26 @@ export default function Accounting() {
   const [dashboard, setDashboard] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [entries, setEntries] = useState([]);
+  const [accountDraft, setAccountDraft] = useState({
+    code: "",
+    name: "",
+    type: "asset",
+    nature: "debit",
+    parent: ""
+  });
+  const [editingAccount, setEditingAccount] = useState(null);
+  const [accountSearch, setAccountSearch] = useState("");
+  const [accountTypeFilter, setAccountTypeFilter] = useState("all");
+  const [showInactiveAccounts, setShowInactiveAccounts] = useState(false);
+  const [expandedParents, setExpandedParents] = useState(new Set());
+  const [entryDraft, setEntryDraft] = useState({
+    description: "",
+    date: new Date().toISOString().split("T")[0]
+  });
+  const [entryLines, setEntryLines] = useState([
+    { accountCode: "", description: "", debit: "", credit: "" },
+    { accountCode: "", description: "", debit: "", credit: "" }
+  ]);
   const [bankAccounts, setBankAccounts] = useState([]);
   const [bankTransactions, setBankTransactions] = useState([]);
   const [balanceSheet, setBalanceSheet] = useState(null);
@@ -85,7 +106,10 @@ export default function Accounting() {
 
   useEffect(() => {
     if (activeTab === 'accounts') loadAccounts();
-    if (activeTab === 'entries') loadEntries();
+    if (activeTab === 'entries') {
+      loadEntries();
+      if (accounts.length === 0) loadAccounts();
+    }
     if (activeTab === 'bank') {
       loadBankData();
       loadEntries();
@@ -107,6 +131,12 @@ export default function Accounting() {
       executeRecurringPayments();
     }
   }, [activeTab, recurringAutoPost]);
+
+  useEffect(() => {
+    if (!accounts.length || expandedParents.size) return;
+    const parentCodes = new Set(accounts.filter((acc) => acc.active === 1 && acc.code).map((acc) => acc.code));
+    setExpandedParents(parentCodes);
+  }, [accounts, expandedParents.size]);
 
   useEffect(() => {
     if (bankCountry === 'global') {
@@ -353,14 +383,41 @@ export default function Accounting() {
   const loadAccounts = async () => {
     try {
       const res = await accounting.accounts();
-      setAccounts(res.data.accounts || []);
+      const apiAccounts = res.data.accounts || [];
+      if (apiAccounts.length) {
+        setAccounts(apiAccounts);
+        return;
+      }
+      await accountingCore.initialize();
+      const localAccounts = await db.accounts?.toArray() || [];
+      setAccounts(localAccounts);
     } catch (err) { console.error('Error loading accounts:', err); }
   };
 
   const loadEntries = async () => {
     try {
       const res = await accounting.entries({ limit: 50 });
-      setEntries(res.data.entries || []);
+      const apiEntries = res.data.entries || [];
+      if (apiEntries.length) {
+        setEntries(apiEntries);
+        return;
+      }
+      await accountingCore.initialize();
+      const localEntries = await db.journalEntries?.toArray() || [];
+      const accountMap = new Map((await db.accounts?.toArray() || []).map((acc) => [acc.code, acc.name]));
+      const withLines = await Promise.all(localEntries.map(async (entry) => {
+        const lines = await db.journalLines?.where("entry_id").equals(entry.id).toArray() || [];
+        return {
+          ...entry,
+          lines: lines.map((line) => ({
+            account_code: line.account_code,
+            account_name: accountMap.get(line.account_code) || line.account_code,
+            debit: line.debit,
+            credit: line.credit
+          }))
+        };
+      }));
+      setEntries(withLines);
     } catch (err) { console.error('Error loading entries:', err); }
   };
 
@@ -402,6 +459,211 @@ export default function Accounting() {
     link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleSaveAccount = async () => {
+    if (!accountDraft.code || !accountDraft.name) {
+      toast.error("Completa código y nombre");
+      return;
+    }
+    const normalizedType = normalizeType(accountDraft.type);
+    const confirmText = [
+      editingAccount ? "Vas a actualizar una cuenta contable." : "Vas a crear una cuenta contable.",
+      `Código: ${accountDraft.code}`,
+      `Nombre: ${accountDraft.name}`,
+      `Tipo: ${getAccountTypeLabel(normalizedType)}`,
+      `Naturaleza: ${accountDraft.nature === "debit" ? "Debe" : "Haber"}`,
+      accountDraft.parent ? `Cuenta padre: ${accountDraft.parent}` : "Cuenta padre: (ninguna)",
+      "¿Todo correcto?"
+    ].join("\n");
+    if (!confirm(confirmText)) {
+      toast.error("Acción cancelada");
+      return;
+    }
+    const payload = {
+      id: accountDraft.code,
+      code: accountDraft.code,
+      name: accountDraft.name,
+      type: normalizedType,
+      nature: accountDraft.nature,
+      category: normalizedType,
+      parent: accountDraft.parent || null,
+      balance: 0,
+      active: 1,
+      system: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    await db.accounts?.put(payload);
+    toast.success("Cuenta guardada");
+    setAccountDraft({ code: "", name: "", type: "asset", nature: "debit", parent: "" });
+    setEditingAccount(null);
+    loadAccounts();
+  };
+
+  const handleEditAccount = (account) => {
+    setEditingAccount(account.code);
+    setAccountDraft({
+      code: account.code,
+      name: account.name,
+      type: normalizeType(account.type),
+      nature: account.nature,
+      parent: account.parent || ""
+    });
+  };
+
+  const handleDeactivateAccount = async (account) => {
+    if (account.system === 1) {
+      toast.error("No se pueden desactivar cuentas del sistema");
+      return;
+    }
+    if (!confirm(`Desactivar cuenta ${account.code} - ${account.name}?`)) return;
+    await db.accounts?.update(account.id, { active: 0, updated_at: new Date().toISOString() });
+    toast.success("Cuenta desactivada");
+    loadAccounts();
+  };
+
+  const handleActivateAccount = async (account) => {
+    if (!confirm(`Activar cuenta ${account.code} - ${account.name}?`)) return;
+    await db.accounts?.update(account.id, { active: 1, updated_at: new Date().toISOString() });
+    toast.success("Cuenta activada");
+    loadAccounts();
+  };
+
+  const handleAddEntryLine = () => {
+    setEntryLines((prev) => [...prev, { accountCode: "", description: "", debit: "", credit: "" }]);
+  };
+
+  const handleUpdateEntryLine = (index, changes) => {
+    setEntryLines((prev) => prev.map((line, idx) => (
+      idx === index ? { ...line, ...changes } : line
+    )));
+  };
+
+  const handleRemoveEntryLine = (index) => {
+    setEntryLines((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleSaveEntry = async () => {
+    const cleanedLines = entryLines
+      .map((line) => ({
+        accountCode: line.accountCode,
+        description: line.description,
+        debit: Number(line.debit || 0),
+        credit: Number(line.credit || 0)
+      }))
+      .filter((line) => line.accountCode && (line.debit > 0 || line.credit > 0));
+
+    if (!entryDraft.description || cleanedLines.length < 2) {
+      toast.error("Agrega una descripción y al menos 2 líneas");
+      return;
+    }
+    const totalDebit = cleanedLines.reduce((sum, l) => sum + (l.debit || 0), 0);
+    const totalCredit = cleanedLines.reduce((sum, l) => sum + (l.credit || 0), 0);
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+      toast.error("El asiento está descuadrado (Debe ≠ Haber)");
+      return;
+    }
+    const linesPreview = cleanedLines
+      .map((line) => `${line.accountCode} · ${line.description || "Detalle"} | Debe: ${line.debit} / Haber: ${line.credit}`)
+      .join("\n");
+    const confirmText = [
+      "Vas a registrar un asiento contable manual.",
+      `Descripción: ${entryDraft.description}`,
+      `Fecha: ${entryDraft.date}`,
+      `Debe: ${totalDebit} | Haber: ${totalCredit}`,
+      "Detalle:",
+      linesPreview,
+      "¿Todo correcto?"
+    ].join("\n");
+    if (!confirm(confirmText)) {
+      toast.error("Acción cancelada");
+      return;
+    }
+    try {
+      await accountingCore.createJournalEntry({
+        description: entryDraft.description,
+        reference: "MANUAL",
+        type: "manual",
+        date: entryDraft.date,
+        lines: cleanedLines
+      });
+      toast.success("Asiento registrado");
+      setEntryDraft({ description: "", date: new Date().toISOString().split("T")[0] });
+      setEntryLines([
+        { accountCode: "", description: "", debit: "", credit: "" },
+        { accountCode: "", description: "", debit: "", credit: "" }
+      ]);
+      loadEntries();
+      loadAccounts();
+    } catch (e) {
+      toast.error(e.message || "Error guardando asiento");
+    }
+  };
+
+  const handleVoidEntry = async (entry) => {
+    if (!entry?.id) return;
+    const reason = prompt("Motivo de anulación");
+    if (!reason) return;
+    try {
+      await accountingCore.voidJournalEntry(entry.id, reason);
+      toast.success("Asiento anulado");
+      loadEntries();
+      loadAccounts();
+    } catch (e) {
+      toast.error(e.message || "No se pudo anular el asiento");
+    }
+  };
+
+  const buildAccountTree = (list, options = {}) => {
+    const { search = "", typeFilter = "all", showInactive = false, expanded = new Set() } = options;
+    const trimmed = String(search || "").toLowerCase();
+    const base = showInactive ? (list || []) : (list || []).filter((acc) => acc.active === 1);
+    const byCode = new Map(base.map((acc) => [acc.code, acc]));
+    const childrenMap = new Map();
+    base.forEach((acc) => {
+      const parent = acc.parent || null;
+      if (!childrenMap.has(parent)) childrenMap.set(parent, []);
+      childrenMap.get(parent).push(acc);
+    });
+    childrenMap.forEach((nodes) => nodes.sort((a, b) => a.code.localeCompare(b.code)));
+    const rows = [];
+    const parentCodes = new Set();
+    childrenMap.forEach((nodes, parent) => {
+      if (parent && nodes.length) parentCodes.add(parent);
+    });
+    const typeActive = typeFilter && typeFilter !== "all";
+    const filterActive = Boolean(trimmed) || typeActive;
+    const includeCodes = new Set();
+    if (filterActive) {
+      base.forEach((acc) => {
+        const typeOk = !typeActive || normalizeType(acc.type) === typeFilter;
+        const searchOk = !trimmed || `${acc.code} ${acc.name}`.toLowerCase().includes(trimmed);
+        if (typeOk && searchOk) {
+          includeCodes.add(acc.code);
+          let parent = acc.parent;
+          while (parent) {
+            includeCodes.add(parent);
+            parent = byCode.get(parent)?.parent || null;
+          }
+        }
+      });
+    }
+    const walk = (parent, depth) => {
+      const nodes = childrenMap.get(parent) || [];
+      nodes.forEach((node) => {
+        if (filterActive && !includeCodes.has(node.code)) return;
+        rows.push({
+          ...node,
+          depth,
+          hasChildren: (childrenMap.get(node.code) || []).length > 0
+        });
+        if (!expanded.has(node.code) && (childrenMap.get(node.code) || []).length > 0) return;
+        walk(node.code, depth + 1);
+      });
+    };
+    walk(null, 0);
+    return { rows, byCode, parentCodes };
   };
   const getDayDiff = (dateA, dateB) => {
     if (!dateA || !dateB) return Number.POSITIVE_INFINITY;
@@ -557,20 +819,42 @@ export default function Accounting() {
     return alerts;
   };
 
+  const normalizeType = (type) => {
+    const map = {
+      activo: "asset",
+      pasivo: "liability",
+      patrimonio: "equity",
+      ingreso: "revenue",
+      gasto: "expense",
+      costo: "cost"
+    };
+    return map[type] || type;
+  };
+
   const getAccountTypeLabel = (type) => {
-    const types = { 'activo': 'Activo', 'pasivo': 'Pasivo', 'patrimonio': 'Patrimonio', 'ingreso': 'Ingreso', 'gasto': 'Gasto' };
-    return types[type] || type;
+    const normalized = normalizeType(type);
+    const types = {
+      asset: 'Activo',
+      liability: 'Pasivo',
+      equity: 'Patrimonio',
+      revenue: 'Ingreso',
+      cost: 'Costo',
+      expense: 'Gasto'
+    };
+    return types[normalized] || type;
   };
 
   const getAccountTypeColor = (type) => {
+    const normalized = normalizeType(type);
     const colors = {
-      'activo': 'bg-blue-500/20 text-blue-400',
-      'pasivo': 'bg-red-500/20 text-red-400',
-      'patrimonio': 'bg-purple-500/20 text-purple-400',
-      'ingreso': 'bg-green-500/20 text-green-400',
-      'gasto': 'bg-yellow-500/20 text-yellow-400',
+      asset: 'bg-blue-500/20 text-blue-400',
+      liability: 'bg-red-500/20 text-red-400',
+      equity: 'bg-purple-500/20 text-purple-400',
+      revenue: 'bg-green-500/20 text-green-400',
+      cost: 'bg-orange-500/20 text-orange-400',
+      expense: 'bg-yellow-500/20 text-yellow-400',
     };
-    return colors[type] || 'bg-slate-500/20 text-slate-400';
+    return colors[normalized] || 'bg-slate-500/20 text-slate-400';
   };
 
   // ==================== TAB COMPONENTS ====================
@@ -619,9 +903,151 @@ export default function Accounting() {
     </div>
   );
 
-  const AccountsTab = () => (
+  const AccountsTab = () => {
+    const treeData = buildAccountTree(accounts, {
+      search: accountSearch,
+      typeFilter: accountTypeFilter,
+      showInactive: showInactiveAccounts,
+      expanded: expandedParents
+    });
+    const toggleExpand = (code) => {
+      setExpandedParents((prev) => {
+        const next = new Set(prev);
+        if (next.has(code)) next.delete(code);
+        else next.add(code);
+        return next;
+      });
+    };
+    return (
     <div className="space-y-4">
       <p className="text-slate-400">Plan de cuentas contables</p>
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <input
+            type="text"
+            value={accountSearch}
+            onChange={(e) => setAccountSearch(e.target.value)}
+            placeholder="Buscar por código o nombre"
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm md:col-span-2"
+          />
+          <select
+            value={accountTypeFilter}
+            onChange={(e) => setAccountTypeFilter(e.target.value)}
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+          >
+            <option value="all">Todos los tipos</option>
+            <option value="asset">Activo</option>
+            <option value="liability">Pasivo</option>
+            <option value="equity">Patrimonio</option>
+            <option value="revenue">Ingreso</option>
+            <option value="cost">Costo</option>
+            <option value="expense">Gasto</option>
+          </select>
+          <label className="flex items-center gap-2 text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={showInactiveAccounts}
+              onChange={(e) => setShowInactiveAccounts(e.target.checked)}
+            />
+            Mostrar inactivas
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setExpandedParents(new Set(treeData.parentCodes))}
+            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded-lg"
+          >
+            Expandir todo
+          </button>
+          <button
+            onClick={() => setExpandedParents(new Set())}
+            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded-lg"
+          >
+            Colapsar todo
+          </button>
+        </div>
+      </div>
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={async () => {
+              await accountingCore.initialize();
+              loadAccounts();
+              toast.success("Plan de cuentas cargado");
+            }}
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm rounded-lg"
+          >
+            Cargar plan base
+          </button>
+          <button
+            onClick={() => {
+              setAccountDraft({ code: "", name: "", type: "asset", nature: "debit", parent: "" });
+              setEditingAccount(null);
+            }}
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg"
+          >
+            Limpiar
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <input
+            type="text"
+            value={accountDraft.code}
+            onChange={(e) => setAccountDraft((prev) => ({ ...prev, code: e.target.value }))}
+            placeholder="Código (ej: 1100)"
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+            disabled={Boolean(editingAccount)}
+          />
+          <input
+            type="text"
+            value={accountDraft.name}
+            onChange={(e) => setAccountDraft((prev) => ({ ...prev, name: e.target.value }))}
+            placeholder="Nombre de la cuenta"
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+          />
+          <select
+            value={accountDraft.type}
+            onChange={(e) => setAccountDraft((prev) => ({ ...prev, type: e.target.value }))}
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+          >
+            <option value="asset">Activo</option>
+            <option value="liability">Pasivo</option>
+            <option value="equity">Patrimonio</option>
+            <option value="revenue">Ingreso</option>
+            <option value="cost">Costo</option>
+            <option value="expense">Gasto</option>
+          </select>
+          <select
+            value={accountDraft.nature}
+            onChange={(e) => setAccountDraft((prev) => ({ ...prev, nature: e.target.value }))}
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+          >
+            <option value="debit">Debe (débit)</option>
+            <option value="credit">Haber (crédito)</option>
+          </select>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <select
+            value={accountDraft.parent}
+            onChange={(e) => setAccountDraft((prev) => ({ ...prev, parent: e.target.value }))}
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+          >
+            <option value="">Cuenta padre (opcional)</option>
+            {accounts.filter((acc) => acc.active === 1).map((acc) => (
+              <option key={acc.code} value={acc.code}>{acc.code} · {acc.name}</option>
+            ))}
+          </select>
+          <div className="text-xs text-slate-400 flex items-center">
+            Usa cuenta padre para crear subcuentas (estructura jerárquica).
+          </div>
+        </div>
+        <button
+          onClick={handleSaveAccount}
+          className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm rounded-lg"
+        >
+          {editingAccount ? "Actualizar cuenta" : "Guardar cuenta"}
+        </button>
+      </div>
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
         <table className="w-full">
           <thead className="bg-slate-700/50">
@@ -630,13 +1056,33 @@ export default function Accounting() {
               <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Nombre</th>
               <th className="px-4 py-3 text-center text-sm font-medium text-slate-300">Tipo</th>
               <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">Balance</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {accounts.map(acc => (
+            {treeData.rows.map(acc => (
               <tr key={acc.id} className="border-t border-slate-700/50 hover:bg-slate-700/30">
                 <td className="px-4 py-3 text-indigo-400 font-mono">{acc.code}</td>
-                <td className="px-4 py-3 text-white">{acc.name}</td>
+                <td className="px-4 py-3 text-white">
+                  <div className="flex items-center gap-2" style={{ paddingLeft: `${acc.depth * 14}px` }}>
+                    {acc.hasChildren && (
+                      <button
+                        onClick={() => toggleExpand(acc.code)}
+                        className="text-slate-400 hover:text-white"
+                        title={expandedParents.has(acc.code) ? "Colapsar" : "Expandir"}
+                      >
+                        {expandedParents.has(acc.code) ? <HiOutlineChevronDown className="w-4 h-4" /> : <HiOutlineChevronRight className="w-4 h-4" />}
+                      </button>
+                    )}
+                    {!acc.hasChildren && <span className="w-4 h-4" />}
+                    <span>{acc.name}</span>
+                    {acc.hasChildren && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300 border border-slate-600/60">
+                        Padre
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-center">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAccountTypeColor(acc.type)}`}>
                     {getAccountTypeLabel(acc.type)}
@@ -645,18 +1091,128 @@ export default function Accounting() {
                 <td className={`px-4 py-3 text-right font-medium ${acc.balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {formatCurrency(acc.balance)}
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => handleEditAccount(acc)}
+                      className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-white rounded"
+                    >
+                      Editar
+                    </button>
+                    {acc.active === 1 ? (
+                      <button
+                        onClick={() => handleDeactivateAccount(acc)}
+                        className="px-2 py-1 text-xs bg-red-900/40 hover:bg-red-900/60 text-red-300 rounded"
+                      >
+                        Desactivar
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleActivateAccount(acc)}
+                        className="px-2 py-1 text-xs bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-300 rounded"
+                      >
+                        Activar
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
-            {accounts.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">No hay cuentas registradas</td></tr>}
+            {treeData.rows.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                  No hay cuentas registradas o no coinciden con el filtro
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
+  };
 
   const EntriesTab = () => (
     <div className="space-y-4">
       <p className="text-slate-400">Asientos contables (Libro Diario)</p>
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input
+            type="text"
+            value={entryDraft.description}
+            onChange={(e) => setEntryDraft((prev) => ({ ...prev, description: e.target.value }))}
+            placeholder="Descripción del asiento"
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+          />
+          <input
+            type="date"
+            value={entryDraft.date}
+            onChange={(e) => setEntryDraft((prev) => ({ ...prev, date: e.target.value }))}
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+          />
+        </div>
+        <div className="space-y-2">
+          {entryLines.map((line, idx) => (
+            <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2">
+              <select
+                value={line.accountCode}
+                onChange={(e) => handleUpdateEntryLine(idx, { accountCode: e.target.value })}
+                className="md:col-span-4 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+              >
+                <option value="">Cuenta</option>
+                {accounts.map((acc) => (
+                  <option key={acc.code} value={acc.code}>{acc.code} · {acc.name}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={line.description}
+                onChange={(e) => handleUpdateEntryLine(idx, { description: e.target.value })}
+                placeholder="Detalle"
+                className="md:col-span-4 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+              />
+              <input
+                type="number"
+                value={line.debit}
+                onChange={(e) => handleUpdateEntryLine(idx, { debit: e.target.value })}
+                placeholder="Debe"
+                className="md:col-span-2 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+              />
+              <input
+                type="number"
+                value={line.credit}
+                onChange={(e) => handleUpdateEntryLine(idx, { credit: e.target.value })}
+                placeholder="Haber"
+                className="md:col-span-2 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+              />
+              <div className="md:col-span-12 flex justify-end">
+                {entryLines.length > 2 && (
+                  <button
+                    onClick={() => handleRemoveEntryLine(idx)}
+                    className="px-3 py-1 text-xs text-red-300 hover:text-red-200"
+                  >
+                    Quitar línea
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleAddEntryLine}
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg"
+          >
+            + Agregar línea
+          </button>
+          <button
+            onClick={handleSaveEntry}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm rounded-lg"
+          >
+            Guardar asiento
+          </button>
+        </div>
+      </div>
       <div className="space-y-4">
         {entries.map(entry => (
           <div key={entry.id} className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
@@ -670,6 +1226,12 @@ export default function Accounting() {
                 <span className={`ml-3 px-2 py-1 rounded text-xs ${entry.status === 'posted' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                   {entry.status}
                 </span>
+                <button
+                  onClick={() => handleVoidEntry(entry)}
+                  className="ml-3 px-2 py-1 text-xs bg-red-900/40 hover:bg-red-900/60 text-red-300 rounded"
+                >
+                  Anular
+                </button>
               </div>
             </div>
             <table className="w-full">

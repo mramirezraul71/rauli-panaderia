@@ -35,6 +35,9 @@ const getSystemContext = async () => {
 const DEFAULT_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 const DEFAULT_GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 const OPENAI_PROXY_ENDPOINT = "/api/ai/openai";
+const DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
+const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
+const DEFAULT_OLLAMA_MODEL = "llama3.1";
 
 const decodeKeyValue = (value) => {
   if (!value) return null;
@@ -86,25 +89,49 @@ const getAiSettings = async () => {
   let geminiKey = null;
   let geminiEnabled = false;
   let openaiKey = null;
-    let openaiEnabled = false;
+  let openaiEnabled = false;
+  let deepseekKey = null;
+  let deepseekEnabled = false;
+  let ollamaEnabled = false;
+  let ollamaBaseUrl = DEFAULT_OLLAMA_BASE_URL;
+  let ollamaModel = DEFAULT_OLLAMA_MODEL;
   let primaryProvider = "gemini";
   let baseUrl = DEFAULT_GEMINI_BASE_URL;
+  let deepseekBaseUrl = DEFAULT_DEEPSEEK_BASE_URL;
 
   try {
     const gKey = await db.settings?.get("ai_api_key");
     const gEnabled = await db.settings?.get("gemini_enabled");
     const oKey = await db.settings?.get("openai_api_key");
     const oEnabled = await db.settings?.get("openai_enabled");
+    const dKey = await db.settings?.get("deepseek_api_key");
+    const dEnabled = await db.settings?.get("deepseek_enabled");
+    const dUrl = await db.settings?.get("deepseek_base_url");
+    const oLocalEnabled = await db.settings?.get("ollama_enabled");
+    const oLocalBase = await db.settings?.get("ollama_base_url");
+    const oLocalModel = await db.settings?.get("ollama_model");
     const primary = await db.settings?.get("primary_provider");
     const bUrl = await db.settings?.get("ai_base_url");
 
     if (gKey?.value) geminiKey = decodeKeyValue(gKey.value);
     if (oKey?.value) openaiKey = decodeKeyValue(oKey.value);
+    if (dKey?.value) deepseekKey = decodeKeyValue(dKey.value);
     geminiEnabled = gEnabled?.value === "true" || gEnabled?.value === true;
     openaiEnabled = oEnabled?.value === "true" || oEnabled?.value === true;
+    deepseekEnabled = dEnabled?.value === "true" || dEnabled?.value === true;
+    ollamaEnabled = oLocalEnabled?.value === "true" || oLocalEnabled?.value === true;
     if (primary?.value) primaryProvider = primary.value;
     if (bUrl?.value && bUrl.value.trim()) {
       baseUrl = bUrl.value.trim();
+    }
+    if (dUrl?.value && dUrl.value.trim()) {
+      deepseekBaseUrl = dUrl.value.trim();
+    }
+    if (oLocalBase?.value && oLocalBase.value.trim()) {
+      ollamaBaseUrl = oLocalBase.value.trim();
+    }
+    if (oLocalModel?.value && oLocalModel.value.trim()) {
+      ollamaModel = oLocalModel.value.trim();
     }
   } catch (e) {
     console.error("Config error:", e);
@@ -115,8 +142,14 @@ const getAiSettings = async () => {
     geminiEnabled,
     openaiKey,
     openaiEnabled,
+    deepseekKey,
+    deepseekEnabled,
+    ollamaEnabled,
+    ollamaBaseUrl,
+    ollamaModel,
     primaryProvider,
-    baseUrl
+    baseUrl,
+    deepseekBaseUrl
   };
 };
 
@@ -161,6 +194,20 @@ const getLanguageInstructions = (language) => {
   return instructions[language] || instructions.es;
 };
 
+const classifyTaskComplexity = (text = "") => {
+  const input = String(text || "").trim();
+  if (!input) return "simple";
+  const lengthScore = input.length > 240 ? 2 : input.length > 120 ? 1 : 0;
+  const complexHints = /(analiza|estrategia|plan|audita|optimiza|pipeline|arquitectura|comparativo|diagnóstico|riesgo|proyecci[oó]n|modelo financiero|legal|pol[ií]tica|compliance|kpi|forecast|integraci[oó]n|migraci[oó]n|optimización)/i;
+  const mediumHints = /(reporte|resumen|explica|detalle|consulta|configura|pasos|procedimiento|documenta|inventario|ventas|compras|contabilidad|producción|calidad)/i;
+  let score = lengthScore;
+  if (complexHints.test(input)) score += 2;
+  if (mediumHints.test(input)) score += 1;
+  if (score >= 3) return "alta";
+  if (score === 2) return "media";
+  return "simple";
+};
+
 export const AIEngine = {
   processInput: async ({ text = "", voiceBlob = null, imageFile = null, context = "" } = {}) => {
     if (voiceBlob) return await AIEngine.processVoice(voiceBlob, context);
@@ -168,18 +215,19 @@ export const AIEngine = {
     return await AIEngine.processText(text, context);
   },
   processText: async (text, context = "", imageBase64 = null) => {
-    if (!navigator.onLine) {
-      const language = getBusinessConfig().appLanguage || "es";
-      return localOfflineResponse(text, language);
-    }
-
     const {
       geminiKey,
       geminiEnabled,
       openaiKey,
       openaiEnabled,
+      deepseekKey,
+      deepseekEnabled,
+      ollamaEnabled,
+      ollamaBaseUrl,
+      ollamaModel,
       primaryProvider,
-      baseUrl
+      baseUrl,
+      deepseekBaseUrl
     } = await getAiSettings();
 
     const allowOpenaiProxy = true;
@@ -199,9 +247,37 @@ export const AIEngine = {
     const ctx = `Eres GENESIS, un asistente avanzado de gestión empresarial. ${languagePrompt} Usa el locale ${langConfig?.locale || "es-ES"} para fechas y moneda.
 Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moneda "${businessConfig.currency}", impuesto ${businessConfig.taxRate}.` + context + systemContext;
 
-    // Orden segun proveedor principal
-    const tryGeminiFirst = primaryProvider === "gemini" && geminiEnabled && geminiKey;
-    const tryOpenaiFirst = primaryProvider === "openai" && openaiEnabled && openaiKey;
+    // FUNCION OLLAMA (local/offline)
+    const tryOllama = async () => {
+      if (!ollamaEnabled || !ollamaBaseUrl) return null;
+      try {
+        console.log("Ollama intentando...");
+        const response = await fetch(`${ollamaBaseUrl.replace(/\/+$/, "")}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: ollamaModel || DEFAULT_OLLAMA_MODEL,
+            stream: false,
+            messages: [
+              { role: "system", content: ctx },
+              { role: "user", content: text }
+            ]
+          })
+        });
+        console.log("Ollama ->", response.status);
+        if (response.ok) {
+          const data = await response.json();
+          const msg = data.message?.content;
+          if (msg) {
+            console.log("OK Ollama");
+            return { text: msg.trim(), provider: "Ollama", model: ollamaModel || DEFAULT_OLLAMA_MODEL };
+          }
+        }
+      } catch (e) {
+        console.log("Error Ollama:", e.message);
+      }
+      return null;
+    };
 
     // FUNCION GEMINI
     const tryGemini = async () => {
@@ -209,9 +285,9 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
       
       // Modelos en orden de prioridad (usando el formato exacto de Google)
       const models = [
-        "gemini-pro",
         "gemini-1.5-flash",
         "gemini-1.5-pro",
+        "gemini-pro",
         "gemini-2.0-flash"
       ];
       
@@ -250,7 +326,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
             if (retry.ok) {
               const data = await retry.json();
               const msg = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (msg) return msg.trim();
+              if (msg) return { text: msg.trim(), provider: "Gemini", model: modelId };
             }
           }
           
@@ -264,7 +340,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
             const msg = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (msg) {
               console.log("OK Gemini con:", modelId);
-              return msg.trim();
+              return { text: msg.trim(), provider: "Gemini", model: modelId };
             }
           }
         } catch (e) { 
@@ -320,7 +396,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
           const msg = data.choices?.[0]?.message?.content;
           if (msg) {
             console.log("OK OpenAI");
-            return msg.trim();
+            return { text: msg.trim(), provider: "OpenAI", model: payload.model };
           }
         }
       } catch (e) {
@@ -329,23 +405,89 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
       return null;
     };
 
-    // EJECUTAR EN ORDEN
+    // FUNCION DEEPSEEK (económico)
+    const tryDeepseek = async () => {
+      if (!deepseekEnabled || !deepseekKey) return null;
+      const payload = {
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: ctx },
+          { role: "user", content: text }
+        ],
+        max_tokens: 500,
+        temperature: 0.7
+      };
+      try {
+        console.log("DeepSeek intentando...");
+        const response = await fetch(`${deepseekBaseUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + deepseekKey
+          },
+          body: JSON.stringify(payload)
+        });
+        console.log("DeepSeek ->", response.status);
+        if (response.ok) {
+          const data = await response.json();
+          const msg = data.choices?.[0]?.message?.content;
+          if (msg) {
+            console.log("OK DeepSeek");
+            return { text: msg.trim(), provider: "DeepSeek", model: payload.model };
+          }
+        }
+        if (response.status === 402 || response.status === 429) {
+          const data = await response.json().catch(() => ({}));
+          const message = data?.error?.message || "";
+          if (/insufficient|balance|quota/i.test(message)) {
+            return { text: "__DEEPSEEK_BALANCE__", action: null };
+          }
+        }
+      } catch (e) {
+        console.log("Error DeepSeek:", e.message);
+      }
+      return null;
+    };
+
+    // EJECUTAR EN ORDEN POR COMPLEJIDAD
     let result = null;
-    
-    if (tryGeminiFirst) {
-      result = await tryGemini();
-      if (!result) result = await tryOpenai();
-    } else if (tryOpenaiFirst) {
-      result = await tryOpenai();
-      if (!result) result = await tryGemini();
-    } else {
-      // Intentar ambos
-      result = await tryGemini();
-      if (!result) result = await tryOpenai();
+    const complexity = classifyTaskComplexity(text);
+    const online = navigator.onLine;
+    const chainByComplexity = {
+      simple: online
+        ? [tryGemini, tryDeepseek, tryOpenai, tryOllama]
+        : [tryOllama],
+      media: online
+        ? [tryGemini, tryDeepseek, tryOpenai]
+        : [tryOllama],
+      alta: online
+        ? [tryOpenai, tryDeepseek, tryGemini, tryOllama]
+        : [tryOllama]
+    };
+    const chain = chainByComplexity[complexity] || (online ? [tryGemini, tryDeepseek, tryOpenai, tryOllama] : [tryOllama]);
+    let balanceWarning = "";
+    for (const runner of chain) {
+      const attempt = await runner();
+      if (attempt && typeof attempt === "object" && attempt.text === "__DEEPSEEK_BALANCE__") {
+        balanceWarning = "Saldo insuficiente en DeepSeek. Continué con otro motor.";
+        continue;
+      }
+      if (attempt) {
+        result = attempt;
+        break;
+      }
     }
 
     if (result) {
-      return { text: result, action: null };
+      const prefix = balanceWarning ? `${balanceWarning}\n\n` : "";
+      const modelLabel = result.provider ? `Modelo activo: ${result.provider}${result.model ? ` (${result.model})` : ""}` : "";
+      const header = modelLabel ? `${modelLabel}\n` : "";
+      return { text: `${header}${prefix}${result.text || result}`, action: null };
+    }
+
+    if (!navigator.onLine) {
+      const language = getBusinessConfig().appLanguage || "es";
+      return localOfflineResponse(text, language);
     }
 
     return { text: "No se pudo conectar. Verifica tu configuracion de IA.", action: null };
