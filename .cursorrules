@@ -1,0 +1,71 @@
+@Codebase Actúa como Arquitecto de Software Senior y Lead Designer.
+
+**PASO 1: ACTUALIZACIÓN DE LA CONSTITUCIÓN**
+Primero, edita el archivo `.cursorrules` y AÑADE este bloque al final para garantizar la calidad visual futura:
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.
+
+**PASO 2: REPARACIÓN DEL NÚCLEO DE IA (Hybrid Engine)**
+Refactoriza `src/services/AIEngine.js` (o crea uno nuevo robusto):
+1. **Arreglo API (Error 404):** Asegúrate de usar la URL correcta de Gemini (`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent`) y que la API Key se lea bien.
+2. **Estructura Omnicanal:** Prepara funciones vacías o lógicas para:
+   - `processVoice(audioBlob)` (Input de micrófono).
+   - `processVision(imageFile)` (Input de cámara).
+3. **Modo Offline:** Implementa un "Circuit Breaker". Si `!navigator.onLine`, no llames a Gemini; deriva a una respuesta simulada de un "Local Bot" (preparando el terreno para un LLM local).
+
+**PASO 3: INTERFAZ VISUAL DE ÚLTIMA GENERACIÓN**
+Actualiza el componente del Chat/Asistente para cumplir con las nuevas reglas:
+1. **Estética:** Usa un contenedor con efecto "Glassmorphism" (backdrop-filter: blur) para que parezca flotar sobre la app.
+2. **Animaciones:** Los mensajes deben aparecer suavemente (FadeIn + SlideUp).
+3. **Sonidos:** Añade efectos de sonido muy sutiles ("pop" o "click") al enviar un mensaje y al recibir respuesta de la IA (usa objetos `Audio` simples).
+4. **Controles:** Muestra iconos de 🎤 (Micrófono) y 📷 (Cámara) con animaciones al hacer hover/click.
+
+Ejecuta todo esto respetando la persistencia de datos.
+
+## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
+1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
+2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
+3. **Multi-Sensory Feedback:** Integrate subtle UI sounds (clicks/blips) for interactions to enhance the "feeling" of the app.

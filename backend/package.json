@@ -1,0 +1,31 @@
+{
+  "name": "genesis-backend",
+  "version": "1.0.0",
+  "description": "Backend API para GENESIS - Plataforma de gestión empresarial",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node database/init.js",
+    "seed": "node database/seed.js",
+    "backup": "node scripts/backup.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^9.4.3",
+    "cors": "^2.8.5",
+    "date-fns": "^3.3.1",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.12",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

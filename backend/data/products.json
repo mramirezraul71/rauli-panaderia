@@ -1,0 +1,8 @@
+{
+  "id": "PROD-123",
+  "name": "Harina",
+  "type": "insumo",
+  "price": 2.50,
+  "stock": 100,
+  "unit": "kg"
+}

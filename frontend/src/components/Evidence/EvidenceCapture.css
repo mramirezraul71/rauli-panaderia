@@ -1,0 +1,406 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   GENESIS - EVIDENCE VAULT STYLES
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.evidence-capture {
+  background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.evidence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.evidence-title {
+  color: #e2e8f0;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.evidence-title .required {
+  color: #f56565;
+  margin-left: 4px;
+}
+
+.evidence-count {
+  background: #667eea;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACTION BUTTONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.evidence-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-evidence {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-camera {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-camera:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-gallery {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+}
+
+.btn-gallery:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.btn-signature {
+  background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+  color: white;
+}
+
+.btn-signature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(237, 137, 54, 0.4);
+}
+
+.hidden {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROCESSING INDICATOR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.processing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  color: #667eea;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(102, 126, 234, 0.3);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVIDENCE GRID
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.evidence-item {
+  position: relative;
+  aspect-ratio: 1;
+  background: #2d3748;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.evidence-item:hover {
+  transform: scale(1.05);
+}
+
+.evidence-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.evidence-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.evidence-item:hover .evidence-overlay {
+  opacity: 1;
+}
+
+.btn-preview,
+.btn-delete {
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-preview:hover {
+  background: rgba(102, 126, 234, 0.8);
+}
+
+.btn-delete:hover {
+  background: rgba(245, 101, 101, 0.8);
+}
+
+.evidence-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  background: #ed8936;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VALIDATION MESSAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.validation-message {
+  color: #f56565;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODALS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+/* Camera Modal */
+.camera-modal {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.camera-video {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.camera-controls {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.btn-close,
+.btn-capture {
+  width: 64px;
+  height: 64px;
+  border: none;
+  border-radius: 50%;
+  background: white;
+  color: #1a202c;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close {
+  background: #718096;
+  color: white;
+}
+
+.btn-close:hover,
+.btn-capture:hover {
+  transform: scale(1.1);
+}
+
+/* Signature Modal */
+.signature-modal {
+  background: #1a202c;
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.signature-modal h3 {
+  color: #e2e8f0;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+}
+
+.signature-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.signature-canvas {
+  background: white;
+  border-radius: 8px;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.signature-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-clear,
+.btn-cancel,
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-clear {
+  background: #718096;
+  color: white;
+}
+
+.btn-cancel {
+  background: #4a5568;
+  color: white;
+}
+
+.btn-save {
+  background: #48bb78;
+  color: white;
+}
+
+.btn-clear:hover,
+.btn-cancel:hover,
+.btn-save:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+/* Preview Modal */
+.preview-modal {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.btn-close-preview {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-close-preview:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .evidence-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .camera-modal {
+    width: 100%;
+  }
+
+  .signature-modal {
+    margin: 20px;
+  }
+
+  .signature-canvas {
+    width: 100%;
+    max-width: 350px;
+  }
+}
