@@ -5,3 +5,7 @@ dev-dist/
 .env.*
 *.log
 .DS_Store
+backend/database/*.db
+backend/database/*.db-shm
+backend/database/*.db-wal
+*.zip
