@@ -12,13 +12,15 @@ export async function testGeminiAPI(apiKey) {
     };
   }
 
-  // Modelos a probar en orden de preferencia
+  // Modelos actuales (enero 2026) - gemini-pro y 1.5 pueden dar 404
   const modelsToTest = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash-lite",
     "gemini-1.5-flash",
     "gemini-1.5-pro",
-    "gemini-pro",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro-latest"
+    "gemini-pro"
   ];
 
   console.log("🧪 Iniciando prueba de Gemini API...");

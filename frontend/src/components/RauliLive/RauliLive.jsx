@@ -6,6 +6,7 @@ import RauliAvatar from "./RauliAvatar";
 import { useVoiceInput } from "../../hooks/useVoiceInput";
 import { useVoiceSynthesis } from "../../hooks/useVoiceSynthesis";
 import { useGeminiStream } from "../../hooks/useGeminiStream";
+import { getGeminiApiKey } from "../../services/aiConfigPersistence";
 import { RAULI_SYSTEM_PROMPT, getRauliContext } from "../../config/rauliPersonality";
 import { useRauli } from "../../context/RauliContext";
 
@@ -25,6 +26,11 @@ export default function RauliLive() {
   const [currentMessage, setCurrentMessage] = useState("");
   const [conversationHistory, setConversationHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+
+  useEffect(() => {
+    getGeminiApiKey().then((k) => setGeminiApiKey(k || ""));
+  }, []);
 
   // Refs
   const messageTimeoutRef = useRef(null);
@@ -57,8 +63,8 @@ export default function RauliLive() {
   });
 
   const gemini = useGeminiStream({
-    apiKey: localStorage.getItem("rauli_gemini_key") || "",
-    model: "gemini-1.5-flash",
+    apiKey: geminiApiKey,
+    model: "gemini-2.5-flash",
     systemPrompt: rauliContext
   });
 
@@ -191,9 +197,8 @@ export default function RauliLive() {
       return;
     }
 
-    // Procesar con Gemini (si está configurado)
-    const geminiKey = localStorage.getItem("rauli_gemini_key");
-    if (geminiKey && geminiKey.length > 10) {
+    // Procesar con Gemini (si está configurado - persistencia dual)
+    if (geminiApiKey && geminiApiKey.length > 10) {
       try {
         const response = await gemini.sendMessage(text);
         
@@ -239,7 +244,7 @@ export default function RauliLive() {
     }
     
     // NOTA: wasVoiceInputRef se resetea dentro de showMessage después de reproducir voz
-  }, [gemini, processNavigationCommand]);
+  }, [gemini, geminiApiKey, processNavigationCommand]);
 
   // 🛡️ Actualizar refs de funciones después de sus definiciones
   useEffect(() => {

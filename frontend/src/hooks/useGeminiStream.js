@@ -12,7 +12,7 @@ import { useCallback, useRef, useState } from "react";
  */
 export function useGeminiStream({ 
   apiKey, 
-  model = "gemini-1.5-flash", // Modelo estable sin -latest
+  model = "gemini-2.5-flash", // Modelo actual (enero 2026)
   temperature = 0.7, 
   maxTokens = 2048,
   systemPrompt = "" // ✅ NUEVO: System prompt para dar contexto
@@ -144,7 +144,7 @@ export function useGeminiStream({
     setError(null);
 
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       
       const requestBody = {
         contents: [{

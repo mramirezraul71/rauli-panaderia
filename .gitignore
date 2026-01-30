@@ -9,3 +9,14 @@ backend/database/*.db
 backend/database/*.db-shm
 backend/database/*.db-wal
 *.zip
+
+# Robot ATLAS
+robot/omni_telegram.env
+robot/chrome_data/
+robot/evidencia/
+robot/downloads/
+robot/traces/
+robot/audio_temp/
+robot/*.log
+robot/ffmpeg.exe
+robot/historial_despliegues.xlsx

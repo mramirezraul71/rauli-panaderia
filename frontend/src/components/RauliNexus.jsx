@@ -13,6 +13,7 @@ import {
   HiOutlineCog
 } from "react-icons/hi";
 import { useRauli } from "../context/RauliContext";
+import { getGeminiApiKey, saveAIConfig, syncGeminiKeyToLocalStorage } from "../services/aiConfigPersistence";
 import { useVoiceInput } from "../hooks/useVoiceInput";
 import { useVoiceSynthesis } from "../hooks/useVoiceSynthesis";
 import { useGeminiStream } from "../hooks/useGeminiStream";
@@ -53,7 +54,7 @@ export default function RauliNexus() {
     useVoiceInput: false,
     useVoiceOutput: false,
     autoNavigate: true,
-    geminiApiKey: localStorage.getItem("rauli_gemini_key") || "",
+    geminiApiKey: "",
     useGeminiAI: false,
     language: "es-ES",
     voiceSpeed: 1.0,
@@ -96,7 +97,7 @@ export default function RauliNexus() {
 
   const gemini = useGeminiStream({
     apiKey: settings.geminiApiKey,
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
     temperature: settings.thinkMode ? 0.3 : 0.7,
     systemPrompt: rauliContext // ✅ Inyectar personalidad de RAULI
   });
@@ -105,6 +106,12 @@ export default function RauliNexus() {
     facingMode: "user",
     resolution: "hd"
   });
+
+  useEffect(() => {
+    getGeminiApiKey().then((k) =>
+      setSettings((s) => ({ ...s, geminiApiKey: k || "" }))
+    );
+  }, []);
 
   // Inicializar sonidos
   useEffect(() => {
@@ -1140,7 +1147,8 @@ Mi micrófono permanece activo hasta que me digas "detener" o hagas clic en el b
                         onChange={(e) => {
                           const key = e.target.value;
                           setSettings(prev => ({ ...prev, geminiApiKey: key }));
-                          localStorage.setItem("rauli_gemini_key", key);
+                          saveAIConfig("ai_api_key", key);
+                          syncGeminiKeyToLocalStorage(key);
                         }}
                         className="w-full px-3 py-2 rounded-lg bg-slate-900/80 border border-violet-500/50 text-slate-200 text-sm placeholder:text-slate-500 mb-2"
                       />

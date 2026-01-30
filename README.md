@@ -242,6 +242,14 @@ SQLite con modo WAL para mejor rendimiento:
 - Fuentes: Inter, Poppins, JetBrains Mono
 - Iconos: Heroicons (react-icons/hi)
 
+## 🤖 Robot ATLAS (rauli-panaderia)
+
+Bot de Telegram para despliegues, capturas y comprobación. Ver **[robot/README.md](robot/README.md)**.
+
+- `/ping`, `/captura` — Comprobar bot y recibir captura de la app
+- Voz: «Despliega la panadería» — Vercel + Render
+- `robot_preparar_todo.bat` — Instalar todo y comprobar bot
+
 ## 📝 Licencia
 
 MIT License - Desarrollado para GENESIS

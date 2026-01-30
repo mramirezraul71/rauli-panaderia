@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { db } from "../services/dataService";
+import { loadAIConfig, saveAIConfig, syncGeminiKeyToLocalStorage } from "../services/aiConfigPersistence";
 import { BUSINESS_CONFIG_DEFAULTS, setBusinessConfig } from "../config/businessConfig";
 import { HiOutlineCode, HiOutlineCog } from "react-icons/hi";
 import { diagnoseGemini } from "../utils/testGeminiAPI";
@@ -39,14 +40,18 @@ export default function Settings() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const g = await db.settings?.get("ai_api_key");
-        const gEnabled = await db.settings?.get("gemini_enabled");
-        const b = await db.settings?.get("ai_base_url");
-        const dKey = await db.settings?.get("deepseek_api_key");
-        const dEnabled = await db.settings?.get("deepseek_enabled");
+        const aiConfig = await loadAIConfig();
+        if (aiConfig.geminiKey) { setGeminiKey(aiConfig.geminiKey); setGeminiStatus("saved"); }
+        setGeminiEnabled(aiConfig.geminiEnabled);
+        if (aiConfig.baseUrl) setCustomBaseUrl(aiConfig.baseUrl);
+        if (aiConfig.openaiKey) setOpenaiKey(aiConfig.openaiKey);
+        setOpenaiEnabled(aiConfig.openaiEnabled);
+        if (aiConfig.deepseekKey) { setDeepseekKey(aiConfig.deepseekKey); setDeepseekStatus("saved"); }
+        setDeepseekEnabled(aiConfig.deepseekEnabled);
+        if (aiConfig.deepseekBaseUrl) setDeepseekBaseUrl(aiConfig.deepseekBaseUrl);
+        syncGeminiKeyToLocalStorage(aiConfig.geminiKey);
+
         const dBaseUrl = await db.settings?.get("deepseek_base_url");
-        const oKey = await db.settings?.get("openai_api_key");
-        const oEnabled = await db.settings?.get("openai_enabled");
         const oLocalEnabled = await db.settings?.get("ollama_enabled");
         const oLocalBase = await db.settings?.get("ollama_base_url");
         const oLocalModel = await db.settings?.get("ollama_model");
@@ -55,14 +60,7 @@ export default function Settings() {
         const du = await db.settings?.get("default_unit");
         const t = await db.settings?.get("tax_rate");
 
-        if (g?.value) { setGeminiKey(atob(g.value)); setGeminiStatus("saved"); }
-        if (gEnabled?.value !== undefined) setGeminiEnabled(gEnabled.value === "true" || gEnabled.value === true);
-        if (b?.value) setCustomBaseUrl(b.value);
-        if (dKey?.value) { setDeepseekKey(atob(dKey.value)); setDeepseekStatus("saved"); }
-        if (dEnabled?.value !== undefined) setDeepseekEnabled(dEnabled.value === "true" || dEnabled.value === true);
         if (dBaseUrl?.value) setDeepseekBaseUrl(dBaseUrl.value);
-        if (oKey?.value) { setOpenaiKey(atob(oKey.value)); setOpenaiStatus("saved"); }
-        if (oEnabled?.value !== undefined) setOpenaiEnabled(oEnabled.value === "true" || oEnabled.value === true);
         if (oLocalEnabled?.value !== undefined) setOllamaEnabled(oLocalEnabled.value === "true" || oLocalEnabled.value === true);
         if (oLocalBase?.value) setOllamaBaseUrl(oLocalBase.value);
         if (oLocalModel?.value) setOllamaModel(oLocalModel.value);
@@ -112,16 +110,17 @@ export default function Settings() {
 
   const toggleGemini = async (enabled) => {
     setGeminiEnabled(enabled);
-    await db.settings?.put({ key: "gemini_enabled", value: enabled.toString() });
+    await saveAIConfig("gemini_enabled", enabled);
     toast.success(enabled ? "Gemini activado" : "Gemini desactivado");
   };
 
   const saveGemini = async () => {
-    await db.settings?.put({ key: "ai_api_key", value: geminiKey ? btoa(geminiKey) : "" });
-    await db.settings?.put({ key: "ai_base_url", value: customBaseUrl.trim() });
-    await db.settings?.put({ key: "gemini_enabled", value: "true" });
+    await saveAIConfig("ai_api_key", geminiKey || "");
+    await saveAIConfig("ai_base_url", customBaseUrl.trim());
+    await saveAIConfig("gemini_enabled", true);
     setGeminiEnabled(true);
     setGeminiStatus("saved");
+    syncGeminiKeyToLocalStorage(geminiKey || "");
     toast.success("Gemini guardado");
   };
 
@@ -166,14 +165,14 @@ export default function Settings() {
 
   const toggleDeepseek = async (enabled) => {
     setDeepseekEnabled(enabled);
-    await db.settings?.put({ key: "deepseek_enabled", value: enabled.toString() });
+    await saveAIConfig("deepseek_enabled", enabled);
     toast.success(enabled ? "DeepSeek activado" : "DeepSeek desactivado");
   };
 
   const saveDeepseek = async () => {
-    await db.settings?.put({ key: "deepseek_api_key", value: deepseekKey ? btoa(deepseekKey) : "" });
-    await db.settings?.put({ key: "deepseek_base_url", value: deepseekBaseUrl.trim() });
-    await db.settings?.put({ key: "deepseek_enabled", value: "true" });
+    await saveAIConfig("deepseek_api_key", deepseekKey || "");
+    await saveAIConfig("deepseek_base_url", deepseekBaseUrl.trim());
+    await saveAIConfig("deepseek_enabled", true);
     setDeepseekEnabled(true);
     setDeepseekStatus("saved");
     toast.success("DeepSeek guardado");
@@ -229,21 +228,21 @@ export default function Settings() {
     setDeepseekError("");
     setDeepseekBaseUrl("https://api.deepseek.com/v1");
     setDeepseekEnabled(false);
-    await db.settings?.put({ key: "deepseek_api_key", value: "" });
-    await db.settings?.put({ key: "deepseek_base_url", value: "" });
-    await db.settings?.put({ key: "deepseek_enabled", value: "false" });
+    await saveAIConfig("deepseek_api_key", "");
+    await saveAIConfig("deepseek_base_url", "");
+    await saveAIConfig("deepseek_enabled", false);
     toast.success("DeepSeek eliminado");
   };
 
   const toggleOpenai = async (enabled) => {
     setOpenaiEnabled(enabled);
-    await db.settings?.put({ key: "openai_enabled", value: enabled.toString() });
+    await saveAIConfig("openai_enabled", enabled);
     toast.success(enabled ? "OpenAI activado" : "OpenAI desactivado");
   };
 
   const saveOpenai = async () => {
-    await db.settings?.put({ key: "openai_api_key", value: openaiKey ? btoa(openaiKey) : "" });
-    await db.settings?.put({ key: "openai_enabled", value: "true" });
+    await saveAIConfig("openai_api_key", openaiKey || "");
+    await saveAIConfig("openai_enabled", true);
     setOpenaiEnabled(true);
     setOpenaiStatus("saved");
     toast.success("OpenAI guardado");

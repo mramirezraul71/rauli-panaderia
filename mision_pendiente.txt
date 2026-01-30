@@ -1,0 +1,14 @@
+MISIÓN: Comprobar rauli-panaderia en Vercel y configurar evidencia visible.
+
+CONTEXTO: Proyecto Vercel = rauli-panaderia (https://rauli-panaderia.vercel.app)
+
+1. Abre https://rauli-panaderia.vercel.app (o http://localhost:5173 si aun no esta desplegado).
+2. Inicia sesión si es necesario.
+3. Ve a Configuración → pestaña "Motor de IA".
+4. En Gemini: haz clic en "Probar" si hay API Key.
+5. TOMA CAPTURAS en evidencia/ (verificacion_gemini.png, consola_gemini.png).
+6. Escribe en mision_log.txt: URL probada, resultado OK/ERROR.
+7. ENVIA POR TELEGRAM (omni_telegram.env): incio de mision, capturas, fin de mision.
+8. ANUNCIA POR VOZ (pyttsx3): "Mision iniciada", "Mision completada".
+
+IMPORTANTE: El robot DEBE verse trabajar (Telegram + voz). Si no envia, revisar omni_telegram.env.

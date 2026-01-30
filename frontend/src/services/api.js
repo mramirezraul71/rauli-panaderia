@@ -263,6 +263,7 @@ export const accounting = {
   
   dashboard: () => api.get('/accounting/dashboard'),
   cashBalance: () => api.get('/accounting/cash-balance'),
+  balanceCheck: () => api.get('/accounting/balance-check'),
 };
 
 // ==================== SYNC ENDPOINTS ====================

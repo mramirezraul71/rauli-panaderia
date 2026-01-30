@@ -1,20 +1,26 @@
-# Deploy listo (RAULI Panaderia)
+# Deploy RAULI Panaderia
 
-## Frontend (Vercel)
-1. Importa el repo en Vercel.
-2. Root Directory: `frontend`
-3. Build: `npm run build`
-4. Output: `dist`
-5. Env:
-   - `VITE_API_BASE` = `https://TU_BACKEND.onrender.com` (o tu host)
+## Proyecto Vercel: rauli-panaderia
+URL esperada: `https://rauli-panaderia.vercel.app`
 
-## Backend (Render)
+### Frontend (Vercel)
+1. Importa el repo **RauliERP-Panaderia-RAULI** en Vercel.
+2. **Project Name**: rauli-panaderia (o el que usaste al crear)
+3. Root Directory: `frontend`
+4. Build: `npm run build`
+5. Output: `dist`
+6. Env:
+   - `VITE_API_BASE` = `https://rauli-panaderia-backend.onrender.com/api` (con /api al final)
+
+### Backend (Render)
 1. Importa el repo en Render.
-2. Usa `render.yaml` del root.
-3. Configura env:
-   - `OPENAI_API_KEY`
-   - `CORS_ORIGIN` = `https://TU_FRONTEND.vercel.app`
+2. Usa `render.yaml` (name: rauli-panaderia-backend).
+3. Env:
+   - `OPENAI_API_KEY` (si usas IA)
+   - `CORS_ORIGIN` = `https://rauli-panaderia.vercel.app`
 
-## Nota
-- El backend expone `/api/ai/openai` como proxy de OpenAI.
-- Health check: `/api/health`
+### Conectar
+Tras deploy: Backend CORS_ORIGIN = URL exacta del frontend en Vercel.
+
+## Verificación antes de avisar
+Ejecuta `scripts/comprobar_deploy.ps1` — comprueba build y URLs.

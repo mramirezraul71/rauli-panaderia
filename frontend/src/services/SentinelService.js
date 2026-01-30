@@ -9,6 +9,7 @@
 
 import localDB, { logAudit } from './dataService';
 import accountingCore from '../core/AccountingCore';
+import { inventory, products, accounting } from './api';
 
 const readWithMigration = (key, legacyKey) => {
   try {
@@ -307,28 +308,23 @@ class SentinelService {
     return this.getState();
   }
 
-  // Verificar ecuación contable: Activo = Pasivo + Capital
+  // Verificar ecuación contable (usa API con token para evitar 401)
   async checkAccountingBalance() {
     try {
-      const response = await fetch('/api/accounting/balance-check');
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.balanced === false) {
-          this.addAlert(
-            ALERT_TYPES.ACCOUNTING_IMBALANCE,
-            'CRÍTICO: La ecuación contable no cuadra',
-            {
-              activos: data.activos,
-              pasivos: data.pasivos,
-              capital: data.capital,
-              diferencia: data.diferencia
-            }
-          );
-        } else {
-          // Remover alerta si existía
-          this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.ACCOUNTING_IMBALANCE);
-        }
+      const { data } = await accounting.balanceCheck();
+      if (data.balanced === false) {
+        this.addAlert(
+          ALERT_TYPES.ACCOUNTING_IMBALANCE,
+          'CRÍTICO: La ecuación contable no cuadra',
+          {
+            activos: data.activos,
+            pasivos: data.pasivos,
+            capital: data.capital,
+            diferencia: data.diferencia
+          }
+        );
+      } else {
+        this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.ACCOUNTING_IMBALANCE);
       }
     } catch (error) {
       // Si estamos offline, verificar localmente si es posible
@@ -602,49 +598,41 @@ class SentinelService {
     return corrections;
   }
 
-  // Verificar productos con stock bajo
+  // Verificar productos con stock bajo (usa API con token para evitar 401)
   async checkLowStock() {
     try {
-      const response = await fetch('/api/products?low_stock=true');
-      if (response.ok) {
-        const data = await response.json();
-        const lowStockProducts = data.products?.filter(p => p.stock <= p.min_stock) || [];
-
-        if (lowStockProducts.length > 0) {
-          this.addAlert(
-            ALERT_TYPES.LOW_STOCK,
-            `${lowStockProducts.length} producto(s) con stock bajo`,
-            { products: lowStockProducts.map(p => ({ name: p.name, stock: p.stock, min: p.min_stock })) }
-          );
-        } else {
-          this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.LOW_STOCK);
-        }
+      const { data } = await products.lowStock();
+      const lowStockProducts = data.products || [];
+      if (lowStockProducts.length > 0) {
+        this.addAlert(
+          ALERT_TYPES.LOW_STOCK,
+          `${lowStockProducts.length} producto(s) con stock bajo`,
+          { products: lowStockProducts.map(p => ({ name: p.name, stock: p.stock, min: p.min_stock })) }
+        );
+      } else {
+        this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.LOW_STOCK);
       }
     } catch (error) {
-      console.log('Sentinel: Error verificando stock:', error);
+      if (error?.status !== 401) console.log('Sentinel: Error verificando stock:', error);
     }
   }
 
-  // Verificar productos por vencer
+  // Verificar productos por vencer (usa API con token para evitar 401)
   async checkExpiringProducts() {
     try {
-      const response = await fetch('/api/inventory/lots?expiring=7');
-      if (response.ok) {
-        const data = await response.json();
-        const expiringLots = data.lots || [];
-
-        if (expiringLots.length > 0) {
-          this.addAlert(
-            ALERT_TYPES.EXPIRING_PRODUCTS,
-            `${expiringLots.length} lote(s) próximos a vencer`,
-            { lots: expiringLots }
-          );
-        } else {
-          this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.EXPIRING_PRODUCTS);
-        }
+      const { data } = await inventory.expiringLots(7);
+      const expiringLots = data.lots || [];
+      if (expiringLots.length > 0) {
+        this.addAlert(
+          ALERT_TYPES.EXPIRING_PRODUCTS,
+          `${expiringLots.length} lote(s) próximos a vencer`,
+          { lots: expiringLots }
+        );
+      } else {
+        this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.EXPIRING_PRODUCTS);
       }
     } catch (error) {
-      console.log('Sentinel: Error verificando vencimientos:', error);
+      if (error?.status !== 401) console.log('Sentinel: Error verificando vencimientos:', error);
     }
   }
 

@@ -1,4 +1,5 @@
 import { db } from "./dataService";
+import { loadAIConfig } from "./aiConfigPersistence";
 import cashSession from "../core/CashSession";
 import { formatCurrency, getBusinessConfig } from "../config/businessConfig";
 import { getLanguageConfig } from "../config/languages";
@@ -86,71 +87,43 @@ const readImageAsDataUrl = (imageInput) => {
 };
 
 const getAiSettings = async () => {
-  let geminiKey = null;
-  let geminiEnabled = false;
-  let openaiKey = null;
-  let openaiEnabled = false;
-  let deepseekKey = null;
-  let deepseekEnabled = false;
-  let ollamaEnabled = false;
-  let ollamaBaseUrl = DEFAULT_OLLAMA_BASE_URL;
-  let ollamaModel = DEFAULT_OLLAMA_MODEL;
-  let primaryProvider = "gemini";
-  let baseUrl = DEFAULT_GEMINI_BASE_URL;
-  let deepseekBaseUrl = DEFAULT_DEEPSEEK_BASE_URL;
-
   try {
-    const gKey = await db.settings?.get("ai_api_key");
-    const gEnabled = await db.settings?.get("gemini_enabled");
-    const oKey = await db.settings?.get("openai_api_key");
-    const oEnabled = await db.settings?.get("openai_enabled");
-    const dKey = await db.settings?.get("deepseek_api_key");
-    const dEnabled = await db.settings?.get("deepseek_enabled");
-    const dUrl = await db.settings?.get("deepseek_base_url");
+    const cfg = await loadAIConfig();
     const oLocalEnabled = await db.settings?.get("ollama_enabled");
     const oLocalBase = await db.settings?.get("ollama_base_url");
     const oLocalModel = await db.settings?.get("ollama_model");
-    const primary = await db.settings?.get("primary_provider");
-    const bUrl = await db.settings?.get("ai_base_url");
 
-    if (gKey?.value) geminiKey = decodeKeyValue(gKey.value);
-    if (oKey?.value) openaiKey = decodeKeyValue(oKey.value);
-    if (dKey?.value) deepseekKey = decodeKeyValue(dKey.value);
-    geminiEnabled = gEnabled?.value === "true" || gEnabled?.value === true;
-    openaiEnabled = oEnabled?.value === "true" || oEnabled?.value === true;
-    deepseekEnabled = dEnabled?.value === "true" || dEnabled?.value === true;
-    ollamaEnabled = oLocalEnabled?.value === "true" || oLocalEnabled?.value === true;
-    if (primary?.value) primaryProvider = primary.value;
-    if (bUrl?.value && bUrl.value.trim()) {
-      baseUrl = bUrl.value.trim();
-    }
-    if (dUrl?.value && dUrl.value.trim()) {
-      deepseekBaseUrl = dUrl.value.trim();
-    }
-    if (oLocalBase?.value && oLocalBase.value.trim()) {
-      ollamaBaseUrl = oLocalBase.value.trim();
-    }
-    if (oLocalModel?.value && oLocalModel.value.trim()) {
-      ollamaModel = oLocalModel.value.trim();
-    }
+    return {
+      geminiKey: cfg.geminiKey,
+      geminiEnabled: cfg.geminiEnabled,
+      openaiKey: cfg.openaiKey,
+      openaiEnabled: cfg.openaiEnabled,
+      deepseekKey: cfg.deepseekKey,
+      deepseekEnabled: cfg.deepseekEnabled,
+      ollamaEnabled: oLocalEnabled?.value === "true" || oLocalEnabled?.value === true,
+      ollamaBaseUrl: oLocalBase?.value?.trim() || DEFAULT_OLLAMA_BASE_URL,
+      ollamaModel: oLocalModel?.value?.trim() || DEFAULT_OLLAMA_MODEL,
+      primaryProvider: cfg.primaryProvider || "gemini",
+      baseUrl: cfg.baseUrl || DEFAULT_GEMINI_BASE_URL,
+      deepseekBaseUrl: cfg.deepseekBaseUrl || DEFAULT_DEEPSEEK_BASE_URL
+    };
   } catch (e) {
     console.error("Config error:", e);
+    return {
+      geminiKey: null,
+      geminiEnabled: false,
+      openaiKey: null,
+      openaiEnabled: false,
+      deepseekKey: null,
+      deepseekEnabled: false,
+      ollamaEnabled: false,
+      ollamaBaseUrl: DEFAULT_OLLAMA_BASE_URL,
+      ollamaModel: DEFAULT_OLLAMA_MODEL,
+      primaryProvider: "gemini",
+      baseUrl: DEFAULT_GEMINI_BASE_URL,
+      deepseekBaseUrl: DEFAULT_DEEPSEEK_BASE_URL
+    };
   }
-
-  return {
-    geminiKey,
-    geminiEnabled,
-    openaiKey,
-    openaiEnabled,
-    deepseekKey,
-    deepseekEnabled,
-    ollamaEnabled,
-    ollamaBaseUrl,
-    ollamaModel,
-    primaryProvider,
-    baseUrl,
-    deepseekBaseUrl
-  };
 };
 
 const localOfflineResponse = (text, language = "es") => {
@@ -283,12 +256,14 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
     const tryGemini = async () => {
       if (!geminiEnabled || !geminiKey) return null;
       
-      // Modelos en orden de prioridad (usando el formato exacto de Google)
+      // Modelos actuales (enero 2026) - gemini-pro y 1.5 pueden dar 404
       const models = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.5-flash-lite",
         "gemini-1.5-flash",
         "gemini-1.5-pro",
-        "gemini-pro",
-        "gemini-2.0-flash"
+        "gemini-pro"
       ];
       
       for (const modelId of models) {
@@ -523,7 +498,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
     const base64Data = imageDataUrl.split(",")[1] || "";
     const prompt = `Analiza la imagen y responde en español con un resumen claro y útil para el negocio. ${context || ""}`.trim();
 
-    const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+    const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
     for (const modelId of models) {
       try {
         const url = buildGeminiUrl(settings.baseUrl, modelId, settings.geminiKey);
