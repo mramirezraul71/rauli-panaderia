@@ -613,7 +613,10 @@ class SentinelService {
         this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.LOW_STOCK);
       }
     } catch (error) {
-      if (error?.status !== 401) console.log('Sentinel: Error verificando stock:', error);
+      // No loguear cuando la API no está (404/HTML) o sin red
+      if (error?.status !== 401 && error?.status !== 404 && error?.name !== 'TypeError') {
+        console.log('Sentinel: Error verificando stock:', error);
+      }
     }
   }
 
@@ -632,7 +635,9 @@ class SentinelService {
         this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.EXPIRING_PRODUCTS);
       }
     } catch (error) {
-      if (error?.status !== 401) console.log('Sentinel: Error verificando vencimientos:', error);
+      if (error?.status !== 401 && error?.status !== 404 && error?.name !== 'TypeError') {
+        console.log('Sentinel: Error verificando vencimientos:', error);
+      }
     }
   }
 
