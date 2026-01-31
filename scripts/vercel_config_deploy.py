@@ -29,15 +29,21 @@ def load_token():
                 k, _, v = line.partition("=")
                 if k.strip().upper() == "VERCEL_TOKEN":
                     return v.strip().strip("'\"").strip()
-    # .env en raíz del repo (scripts/../.env)
+    # .env en raíz del repo
     root_env = Path(__file__).resolve().parent.parent / ".env"
-    if root_env.exists():
-        for line in root_env.read_text(encoding="utf-8", errors="ignore").splitlines():
-            line = line.strip()
-            if "=" in line and not line.startswith("#"):
-                k, _, v = line.partition("=")
-                if k.strip().upper() == "VERCEL_TOKEN":
-                    return v.strip().strip("'\"").strip()
+    for env_path in [root_env, Path(__file__).resolve().parent.parent / "backend" / ".env"]:
+        if env_path.exists():
+            try:
+                for line in env_path.read_text(encoding="utf-8", errors="ignore").splitlines():
+                    line = line.strip()
+                    if "=" in line and not line.startswith("#"):
+                        k, _, v = line.partition("=")
+                        if k.strip().upper() == "VERCEL_TOKEN":
+                            t = v.strip().strip("'\"").strip()
+                            if t:
+                                return t
+            except Exception:
+                pass
     return ""
 
 def main():
