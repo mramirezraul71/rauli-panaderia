@@ -12,6 +12,7 @@ import { WelcomeTourProvider } from "./components/WelcomeTour";
 import NotificationCenter from "./components/NotificationCenter";
 import SupportService from "./services/SupportService";
 import AppUpdater from "./components/AppUpdater";
+import VersionChecker from "./components/VersionChecker";
 import { HiOutlineHome, HiOutlineShoppingCart, HiOutlineDocumentText, HiOutlineCube, HiOutlineUsers, HiOutlineCreditCard, HiOutlineCash, HiOutlineReceiptTax, HiOutlineExclamation, HiOutlineChartBar, HiOutlineCog, HiOutlineMenu, HiOutlineX, HiCheck, HiOutlineDatabase, HiOutlineShieldCheck, HiOutlineCalculator, HiOutlineArchive, HiOutlineCloud, HiOutlineBell, HiOutlineCode, HiOutlineTruck, HiOutlineRefresh, HiOutlineLockClosed } from "react-icons/hi";
 import { Package } from 'lucide-react';
 import { useAuth } from "./context/AuthContext";
@@ -376,6 +377,7 @@ function Layout() {
       <CommandCenterProvider>
         <RauliProvider>
         <div className="min-h-screen bg-slate-950 flex">
+      <VersionChecker />
       {humanLock && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-rose-500/10 border border-rose-500/40 rounded-2xl p-6 max-w-md text-center">
