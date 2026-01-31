@@ -1,0 +1,42 @@
+# -*- coding: utf-8 -*-
+"""Verifica URLs de Vercel y Render."""
+import sys
+
+URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
+URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
+
+def check():
+    results = []
+    try:
+        import httpx
+    except ImportError:
+        print("Instala: pip install httpx")
+        return 1
+
+    # Render free tier tarda en despertar (~50s)
+    timeouts = {URL_RENDER: 60, URL_VERCEL: 15}
+    urls_to_check = [("Vercel (frontend)", URL_VERCEL), ("Render (API)", URL_RENDER)]
+    for name, url in urls_to_check:
+        try:
+            r = httpx.get(url, follow_redirects=True, timeout=timeouts.get(url, 20))
+            ok = r.status_code == 200
+            status = f"OK {r.status_code}" if ok else f"HTTP {r.status_code}"
+            results.append((name, url, status, ok))
+        except Exception as e:
+            results.append((name, url, str(e)[:60], False))
+
+    print("\n=== COMPROBACION URLs ===\n")
+    all_ok = True
+    for name, url, status, ok in results:
+        icon = "OK" if ok else "FALLO"
+        print(f"  [{icon}] {name}")
+        print(f"       {url}")
+        print(f"       -> {status}\n")
+        if not ok:
+            all_ok = False
+
+    print("=" * 40)
+    return 0 if all_ok else 1
+
+if __name__ == "__main__":
+    sys.exit(check())

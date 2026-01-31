@@ -28,7 +28,7 @@ if (Test-Path $vercel) {
 
 # 3. URLs esperadas
 Write-Host "`n[3] URLs esperadas:" -ForegroundColor Yellow
-Write-Host "   Frontend: https://rauli-panaderia.vercel.app"
-Write-Host "   Backend:  https://rauli-panaderia-backend.onrender.com"
+Write-Host "   Frontend: https://rauli-panaderia-app.vercel.app"
+Write-Host "   Backend:  https://rauli-panaderia.onrender.com"
 
 Write-Host "`n=== Listo para deploy. Push a main para que Vercel/Render actualicen. ===" -ForegroundColor Cyan

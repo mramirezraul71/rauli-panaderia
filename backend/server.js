@@ -36,8 +36,12 @@ console.log(`[ENV] SMTP_HOST: ${smtpConfigured ? 'ok' : 'missing'}, SMTP_FROM/US
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// CORS: permitir origen del frontend en producción
+const corsOrigin = process.env.CORS_ORIGIN;
+const corsOptions = corsOrigin
+  ? { origin: corsOrigin.split(',').map((o) => o.trim()), credentials: true }
+  : {};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
