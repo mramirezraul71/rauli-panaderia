@@ -3,6 +3,21 @@
  * Motor Contable con Partida Doble y Sistema de Amortización de Inversión
  */
 
+const getApiBase = () => {
+  try {
+    const base = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE) || "";
+    return String(base).replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+};
+
+const apiUrl = (path) => {
+  const base = getApiBase();
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return base ? `${base}${p}` : p;
+};
+
 // ==================== TIPOS DE CUENTAS ====================
 
 export const ACCOUNT_TYPES = {
@@ -84,7 +99,7 @@ class AccountingCore {
 
   async loadAccounts() {
     try {
-      const response = await fetch('/api/accounting/accounts');
+      const response = await fetch(apiUrl("/api/accounting/accounts"));
       if (response.ok) {
         const data = await response.json();
         this.accounts = data.accounts || [];
@@ -104,7 +119,7 @@ class AccountingCore {
     }
 
     try {
-      const response = await fetch('/api/accounting/accounts', {
+      const response = await fetch(apiUrl("/api/accounting/accounts"), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(accountData)
@@ -130,7 +145,7 @@ class AccountingCore {
     }
 
     try {
-      const response = await fetch(`/api/accounting/accounts/${accountId}`, {
+      const response = await fetch(apiUrl(`/api/accounting/accounts/${accountId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(accountData)
@@ -164,7 +179,7 @@ class AccountingCore {
     }
 
     try {
-      const response = await fetch(`/api/accounting/accounts/${accountId}`, {
+      const response = await fetch(apiUrl(`/api/accounting/accounts/${accountId}`), {
         method: 'DELETE'
       });
 
@@ -267,7 +282,7 @@ class AccountingCore {
 
   async loadInvestment() {
     try {
-      const response = await fetch('/api/accounting/investment');
+      const response = await fetch(apiUrl("/api/accounting/investment"));
       if (response.ok) {
         const data = await response.json();
         this.investment = data.investment;
@@ -377,7 +392,7 @@ class AccountingCore {
     }
 
     try {
-      const response = await fetch('/api/accounting/investment/amortization', {
+      const response = await fetch(apiUrl("/api/accounting/investment/amortization"), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -422,7 +437,7 @@ class AccountingCore {
   async getIncomeStatement(startDate, endDate) {
     try {
       const params = new URLSearchParams({ start_date: startDate, end_date: endDate });
-      const response = await fetch(`/api/accounting/income-statement?${params}`);
+      const response = await fetch(apiUrl(`/api/accounting/income-statement?${params}`));
       if (response.ok) {
         return await response.json();
       }
@@ -447,7 +462,7 @@ class AccountingCore {
   // Verificar ecuación contable
   async verifyAccountingEquation() {
     try {
-      const response = await fetch('/api/accounting/balance-check');
+      const response = await fetch(apiUrl("/api/accounting/balance-check"));
       if (response.ok) {
         const data = await response.json();
         return {
