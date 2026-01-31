@@ -7,7 +7,7 @@ import { formatCurrency, getFeatureFlags, setBusinessConfig } from "./config/bus
 import { t } from "./i18n";
 import RauliAssistant from "./components/RauliAssistant/RauliAssistant";
 import { CommandCenterProvider } from "./context/CommandCenterContext";
-import { RauliProvider } from "./context/RauliContext";
+import { RauliProvider, useRauli } from "./context/RauliContext";
 import { WelcomeTourProvider } from "./components/WelcomeTour";
 import NotificationCenter from "./components/NotificationCenter";
 import SupportService from "./services/SupportService";
@@ -267,6 +267,7 @@ function Layout() {
   const systemStatus = useSystemStatus();
   const featureFlags = getFeatureFlags();
   const { user } = useAuth();
+  const { isOnline } = useRauli();
   const [isAutonomo, setIsAutonomo] = useState(false);
   
   useEffect(() => {
@@ -532,10 +533,10 @@ function Layout() {
 
             <NotificationCenter />
 
-            {/* Online Status */}
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${navigator.onLine ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-amber-500/10 text-amber-400 border border-amber-500/30"}`}>
-              <span className={`w-2 h-2 rounded-full ${navigator.onLine ? "bg-emerald-400" : "bg-amber-400"}`} />
-              {navigator.onLine ? "Online" : "Offline"}
+            {/* Online Status — actualiza al cambiar red (online/offline) */}
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${isOnline ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-amber-500/10 text-amber-400 border border-amber-500/30"}`}>
+              <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-emerald-400" : "bg-amber-400"}`} />
+              {isOnline ? "Online" : "Offline"}
             </div>
           </div>
         </header>
