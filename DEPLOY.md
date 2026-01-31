@@ -90,28 +90,38 @@ Actualiza `URL_VERCEL` (env o bóveda) si tu proyecto tiene otra URL (p. ej. baj
 
 Tras esto, cada **push a `maestro`** actualiza frontend y backend y comprueba las URLs sin tu intervención.
 
-### Actualizar Hub (GitHub) + Vercel + cadena (Railway)
+### Actualizar TODO (Hub + Vercel + Railway + comprobación)
 
-**Opción A — Push y cadena automática (recomendado)**  
-Desde tu PC (con GitHub autenticado):
-
-```bash
-scripts\subir_hub_vercel_cadena.bat
-```
-
-O a mano:
-```bash
-git add -A
-git commit -m "Actualizacion dashboard y despliegue"
-git push origin maestro
-```
-
-Cada push a `maestro` dispara GitHub Actions: despliegue en Vercel → Railway → comprobación de URLs en 1–2 min.
-
-**Opción B — Deploy directo sin push (solo Vercel + Railway)**  
-Si no quieres subir código y solo redeployar con lo ya en GitHub:
+**Un solo comando** — push a GitHub (con token de bóveda si existe) + deploy Vercel + Railway + comprobar URLs:
 
 ```bash
-scripts\ACTUALIZAR.bat
+scripts\ACTUALIZAR_TODO.bat
 ```
-o `python scripts/deploy_completo.py` (credenciales en bóveda).
+
+O con mensaje de commit:
+
+```bash
+scripts\ACTUALIZAR_TODO.bat "Mi mensaje de commit"
+```
+
+O en Python:
+
+```bash
+python scripts/actualizar_todo.py
+python scripts/actualizar_todo.py "Mensaje opcional"
+```
+
+**Credenciales en la bóveda** (`credenciales.txt` o ruta en `RAULI_VAULT`):
+
+- `GH_TOKEN` o `GITHUB_TOKEN` — para push sin pedir contraseña (crear en GitHub → Settings → Developer settings → Personal access tokens).
+- `VERCEL_TOKEN` — deploy frontend (Vercel → Account Settings → Tokens).
+- `RAILWAY_TOKEN` — deploy backend (Railway → Account → Settings → Tokens).
+
+Si no hay `GH_TOKEN`, el script intenta `git push origin maestro` con las credenciales del sistema (Git Credential Manager, SSH, etc.). Si falla, añade el token a la bóveda para actualizar todo sin intervención.
+
+---
+
+**Otras opciones**
+
+- **Solo push (y que GitHub Actions despliegue):** `scripts\subir_hub_vercel_cadena.bat` o `git push origin maestro`.
+- **Solo deploy Vercel + Railway** (sin push): `scripts\ACTUALIZAR.bat` o `python scripts/deploy_completo.py`.
