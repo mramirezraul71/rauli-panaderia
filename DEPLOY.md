@@ -5,9 +5,13 @@
 
 ---
 
-## Sistema de actualización automática (todos los proyectos)
+## Sistema de actualización automática + cadena (todos los proyectos)
 
-Para que los usuarios (PC y móvil) reciban la nueva versión sin depender de la caché del navegador, este repo incluye un **sistema estándar** (version.json + VersionChecker). Para implementarlo en **otro proyecto** o repasar los pasos, ver **[ACTUALIZACION_AUTO.md](ACTUALIZACION_AUTO.md)**. Instalación rápida en un proyecto: `scripts\INSTALAR_ACTUALIZACION.bat` o `python scripts/instalar_sistema_actualizacion.py --proyecto <ruta>`.
+Para que los usuarios reciban la nueva versión sin caché y el repo se actualice en GitHub con toda la cadena (Vercel, Railway, notificación), este repo incluye un **sistema estándar**. Ver **[ACTUALIZACION_AUTO.md](ACTUALIZACION_AUTO.md)**.
+
+- **Cadena completa (recomendado):** `scripts\DEPLOY_Y_NOTIFICAR.bat` — build, push a GitHub, deploy Vercel + Railway, Telegram.
+- **Solo push a GitHub:** `scripts\subir_hub_vercel_cadena.bat` — Vercel/Railway se actualizan por webhook.
+- **Instalar en otro proyecto:** `scripts\INSTALAR_ACTUALIZACION.bat` o `python scripts/instalar_sistema_actualizacion.py --proyecto <ruta>`.
 
 ---
 
