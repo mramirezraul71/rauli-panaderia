@@ -75,9 +75,17 @@ def init_gemini(api_key: str | None = None):
     return genai.GenerativeModel("gemini-2.0-flash")
 
 
-def saludar() -> str:
+def saludar(model_id: str = "gemini-2.0-flash") -> str:
     """Envía 'Hola' a Gemini y devuelve su respuesta."""
-    model = init_gemini()
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", FutureWarning)
+        import google.generativeai as genai
+    key = load_api_key()
+    if not key:
+        raise RuntimeError("GEMINI_API_KEY no encontrada en la Bóveda o en env.")
+    genai.configure(api_key=key)
+    model = genai.GenerativeModel(model_id)
     r = model.generate_content("Hola")
     if not r or not r.text:
         return "(respuesta vacía)"
@@ -95,6 +103,9 @@ def main() -> int:
         print("\n[OK] Cerebro vivo. Gemini responde correctamente.")
         return 0
     except Exception as e:
+        err = str(e)
+        if "429" in err or "quota" in err.lower():
+            print("[AVISO] Cuota de API agotada. Espera un poco o revisa https://ai.google.dev/gemini-api/docs/rate-limits", file=sys.stderr)
         print(f"[ERROR] {e}", file=sys.stderr)
         return 1
 
