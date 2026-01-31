@@ -117,52 +117,6 @@ def patch_vercel_headers(vercel_path: Path, dry_run: bool) -> bool:
     return True
 
 
-def ensure_version_checker_in_app(app_path: Path, dry_run: bool) -> bool:
-    """Añade import y componente VersionChecker si no están."""
-    text = app_path.read_text(encoding="utf-8")
-    if "VersionChecker" in text:
-        return False
-    # Añadir import después del primer import de React o al inicio de imports
-    if "import VersionChecker" not in text and "from \"./components/VersionChecker\"" not in text:
-        # Buscar línea de import típica para insertar después
-        insert_import = 'import VersionChecker from "./components/VersionChecker";\n'
-        if "from \"react\"" in text or "from 'react'" in text:
-            text = re.sub(
-                r"(import .+ from [\"']react[\"'];?\n)",
-                r"\1" + insert_import,
-                text,
-                count=1,
-            )
-        else:
-            # Añadir tras el primer import
-            first_import = re.search(r"^import .+;\n", text, re.MULTILINE)
-            if first_import:
-                pos = first_import.end()
-                text = text[:pos] + insert_import + text[pos:]
-            else:
-                text = insert_import + text
-    # Añadir <VersionChecker /> dentro del return principal (ej. justo después de <> o del primer div)
-    if "<VersionChecker" not in text:
-        # Intentar después de return ( o return \n (
-        text = re.sub(
-            r"(return\s*\(\s*)(<\s*(?:Fragment|>|div))",
-            r"\1<>\n      <VersionChecker />\n      \2",
-            text,
-            count=1,
-        )
-        if "<VersionChecker" not in text:
-            text = re.sub(
-                r"(return\s*\(\s*<[A-Za-z]+)",
-                r"\1\n      <VersionChecker />",
-                text,
-                count=1,
-            )
-    if not dry_run and "VersionChecker" in text and ("import VersionChecker" in text or "from \"./components/VersionChecker\"" in text):
-        app_path.write_text(text, encoding="utf-8")
-        return True
-    return False
-
-
 def main():
     args = parse_args()
     proyecto = args.proyecto.resolve()
@@ -237,19 +191,12 @@ def main():
     else:
         print("  AVISO: Crea vercel.json con headers Cache-Control para /, /index.html y /version.json (ver ACTUALIZACION_AUTO.md)")
 
-    app_candidates = [frontend / "src" / "App.jsx", frontend / "src" / "App.tsx"]
-    app_path = next((f for f in app_candidates if f.exists()), None)
-    if app_path:
-        try:
-            if ensure_version_checker_in_app(app_path, dry):
-                print(f"  {'(dry) ' if dry else ''}Modificado App: import y <VersionChecker />")
-        except Exception as e:
-            print(f"  AVISO: No se pudo inyectar VersionChecker en App: {e}")
-            print("  Añade manualmente: import VersionChecker from './components/VersionChecker'; y <VersionChecker /> en el layout.")
-    else:
-        print("  AVISO: No se encontró App.jsx/App.tsx. Añade <VersionChecker /> en tu layout principal.")
+    print("\n--- Paso manual (una vez) ---")
+    print("En tu App.jsx/App.tsx (o layout principal) añade:")
+    print("  import VersionChecker from './components/VersionChecker';")
+    print("Y dentro del return, por ejemplo al inicio del layout: <VersionChecker />")
 
-    print("\nListo. Siguiente paso: subir versión en src/config/version.js, hacer build y desplegar.")
+    print("\nListo. Siguiente: subir versión en src/config/version.js, build y desplegar.")
     print("Ver ACTUALIZACION_AUTO.md para despliegue y script deploy_y_notificar.")
     return 0
 
