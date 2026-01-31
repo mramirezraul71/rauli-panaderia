@@ -14,8 +14,8 @@ def check():
         print("Instala: pip install httpx")
         return 1
 
-    # Render free tier tarda en despertar (~50s)
-    timeouts = {URL_RENDER: 60, URL_VERCEL: 15}
+    # Render free tier: cold start ~50–90 s
+    timeouts = {URL_RENDER: 90, URL_VERCEL: 15}
     urls_to_check = [("Vercel (frontend)", URL_VERCEL), ("Render (API)", URL_RENDER)]
     for name, url in urls_to_check:
         try:
@@ -26,7 +26,7 @@ def check():
         except Exception as e:
             results.append((name, url, str(e)[:60], False))
 
-    print("\n=== COMPROBACION URLs ===\n")
+    print("\n=== SERVICIO COMPLETO (Vercel + Render) ===\n")
     all_ok = True
     for name, url, status, ok in results:
         icon = "OK" if ok else "FALLO"
@@ -36,6 +36,12 @@ def check():
         if not ok:
             all_ok = False
 
+    print("=" * 40)
+    if all_ok:
+        print("  Servicio completo: frontend y API operativos.")
+    else:
+        print("  Si Render da timeout: plan free tarda ~1 min en despertar.")
+        print("  Vuelve a ejecutar: python scripts/comprobar_urls.py")
     print("=" * 40)
     return 0 if all_ok else 1
 
