@@ -155,7 +155,7 @@ function BootLoader({ onComplete }) {
             <span className="text-5xl">🧩</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">RAULI</h1>
-          <p className="text-slate-400">Panaderia y Dulceria v1.0.1</p>
+          <p className="text-slate-400">Panaderia y Dulceria v{APP_VERSION}</p>
         </div>
 
         <div className={`mb-6 p-4 rounded-xl border ${
