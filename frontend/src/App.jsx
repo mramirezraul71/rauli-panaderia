@@ -16,6 +16,7 @@ import VersionChecker from "./components/VersionChecker";
 import { HiOutlineHome, HiOutlineShoppingCart, HiOutlineDocumentText, HiOutlineCube, HiOutlineUsers, HiOutlineCreditCard, HiOutlineCash, HiOutlineReceiptTax, HiOutlineExclamation, HiOutlineChartBar, HiOutlineCog, HiOutlineMenu, HiOutlineX, HiCheck, HiOutlineDatabase, HiOutlineShieldCheck, HiOutlineCalculator, HiOutlineArchive, HiOutlineCloud, HiOutlineBell, HiOutlineCode, HiOutlineTruck, HiOutlineRefresh, HiOutlineLockClosed } from "react-icons/hi";
 import { Package } from 'lucide-react';
 import { useAuth } from "./context/AuthContext";
+import { APP_VERSION, LAST_IMPROVEMENT_NOTE } from "./config/version";
 
 const readWithMigration = (key, legacyKey) => {
   try {
@@ -590,7 +591,7 @@ function Layout() {
 
         <footer className="h-14 bg-slate-900/50 border-t border-slate-800/50 flex items-center justify-center">
           <p className="text-sm text-slate-600">
-            RAULI v1.0.1 Panaderia y Dulceria © 2026
+            RAULI v{APP_VERSION} Panaderia y Dulceria · {LAST_IMPROVEMENT_NOTE} © 2026
           </p>
         </footer>
       </div>
