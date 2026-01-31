@@ -5,7 +5,9 @@
 
 import { db } from "./dataService";
 
-const API_BASE = "/api";
+const API_BASE = typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE
+  ? import.meta.env.VITE_API_BASE.replace(/\/$/, "")
+  : "/api";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -16,8 +18,9 @@ const getAuthHeaders = () => {
 };
 
 const apiFetch = async (path, options = {}) => {
+  const url = path.startsWith("http") ? path : `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
   try {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(url, {
       ...options,
       headers: { ...getAuthHeaders(), ...(options.headers || {}) }
     });
