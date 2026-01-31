@@ -140,13 +140,13 @@ def main() -> int:
     r = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "comprobar_urls.py")],
         cwd=str(ROOT),
-        timeout=60,
+        timeout=90,
     )
     print("\n" + "=" * 50)
     if r.returncode == 0:
-        print("  Todo actualizado: Hub, Vercel, Railway y comprobación OK.")
+        print("  Todo actualizado: Hub, Vercel, Railway y comprobacion OK.")
     else:
-        print("  Deploy lanzado. Revisa en 1–2 min: python scripts/comprobar_urls.py")
+        print("  Deploy lanzado. Revisa en 1-2 min: python scripts/comprobar_urls.py")
     print("=" * 50)
     return 0
 
