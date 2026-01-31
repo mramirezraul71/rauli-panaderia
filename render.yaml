@@ -1,5 +1,4 @@
-# Servicio backend. URL: rauli-panaderia.onrender.com (si name=rauli-panaderia)
-# o rauli-panaderia-backend.onrender.com (si name=rauli-panaderia-backend)
+# Backend rauli-panaderia. URL: rauli-panaderia.onrender.com
 services:
   - type: web
     name: rauli-panaderia

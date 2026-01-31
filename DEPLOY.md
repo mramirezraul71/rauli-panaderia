@@ -1,26 +1,53 @@
-# Deploy RAULI Panaderia
+# Deploy RAULI Panadería — desde cero
 
-## Proyecto Vercel: rauli-panaderia-app
-URL esperada: `https://rauli-panaderia-app.vercel.app`
+**Repo:** `mramirezraul71/rauli-panaderia`  
+**Rama de producción:** `maestro`
 
-### Frontend (Vercel)
-1. Importa el repo **RauliERP-Panaderia-RAULI** en Vercel.
-2. **Project Name**: rauli-panaderia (o el que usaste al crear)
-3. Root Directory: `frontend`
-4. Build: `npm run build`
-5. Output: `dist`
-6. Env:
-   - `VITE_API_BASE` = `https://rauli-panaderia.onrender.com/api` (con /api al final)
+---
 
-### Backend (Render)
-1. Importa el repo en Render.
-2. Usa `render.yaml` (name: rauli-panaderia).
-3. Env:
-   - `OPENAI_API_KEY` (si usas IA)
-   - `CORS_ORIGIN` = `https://rauli-panaderia-app.vercel.app`
+## 1. Vercel (frontend)
 
-### Conectar
-Tras deploy: Backend CORS_ORIGIN = URL exacta del frontend en Vercel.
+**Si ya tienes un proyecto con 404:** En Settings → Git, reconecta a **mramirezraul71/rauli-panaderia** y Rama = **maestro**.
 
-## Verificación antes de avisar
-Ejecuta `scripts/comprobar_deploy.ps1` — comprueba build y URLs.
+1. Entra en [vercel.com](https://vercel.com) e inicia sesión con GitHub.
+2. **Add New** → **Project**.
+3. Importa **mramirezraul71/rauli-panaderia**.
+4. Configura:
+   - **Root Directory:** `frontend` ← obligatorio
+   - **Framework Preset:** Vite (detectado)
+   - **Production Branch:** `maestro` ← no usar main
+5. Variables de entorno:
+   - `VITE_API_BASE` = `https://rauli-panaderia.onrender.com/api`
+6. **Deploy**.
+7. Anota la URL (ej. `rauli-panaderia-xxx.vercel.app`).
+
+---
+
+## 2. Render (backend)
+
+1. Entra en [render.com](https://render.com) e inicia sesión con GitHub.
+2. **New +** → **Web Service**.
+3. Conecta **mramirezraul71/rauli-panaderia**.
+4. Usa **render.yaml** (detectado) o configura:
+   - **Root Directory:** `backend`
+   - **Build:** `npm install`
+   - **Start:** `npm start`
+   - **Branch:** `maestro`
+5. Variables:
+   - `CORS_ORIGIN` = URL de Vercel del paso 1
+6. **Create Web Service**.
+
+---
+
+## 3. Conectar frontend y backend
+
+- **Vercel** → Settings → Environment Variables → `VITE_API_BASE` = `https://rauli-panaderia.onrender.com/api`
+- **Render** → Environment → `CORS_ORIGIN` = URL exacta de Vercel
+
+---
+
+## Verificar
+
+```bash
+python scripts/comprobar_urls.py
+```
