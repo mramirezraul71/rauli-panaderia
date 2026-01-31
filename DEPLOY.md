@@ -90,13 +90,28 @@ Actualiza `URL_VERCEL` (env o bóveda) si tu proyecto tiene otra URL (p. ej. baj
 
 Tras esto, cada **push a `maestro`** actualiza frontend y backend y comprueba las URLs sin tu intervención.
 
-### Actualización desde tu PC (sin GitHub Actions)
+### Actualizar Hub (GitHub) + Vercel + cadena (Railway)
 
-Misma lógica, usando credenciales locales:
+**Opción A — Push y cadena automática (recomendado)**  
+Desde tu PC (con GitHub autenticado):
 
 ```bash
-# Con credenciales en C:\dev\credenciales.txt (o bóveda)
-python scripts/deploy_completo.py
+scripts\subir_hub_vercel_cadena.bat
 ```
 
-O doble clic en `scripts\ACTUALIZAR.bat`. No pide confirmación al final (cierra solo al terminar).
+O a mano:
+```bash
+git add -A
+git commit -m "Actualizacion dashboard y despliegue"
+git push origin maestro
+```
+
+Cada push a `maestro` dispara GitHub Actions: despliegue en Vercel → Railway → comprobación de URLs en 1–2 min.
+
+**Opción B — Deploy directo sin push (solo Vercel + Railway)**  
+Si no quieres subir código y solo redeployar con lo ya en GitHub:
+
+```bash
+scripts\ACTUALIZAR.bat
+```
+o `python scripts/deploy_completo.py` (credenciales en bóveda).
