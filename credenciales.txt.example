@@ -1,0 +1,4 @@
+# Bóveda de credenciales (copiar a credenciales.txt y rellenar)
+# No subir credenciales.txt a Git (está en .gitignore)
+
+VERCEL_TOKEN=

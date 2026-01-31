@@ -10,28 +10,40 @@ import os
 import sys
 from pathlib import Path
 
-# Bóveda según directiva (opcional si no existe)
-VAULT = os.environ.get(
-    "RAULI_VAULT",
-    r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt",
-)
+# Bóveda según directiva; fallbacks para distintos usuarios
+def _vault_paths():
+    yield os.environ.get("RAULI_VAULT", "")
+    yield r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt"
+    home = Path.home()
+    yield home / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield home / "Escritorio" / "credenciales.txt"
+    yield home / "Desktop" / "credenciales.txt"
+    for one in (home / "OneDrive").iterdir() if (home / "OneDrive").exists() else []:
+        yield one / "Escritorio" / "credenciales.txt"
+        yield one / "Desktop" / "credenciales.txt"
 
 def load_token():
     token = os.environ.get("VERCEL_TOKEN", "").strip()
     if token:
         return token
-    # Bóveda
-    p = Path(VAULT)
-    if p.exists():
-        for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
-            line = line.strip()
-            if "=" in line and not line.startswith("#"):
-                k, _, v = line.partition("=")
-                if k.strip().upper() == "VERCEL_TOKEN":
-                    return v.strip().strip("'\"").strip()
-    # .env en raíz del repo
-    root_env = Path(__file__).resolve().parent.parent / ".env"
-    for env_path in [root_env, Path(__file__).resolve().parent.parent / "backend" / ".env"]:
+    # Bóveda (varias rutas)
+    for v in _vault_paths():
+        p = Path(v) if isinstance(v, str) else v
+        if p and p.exists():
+            try:
+                for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                    line = line.strip()
+                    if "=" in line and not line.startswith("#"):
+                        k, _, v = line.partition("=")
+                        if k.strip().upper() == "VERCEL_TOKEN":
+                            t = v.strip().strip("'\"").strip()
+                            if t:
+                                return t
+            except Exception:
+                pass
+    # Raíz del repo: .env y credenciales.txt (bóveda local)
+    root = Path(__file__).resolve().parent.parent
+    for env_path in [root / ".env", root / "credenciales.txt", root / "backend" / ".env"]:
         if env_path.exists():
             try:
                 for line in env_path.read_text(encoding="utf-8", errors="ignore").splitlines():

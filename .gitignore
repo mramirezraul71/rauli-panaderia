@@ -4,6 +4,8 @@ dev-dist/
 .env
 .env.*
 !.env.example
+credenciales.txt
+.vercel-token
 *.log
 .DS_Store
 backend/database/*.db
