@@ -49,4 +49,30 @@ Para que la app funcione al 100% en producción necesitas **frontend (Vercel)** 
 python scripts/comprobar_urls.py
 ```
 
-Si **Vercel** y **Render** salen OK, el servicio está completo. Si Render sale timeout, espera 1 min y vuelve a ejecutar (cold start).
+- Si usas **Railway**, añade en **C:\dev\credenciales.txt**: `RAILWAY_PUBLIC_URL=https://tu-servicio.up.railway.app` (o con `/api/health` al final). Así el script comprueba Railway en lugar de Render.
+- Si **Vercel** y la **API** salen OK, el servicio está completo. Si la API da timeout, espera 1 min y vuelve a ejecutar.
+
+---
+
+## 4. Actualización (todo alineado en un solo comando)
+
+Para desplegar frontend + backend y comprobar URLs en una sola ejecución:
+
+```bash
+python scripts/deploy_completo.py
+```
+
+O desde Windows: **doble clic en `scripts/ACTUALIZAR.bat`**.
+
+Ese script hace en orden:
+1. Deploy en **Vercel** (frontend)
+2. Deploy en **Railway** (backend)
+3. Espera ~90 s
+4. Ejecuta **comprobar_urls.py**
+
+**Requisitos en C:\dev\credenciales.txt:**
+- `VERCEL_TOKEN=...` (para Vercel)
+- `RAILWAY_TOKEN=...` (para Railway)
+- `RAILWAY_PUBLIC_URL=https://tu-servicio.up.railway.app` (para que la comprobación use Railway)
+
+En **Vercel** → Environment Variables: `VITE_API_BASE` = `https://tu-servicio.up.railway.app/api` (misma URL base que Railway).
