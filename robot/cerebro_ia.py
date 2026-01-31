@@ -71,7 +71,8 @@ def init_gemini(api_key: str | None = None):
         )
     import google.generativeai as genai
     genai.configure(api_key=key)
-    return genai.GenerativeModel("gemini-1.5-flash")
+    # gemini-pro es el nombre estable; gemini-1.5-flash puede dar 404 según región/API
+    return genai.GenerativeModel("gemini-pro")
 
 
 def saludar() -> str:
