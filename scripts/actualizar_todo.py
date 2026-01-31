@@ -74,7 +74,7 @@ def git_push_with_token(token: str, branch: str = "maestro") -> bool:
         print("  Remote no es HTTPS. Usa: git push origin maestro")
         return False
     r = subprocess.run(
-        ["git", "push", push_url, f"HEAD:{branch}"],
+        ["git", "push", push_url, f"{branch}:{branch}"],
         cwd=str(ROOT),
         timeout=60,
     )
