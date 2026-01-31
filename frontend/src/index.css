@@ -350,6 +350,29 @@
     padding-right: max(1rem, env(safe-area-inset-right));
   }
 
+  /* Marco visible en móvil para dashboard/contenido principal */
+  @media (max-width: 767px) {
+    .main-content-mobile {
+      border: 3px solid #475569;
+      border-radius: 1rem;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: rgba(15, 23, 42, 0.95);
+      box-sizing: border-box;
+      min-width: 0;
+      overflow-x: hidden;
+    }
+    .dashboard-card-mobile {
+      border: 3px solid #64748b;
+      border-radius: 1rem;
+      background: rgba(30, 41, 59, 0.9);
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+  }
+
   /* Touch feedback */
   .touch-feedback {
     @apply active:opacity-70 active:scale-98 transition-all duration-100;
