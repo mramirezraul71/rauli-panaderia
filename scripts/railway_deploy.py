@@ -25,10 +25,13 @@ def _vault_paths():
     yield Path(__file__).resolve().parent.parent / "backend" / ".env"
 
 
+RAILWAY_KEYS = ("RAILWAY_TOKEN", "RAILWAY_API_TOKEN")
+
 def load_token():
-    token = os.environ.get("RAILWAY_TOKEN", "").strip()
-    if token:
-        return token
+    for key in RAILWAY_KEYS:
+        token = os.environ.get(key, "").strip()
+        if token:
+            return token
     for v in _vault_paths():
         p = Path(v) if isinstance(v, str) else v
         if not p or not getattr(p, "exists", lambda: False) or not p.exists():
@@ -38,7 +41,7 @@ def load_token():
                 line = line.strip()
                 if "=" in line and not line.startswith("#"):
                     k, _, val = line.partition("=")
-                    if k.strip().upper() == "RAILWAY_TOKEN":
+                    if k.strip().upper() in RAILWAY_KEYS:
                         t = val.strip().strip("'\"").strip()
                         if t:
                             return t
@@ -64,7 +67,7 @@ def gql(token: str, query: str, variables: dict | None = None):
 def main():
     token = load_token()
     if not token:
-        print("ERROR: RAILWAY_TOKEN no encontrado. Añade RAILWAY_TOKEN=... en C:\\dev\\credenciales.txt")
+        print("ERROR: RAILWAY_TOKEN no encontrado. Añade RAILWAY_TOKEN=... (o RAILWAY_API_TOKEN=...) en C:\\dev\\credenciales.txt")
         print("  Crea el token en: https://railway.com/account/tokens")
         return 1
 
