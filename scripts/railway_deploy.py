@@ -16,6 +16,8 @@ from pathlib import Path
 
 RAILWAY_GRAPHQL = "https://backboard.railway.com/graphql/v2"
 PROJECT_NAME = os.environ.get("RAILWAY_PROJECT_NAME", "rauli-panaderia")
+# Si tienes el ID del proyecto en Railway, ponlo aquí o en RAILWAY_PROJECT_ID (env/credenciales)
+PROJECT_ID_OVERRIDE = os.environ.get("RAILWAY_PROJECT_ID", "5435fa54-9b63-4a92-97e2-449832f67e5d").strip() or None
 
 
 def _vault_paths():
@@ -30,12 +32,9 @@ def _vault_paths():
 
 
 RAILWAY_KEYS = ("RAILWAY_TOKEN", "RAILWAY_API_TOKEN", "RAILWAY_KEY")
+PROJECT_ID_KEYS = ("RAILWAY_PROJECT_ID",)
 
-def load_token():
-    for key in RAILWAY_KEYS:
-        token = os.environ.get(key, "").strip()
-        if token:
-            return token
+def _load_from_vault(keys: tuple):
     for v in _vault_paths():
         p = Path(v) if isinstance(v, str) else v
         if not p or not getattr(p, "exists", lambda: False) or not p.exists():
@@ -45,13 +44,28 @@ def load_token():
                 line = line.strip()
                 if "=" in line and not line.startswith("#"):
                     k, _, val = line.partition("=")
-                    if k.strip().upper() in RAILWAY_KEYS:
+                    k = k.strip().upper()
+                    if k in keys:
                         t = val.strip().strip("'\"").strip()
                         if t:
                             return t
         except Exception:
             pass
-    return ""
+    return None
+
+def load_token():
+    for key in RAILWAY_KEYS:
+        token = os.environ.get(key, "").strip()
+        if token:
+            return token
+    return _load_from_vault(RAILWAY_KEYS) or ""
+
+def load_project_id():
+    for key in PROJECT_ID_KEYS:
+        pid = os.environ.get(key, "").strip()
+        if pid:
+            return pid
+    return _load_from_vault(PROJECT_ID_KEYS) or PROJECT_ID_OVERRIDE or ""
 
 
 def gql(token: str, query: str, variables: dict | None = None):
