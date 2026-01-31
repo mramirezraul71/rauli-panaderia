@@ -100,25 +100,25 @@ export default function AccessControlWidget() {
   const isOwner = user?.role === "admin";
 
   return (
-    <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-2xl border border-slate-700/50 overflow-hidden">
+    <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl sm:rounded-2xl border-2 sm:border border-slate-600/80 sm:border-slate-700/50 overflow-hidden min-w-0">
       {/* Header */}
-      <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-violet-600/10 to-indigo-600/10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className="p-4 sm:p-6 border-b-2 sm:border-b border-slate-600/80 sm:border-slate-700/50 bg-gradient-to-r from-violet-600/10 to-indigo-600/10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
               <HiOutlineShieldCheck className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-bold text-white flex flex-wrap items-center gap-2">
                 Centro de Control de Acceso
                 {isOwner && <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full border border-red-500/30">DUEÑO</span>}
               </h3>
-              <p className="text-sm text-slate-400">Gestión de roles y permisos del equipo</p>
+              <p className="text-xs sm:text-sm text-slate-400">Gestión de roles y permisos del equipo</p>
             </div>
           </div>
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition-all"
+            className="flex-shrink-0 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition-all border border-slate-600"
           >
             {showDetails ? "Ocultar" : "Ver todo"}
           </button>
@@ -126,33 +126,33 @@ export default function AccessControlWidget() {
       </div>
 
       {/* Stats */}
-      <div className="p-4 grid grid-cols-3 gap-3 border-b border-slate-700/50">
-        <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/30">
-          <div className="flex items-center gap-2 mb-1">
-            <HiOutlineUserGroup className="w-4 h-4 text-violet-400" />
-            <p className="text-xs text-slate-400">Total</p>
+      <div className="p-3 sm:p-4 grid grid-cols-3 gap-2 sm:gap-3 border-b-2 sm:border-b border-slate-600/80 sm:border-slate-700/50">
+        <div className="bg-slate-800/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 border-2 sm:border border-slate-600/60 sm:border-slate-700/30">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+            <HiOutlineUserGroup className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-400" />
+            <p className="text-[10px] sm:text-xs text-slate-400">Total</p>
           </div>
-          <p className="text-2xl font-bold text-white">{stats.total}</p>
+          <p className="text-xl sm:text-2xl font-bold text-white">{stats.total}</p>
         </div>
-        <div className="bg-red-500/10 rounded-xl p-3 border border-red-500/30">
-          <div className="flex items-center gap-2 mb-1">
-            <HiOutlineShieldCheck className="w-4 h-4 text-red-400" />
-            <p className="text-xs text-slate-400">Admins</p>
+        <div className="bg-red-500/10 rounded-lg sm:rounded-xl p-2.5 sm:p-3 border-2 sm:border border-red-500/40 sm:border-red-500/30">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+            <HiOutlineShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" />
+            <p className="text-[10px] sm:text-xs text-slate-400">Admins</p>
           </div>
-          <p className="text-2xl font-bold text-red-400">{stats.admins}</p>
+          <p className="text-xl sm:text-2xl font-bold text-red-400">{stats.admins}</p>
         </div>
-        <div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/30">
-          <div className="flex items-center gap-2 mb-1">
-            <HiOutlineCheck className="w-4 h-4 text-emerald-400" />
-            <p className="text-xs text-slate-400">Activos</p>
+        <div className="bg-emerald-500/10 rounded-lg sm:rounded-xl p-2.5 sm:p-3 border-2 sm:border border-emerald-500/40 sm:border-emerald-500/30">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+            <HiOutlineCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+            <p className="text-[10px] sm:text-xs text-slate-400">Activos</p>
           </div>
-          <p className="text-2xl font-bold text-emerald-400">{stats.active}</p>
+          <p className="text-xl sm:text-2xl font-bold text-emerald-400">{stats.active}</p>
         </div>
       </div>
 
       {/* User List (Expandable) */}
       {showDetails && (
-        <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+        <div className="p-3 sm:p-4 space-y-2 max-h-96 overflow-y-auto border-t border-slate-700/50">
           {users.length === 0 ? (
             <div className="text-center py-8">
               <HiOutlineLockClosed className="w-12 h-12 text-slate-600 mx-auto mb-2" />
@@ -166,7 +166,7 @@ export default function AccessControlWidget() {
               return (
                 <div
                   key={u.id}
-                  className={`p-4 rounded-xl border transition-all ${
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 sm:border border-slate-600/50 sm:border-transparent transition-all ${
                     u.active === 1 
                       ? `${roleConfig.bgColor} ${roleConfig.borderColor}` 
                       : "bg-slate-800/30 border-slate-700/30 opacity-60"
