@@ -1,15 +1,14 @@
-# Actualización automática: verificación tras push a maestro
-# Vercel y Railway despliegan solos si el repo está conectado.
-# Este workflow solo comprueba que las URLs respondan tras 2 min.
+# Actualización automática SIN intervención: push a maestro despliega Vercel + Railway y comprueba URLs.
+# Requiere en GitHub: Secrets VERCEL_TOKEN, RAILWAY_TOKEN; Variables URL_VERCEL, RAILWAY_PUBLIC_URL (opcional RAILWAY_PROJECT_ID).
 name: Actualizar y comprobar
 
 on:
   push:
     branches: [maestro, main]
-  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub Actions
+  workflow_dispatch:  # Ejecutar manualmente desde pestaña Actions
 
 jobs:
-  verificar:
+  deploy-y-comprobar:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,16 +19,28 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: 1/3 Desplegar Vercel (frontend)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: python scripts/vercel_config_deploy.py
+        continue-on-error: true
+
+      - name: 2/3 Desplegar Railway (backend)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
+        run: python scripts/railway_deploy.py
+        continue-on-error: true
+
       - name: Esperar a que terminen los deploys
         run: sleep 120
 
       - name: Instalar httpx
         run: pip install httpx
 
-      - name: Comprobar URLs
+      - name: 3/3 Comprobar URLs
         env:
           URL_VERCEL: ${{ vars.URL_VERCEL || 'https://rauli-panaderia-app.vercel.app' }}
           RAILWAY_PUBLIC_URL: ${{ vars.RAILWAY_PUBLIC_URL }}
-        run: |
-          python scripts/comprobar_urls.py
+        run: python scripts/comprobar_urls.py
         continue-on-error: true

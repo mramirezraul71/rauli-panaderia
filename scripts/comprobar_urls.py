@@ -4,8 +4,8 @@ import os
 import sys
 from pathlib import Path
 
-# URLs por defecto
-URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
+# URLs por defecto (env en CI: URL_VERCEL, RAILWAY_PUBLIC_URL)
+URL_VERCEL = os.environ.get("URL_VERCEL", "https://rauli-panaderia-app.vercel.app").strip()
 URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
 URL_RAILWAY = ""  # Se rellena desde credenciales (RAILWAY_PUBLIC_URL) si existe
 
