@@ -3,7 +3,7 @@
 Envía por WhatsApp el enlace de la app en Vercel.
 1) Si hay Twilio en la Bóveda: envía el mensaje al número WHATSAPP_TO.
 2) Si no: abre wa.me con el texto listo para que lo envíes tú (a ti mismo o a quien quieras).
-Credenciales: Bóveda (credenciales.txt) con TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, WHATSAPP_TO.
+Credenciales: Bóveda con TWILIO_SID/TWILIO_ACCOUNT_SID, TWILIO_TOKEN/TWILIO_AUTH_TOKEN, WHATSAPP_FROM, WHATSAPP_TO.
 """
 import os
 import re
@@ -41,11 +41,24 @@ def _normalize_phone(num):
     return digits
 
 
+def _format_whatsapp_num(val):
+    """Asegura formato whatsapp:+XXXXXXXX."""
+    val = (val or "").strip()
+    if not val:
+        return ""
+    val = re.sub(r"\D", "", val)
+    if not val:
+        return ""
+    if not val.startswith("1") and not val.startswith("34"):
+        val = "34" + val
+    return "whatsapp:+" + val
+
+
 def load_twilio():
-    sid = os.environ.get("TWILIO_ACCOUNT_SID", "")
-    token = os.environ.get("TWILIO_AUTH_TOKEN", "")
+    sid = os.environ.get("TWILIO_ACCOUNT_SID", "") or os.environ.get("TWILIO_SID", "")
+    token = os.environ.get("TWILIO_AUTH_TOKEN", "") or os.environ.get("TWILIO_TOKEN", "")
     to_raw = os.environ.get("WHATSAPP_TO", "") or os.environ.get("TWILIO_WHATSAPP_TO", "")
-    from_wa = os.environ.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
+    from_wa = os.environ.get("TWILIO_WHATSAPP_FROM", "") or os.environ.get("WHATSAPP_FROM", "") or "whatsapp:+14155238886"
 
     for v in _vault_paths():
         p = Path(v) if isinstance(v, str) else v
@@ -57,18 +70,19 @@ def load_twilio():
                 if "=" in line and not line.startswith("#"):
                     k, _, val = line.partition("=")
                     k, val = k.strip().upper(), val.strip().strip("'\"").strip()
-                    if k == "TWILIO_ACCOUNT_SID" and val:
+                    if k in ("TWILIO_ACCOUNT_SID", "TWILIO_SID") and val:
                         sid = sid or val
-                    elif k == "TWILIO_AUTH_TOKEN" and val:
+                    elif k in ("TWILIO_AUTH_TOKEN", "TWILIO_TOKEN") and val:
                         token = token or val
                     elif k in ("WHATSAPP_TO", "TWILIO_WHATSAPP_TO") and val:
                         to_raw = to_raw or val
-                    elif k == "TWILIO_WHATSAPP_FROM" and val:
+                    elif k in ("TWILIO_WHATSAPP_FROM", "WHATSAPP_FROM") and val:
                         from_wa = val
             if sid and token and to_raw:
-                to_digits = _normalize_phone(to_raw)
-                if to_digits:
-                    return sid, token, f"whatsapp:+{to_digits}", from_wa
+                to_wa = _format_whatsapp_num(to_raw)
+                from_fmt = from_wa if from_wa.startswith("whatsapp:") else _format_whatsapp_num(from_wa)
+                if to_wa:
+                    return sid, token, to_wa, from_fmt or "whatsapp:+14155238886"
         except Exception:
             pass
     return sid, token, ("whatsapp:+%" + to_raw if to_raw else ""), from_wa
@@ -94,8 +108,19 @@ def send_via_twilio():
 
 def open_wa_me():
     url = "https://wa.me/?text=" + urllib.parse.quote(MSG)
-    webbrowser.open(url)
-    print("Se abrió WhatsApp con el mensaje listo. Elige tu chat (o 'Enviar a mi mismo') y pulsa Enviar.")
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
+    print()
+    print("=" * 60)
+    print("  COPIA ESTE ENLACE Y ÁBRELO EN EL NAVEGADOR")
+    print("  (se abrirá WhatsApp con el mensaje del enlace Vercel)")
+    print("=" * 60)
+    print()
+    print(url)
+    print()
+    print("=" * 60)
     return True
 
 
@@ -105,7 +130,6 @@ def main():
         print("WhatsApp enviado correctamente (Twilio). SID:", detail)
         return 0
     print("Twilio no disponible:", detail)
-    print()
     open_wa_me()
     return 0
 
