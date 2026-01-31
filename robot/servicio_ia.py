@@ -16,26 +16,41 @@ BASE = Path(__file__).resolve().parent
 if (BASE / "packages").exists() and str(BASE / "packages") not in sys.path:
     sys.path.insert(0, str(BASE / "packages"))
 
-# Bóveda Maestra: dotenv desde C:\\dev\\credenciales.txt y fallbacks
+# Bóveda Maestra: dotenv desde C:\dev\credenciales.txt y fallbacks
+VAULT_PATHS = [
+    lambda: os.environ.get("RAULI_VAULT", ""),
+    lambda: str(Path(r"C:\dev\credenciales.txt")),
+    lambda: str(BASE.parent / "credenciales.txt"),
+    lambda: str(BASE / "credenciales.txt"),
+    lambda: str(Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"),
+    lambda: str(Path.home() / "Escritorio" / "credenciales.txt"),
+    lambda: str(Path.home() / "Desktop" / "credenciales.txt"),
+]
+
+
 def _cargar_boveda() -> None:
-    try:
-        from dotenv import load_dotenv
-    except ImportError:
-        return
-    vault_paths = [
-        os.environ.get("RAULI_VAULT", ""),
-        Path(r"C:\dev\credenciales.txt"),
-        BASE.parent / "credenciales.txt",
-        BASE / "credenciales.txt",
-        Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt",
-        Path.home() / "Escritorio" / "credenciales.txt",
-        Path.home() / "Desktop" / "credenciales.txt",
-    ]
-    for v in vault_paths:
-        p = Path(v) if isinstance(v, str) else v
-        if p and getattr(p, "exists", lambda: False) and p.exists():
+    for get_path in VAULT_PATHS:
+        p = Path(get_path())
+        if not p or not p.exists():
+            continue
+        try:
+            from dotenv import load_dotenv
             load_dotenv(p, override=False)
-            break
+            return
+        except ImportError:
+            pass
+        # Fallback sin dotenv: leer KEY=value y cargar en os.environ
+        try:
+            for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    k, _, v = line.partition("=")
+                    k, v = k.strip(), v.strip().strip("'\"").strip()
+                    if k and k not in os.environ:
+                        os.environ[k] = v
+            return
+        except Exception:
+            continue
 
 
 _cargar_boveda()
