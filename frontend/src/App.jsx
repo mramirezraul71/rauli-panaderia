@@ -540,10 +540,10 @@ function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 p-6 overflow-auto space-y-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto space-y-4 sm:space-y-6 min-w-0 safe-area-padding">
           {location.pathname !== "/auth" && (
-            <div className="rounded-3xl border border-slate-800/60 bg-slate-900/40 backdrop-blur-sm overflow-hidden">
-              <div className="px-5 py-3 border-b border-slate-800/60 text-xs text-slate-400">
+            <div className="rounded-2xl sm:rounded-3xl border-2 sm:border border-slate-700/80 sm:border-slate-800/60 bg-slate-900/40 backdrop-blur-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 border-b-2 sm:border-b border-slate-700/80 sm:border-slate-800/60 text-xs text-slate-400">
                 Asistente RAULI siempre activo
               </div>
               <div className="h-[420px] lg:h-[460px] max-h-[55vh]">
@@ -551,7 +551,9 @@ function Layout() {
               </div>
             </div>
           )}
-          <Outlet />
+          <div className="min-w-0 w-full">
+            <Outlet />
+          </div>
         </main>
 
         {location.pathname !== "/" && (
