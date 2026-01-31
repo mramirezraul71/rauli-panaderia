@@ -203,8 +203,8 @@ def main() -> int:
     # Diagnóstico
     diag = diagnosticar()
     for proveedor, estado in diag.items():
-        icon = "✓" if estado == "OK" else "✗"
-        print(f"  {icon} {proveedor.upper():8} → {estado}")
+        icon = "[OK]" if estado == "OK" else "[X]"
+        print(f"  {icon} {proveedor.upper():8} -> {estado}")
 
     ok = sum(1 for v in diag.values() if v == "OK")
     print(f"\n  Resumen: {ok}/3 proveedores disponibles.\n")
