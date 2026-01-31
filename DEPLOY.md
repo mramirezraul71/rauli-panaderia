@@ -69,4 +69,34 @@ El script hace: Root Directory = `frontend`, Framework = Vite, crea `VITE_API_BA
 python scripts/comprobar_urls.py
 ```
 
-Actualiza `URL_VERCEL` en `scripts/comprobar_urls.py` si tu proyecto tiene otra URL (p. ej. bajo equipo).
+Actualiza `URL_VERCEL` (env o bóveda) si tu proyecto tiene otra URL (p. ej. bajo equipo).
+
+---
+
+## Actualización automática SIN intervención
+
+**Push a `maestro` (o `main`)** dispara en GitHub Actions: deploy Vercel → deploy Railway → espera 2 min → comprobación de URLs. No hace falta ejecutar nada a mano.
+
+### Configurar una sola vez en GitHub
+
+1. Repo → **Settings** → **Secrets and variables** → **Actions**.
+2. **Secrets** (obligatorios para que el workflow despliegue):
+   - `VERCEL_TOKEN`: token de Vercel (Account Settings → Tokens).
+   - `RAILWAY_TOKEN`: token de Railway (Account → Settings → Tokens).
+3. **Variables** (opcionales; el script usa valores por defecto si faltan):
+   - `URL_VERCEL`: URL del frontend (ej. `https://rauli-panaderia-app.vercel.app`).
+   - `RAILWAY_PUBLIC_URL`: URL pública del backend en Railway (ej. `https://xxx.up.railway.app`).
+   - `RAILWAY_PROJECT_ID`: ID del proyecto en Railway (solo si el nombre no es el por defecto).
+
+Tras esto, cada **push a `maestro`** actualiza frontend y backend y comprueba las URLs sin tu intervención.
+
+### Actualización desde tu PC (sin GitHub Actions)
+
+Misma lógica, usando credenciales locales:
+
+```bash
+# Con credenciales en C:\dev\credenciales.txt (o bóveda)
+python scripts/deploy_completo.py
+```
+
+O doble clic en `scripts\ACTUALIZAR.bat`. No pide confirmación al final (cierra solo al terminar).

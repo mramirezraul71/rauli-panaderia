@@ -4,4 +4,4 @@ echo === Actualizacion completa (Vercel + Railway + comprobacion) ===
 echo.
 python scripts/deploy_completo.py
 echo.
-pause
+rem Sin pause: ejecucion automatica sin intervencion (cierre al terminar)
