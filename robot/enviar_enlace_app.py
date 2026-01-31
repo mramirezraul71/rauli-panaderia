@@ -2,6 +2,7 @@
 """
 Envía el enlace de descarga de la app RAULI por Telegram.
 Imprime también el enlace y enlaces listos para WhatsApp y correo.
+Credenciales: robot/omni_telegram.env o Bóveda (C:\\dev\\credenciales.txt).
 """
 import json
 import os
@@ -13,6 +14,27 @@ BASE = Path(__file__).resolve().parent
 ENV = BASE / "omni_telegram.env"
 APP_URL = os.environ.get("RAULI_APP_URL", "https://rauli-panaderia-app.vercel.app")
 APP_NAME = "RAULI - Panaderia y Dulceria"
+
+# Mensaje unificado (Telegram, WhatsApp, correo)
+MSG_TELEGRAM = (
+    f"Descarga la app {APP_NAME}\n\n"
+    f"Abre en el navegador o instala como app (Add to Home Screen / Instalar):\n{APP_URL}\n\n"
+    "PWA: funciona offline tras la primera carga."
+)
+MSG_WHATSAPP = f"Descarga la app {APP_NAME}. Abre o instala aqui: {APP_URL}"
+MSG_EMAIL_SUBJECT = f"Enlace app {APP_NAME}"
+MSG_EMAIL_BODY = f"Descarga o abre la app {APP_NAME} en el navegador (tambien puedes instalarla como app):\n\n{APP_URL}\n\nPWA - funciona offline."
+
+
+def _vault_paths():
+    yield os.environ.get("RAULI_VAULT", "")
+    yield Path(r"C:\dev\credenciales.txt")
+    yield BASE.parent / "credenciales.txt"
+    yield BASE / "credenciales.txt"
+    home = Path.home()
+    yield home / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield home / "Escritorio" / "credenciales.txt"
+    yield home / "Desktop" / "credenciales.txt"
 
 
 def load_telegram():
@@ -28,15 +50,35 @@ def load_telegram():
                     token = v
                 elif k.strip() == "OMNI_BOT_TELEGRAM_CHAT_ID" and v:
                     chat = v
+    if token and chat:
+        return token, chat
+    for v in _vault_paths():
+        p = Path(v) if isinstance(v, str) else v
+        if not p or not getattr(p, "exists", lambda: False) or not p.exists():
+            continue
+        try:
+            for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    k, _, val = line.partition("=")
+                    k, val = k.strip().upper(), val.strip().strip("'\"").strip()
+                    if k == "OMNI_BOT_TELEGRAM_TOKEN" and val:
+                        token = token or val
+                    elif k == "OMNI_BOT_TELEGRAM_CHAT_ID" and val:
+                        chat = chat or val
+            if token and chat:
+                return token, chat
+        except Exception:
+            pass
     return token, chat
 
 
 def send_telegram(text):
     token, chat = load_telegram()
     if not token or not chat or token == "TU_BOT_TOKEN" or chat == "TU_CHAT_ID":
-        return False, "Configura robot/omni_telegram.env (token y chat_id)."
+        return False, "Configura robot/omni_telegram.env o Boveda (OMNI_BOT_TELEGRAM_TOKEN, OMNI_BOT_TELEGRAM_CHAT_ID)."
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    body = urllib.parse.urlencode({"chat_id": chat, "text": text})
+    body = urllib.parse.urlencode({"chat_id": chat, "text": text[:4096]})
     req = urllib.request.Request(url, data=body.encode(), method="POST")
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     try:
@@ -48,27 +90,32 @@ def send_telegram(text):
 
 
 def main():
-    msg = f"Descarga la app {APP_NAME}\n\nAbrir / instalar (PWA):\n{APP_URL}"
-    ok, detail = send_telegram(msg)
+    ok, detail = send_telegram(MSG_TELEGRAM)
     if ok:
         print("Enlace enviado a tu Telegram.")
     else:
         print("Telegram:", detail)
 
     print()
-    print("=" * 50)
-    print("ENLACE PARA DESCARGAR / ABRIR LA APP")
-    print("=" * 50)
-    print(APP_URL)
+    print("=" * 55)
+    print("  ENLACE PARA DESCARGAR / ABRIR LA APP")
+    print("=" * 55)
     print()
-    print("WhatsApp (abre WhatsApp con el mensaje listo para enviar):")
-    wa_text = urllib.parse.quote(f"Descarga la app {APP_NAME}: {APP_URL}")
-    print(f"https://wa.me/?text={wa_text}")
+    print("  Directo (abre en navegador o instala como PWA):")
+    print("  " + APP_URL)
     print()
-    print("Correo (copia y pega en el cuerpo del mensaje):")
-    print(f"Asunto: Enlace app {APP_NAME}")
-    print(f"Cuerpo: Descarga o abre la app aqui: {APP_URL}")
-    print("=" * 50)
+    print("  WhatsApp (abre y envia el mensaje a quien quieras):")
+    wa_text = urllib.parse.quote(MSG_WHATSAPP)
+    print("  https://wa.me/?text=" + wa_text)
+    print()
+    print("  Correo (copia asunto y cuerpo):")
+    print("  ---")
+    print(f"  Asunto: {MSG_EMAIL_SUBJECT}")
+    print("  Cuerpo:")
+    for line in MSG_EMAIL_BODY.split("\n"):
+        print("    " + line)
+    print("  ---")
+    print("=" * 55)
     return 0 if ok else 1
 
 
