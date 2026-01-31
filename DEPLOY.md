@@ -5,6 +5,20 @@
 
 ---
 
+## Setup una sola vez (clon nuevo)
+
+En un clon nuevo del repo, ejecuta **una sola vez** para crear `credenciales.txt` y `frontend/.env` desde los ejemplos (si no existen):
+
+```bash
+scripts\SETUP_UNA_VEZ.bat
+```
+
+O: `python scripts/setup_una_vez.py`
+
+El script crea el marcador `scripts/.setup-una-vez-done`; en ejecuciones posteriores indica que ya fue aplicado. Para repetir: borra ese archivo o ejecuta con `--force`.
+
+---
+
 ## 1. Vercel (frontend)
 
 **Si ya tienes un proyecto con 404:** En Settings → Git, reconecta a **mramirezraul71/rauli-panaderia** y Rama = **maestro**.

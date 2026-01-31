@@ -13,6 +13,9 @@ backend/database/*.db-shm
 backend/database/*.db-wal
 *.zip
 
+# Setup una sola vez (marcador local)
+scripts/.setup-una-vez-done
+
 # Robot ATLAS
 robot/omni_telegram.env
 robot/packages/
