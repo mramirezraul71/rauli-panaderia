@@ -13,6 +13,8 @@ from pathlib import Path
 # Bóveda según directiva; fallbacks para distintos usuarios
 def _vault_paths():
     yield os.environ.get("RAULI_VAULT", "")
+    # Raíz común de proyectos (C:\dev)
+    yield Path(r"C:\dev\credenciales.txt")
     yield r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt"
     home = Path.home()
     yield home / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
