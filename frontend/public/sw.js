@@ -3,9 +3,9 @@
  * Offline-first PWA support
  */
 
-const CACHE_NAME = 'rauli-erp-v1';
-const STATIC_CACHE = 'rauli-erp-static-v1';
-const API_CACHE = 'rauli-erp-api-v1';
+const CACHE_NAME = 'rauli-erp-v2';
+const STATIC_CACHE = 'rauli-erp-static-v2';
+const API_CACHE = 'rauli-erp-api-v2';
 
 // Archivos estáticos para cache
 const STATIC_FILES = [
@@ -35,7 +35,7 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Activación del SW
+// Activación del SW: borrar todas las cachés antiguas para forzar actualización en móvil
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Service Worker');
   
@@ -43,16 +43,14 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name.startsWith('rauli-erp-') && name !== CACHE_NAME)
+          .filter((name) => name.startsWith('rauli-erp-'))
           .map((name) => {
             console.log('[SW] Deleting old cache:', name);
             return caches.delete(name);
           })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  
-  self.clients.claim();
 });
 
 // Estrategia de fetch
@@ -67,6 +65,12 @@ self.addEventListener('fetch', (event) => {
   
   // API requests - Network first, fallback to cache
   if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirstStrategy(request));
+    return;
+  }
+  
+  // Navegación / documento: network first para que móvil reciba siempre la versión nueva
+  if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('index.html')) {
     event.respondWith(networkFirstStrategy(request));
     return;
   }
