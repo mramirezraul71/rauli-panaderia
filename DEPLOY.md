@@ -46,8 +46,27 @@
 
 ---
 
+## Configuración Vercel vía API (opcional)
+
+Si tienes **VERCEL_TOKEN** (Account Settings → Tokens en Vercel), puedes aplicar Root Directory, env y disparar deploy sin entrar al dashboard:
+
+```bash
+# Opción 1: variable de entorno
+set VERCEL_TOKEN=tu_token
+python scripts/vercel_config_deploy.py
+
+# Opción 2: en bóveda (credenciales.txt) línea: VERCEL_TOKEN=tu_token
+python scripts/vercel_config_deploy.py
+```
+
+El script hace: Root Directory = `frontend`, Framework = Vite, crea `VITE_API_BASE` si falta, y dispara un deploy de la rama `maestro`.
+
+---
+
 ## Verificar
 
 ```bash
 python scripts/comprobar_urls.py
 ```
+
+Actualiza `URL_VERCEL` en `scripts/comprobar_urls.py` si tu proyecto tiene otra URL (p. ej. bajo equipo).
