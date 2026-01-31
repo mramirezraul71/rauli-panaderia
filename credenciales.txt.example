@@ -2,5 +2,6 @@
 # No subir credenciales.txt a Git (está en .gitignore)
 
 VERCEL_TOKEN=
-# Opcional: backend en Railway (scripts/railway_deploy.py)
+# Railway (scripts/railway_deploy.py y comprobar_urls.py)
 # RAILWAY_TOKEN=
+# RAILWAY_PUBLIC_URL=https://tu-servicio.up.railway.app
