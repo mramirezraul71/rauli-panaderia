@@ -78,8 +78,8 @@ def check():
     if all_ok:
         print("  Servicio completo: frontend y API operativos.")
     else:
-        print("  Si Render da timeout: plan free tarda ~1 min en despertar.")
-        print("  Vuelve a ejecutar: python scripts/comprobar_urls.py")
+        print("  Si la API da timeout: espera 1 min (cold start) y vuelve a ejecutar:")
+        print("  python scripts/comprobar_urls.py")
     print("=" * 40)
     return 0 if all_ok else 1
 
