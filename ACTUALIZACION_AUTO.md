@@ -84,15 +84,43 @@ Luego:
 
 ---
 
+## Cadena completa: actualización del repo en GitHub y toda la cadena
+
+**Un solo comando** actualiza versión en build, sube a GitHub y dispara toda la cadena (Vercel, Railway, notificación). No hace falta tocar más este tema.
+
+### En este repo (RauliERP)
+
+- **Cadena completa (recomendado):** build → GitHub (push) → deploy Vercel + Railway → Telegram  
+  ```bash
+  scripts\DEPLOY_Y_NOTIFICAR.bat
+  ```
+  o `python scripts/deploy_y_notificar.py`  
+  Rama: `maestro`. Incluye despliegue explícito a Vercel y Railway.
+
+- **Solo subir a GitHub** (si ya hiciste build y quieres que la cadena se dispare por webhooks):  
+  ```bash
+  scripts\subir_hub_vercel_cadena.bat
+  ```
+  Push a `maestro`; Vercel y Railway se actualizan solos si están conectados al repo.
+
+### En cualquier otro proyecto (plantilla)
+
+Tras instalar el sistema (`instalar_sistema_actualizacion.py`), tendrás en `scripts/`:
+
+- **`deploy_cadena.py`** y **`DEPLOY_CADENA.bat`**: build frontend → git add/commit/push → opcional Telegram.  
+  La rama se toma de la variable de entorno `DEPLOY_BRANCH` (por defecto `main`).  
+  Vercel/Railway suelen desplegar solos al detectar el push.  
+  Credenciales: bóveda (`credenciales.txt`) o env: `GH_TOKEN`, `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`, `URL_VERCEL` o `APP_URL`.
+
+Uso: `python scripts/deploy_cadena.py` o `scripts\DEPLOY_CADENA.bat`.
+
+---
+
 ## Versión y despliegue
 
 - **Subir versión**: edita `frontend/src/config/version.js` y aumenta `APP_VERSION` (ej. `1.0.3` → `1.0.4`) antes de cada despliegue con cambios que quieras que el usuario reciba.
 - **Build**: `npm run build` en `frontend` (genera `version.json` y el bundle).
-- **Deploy**: sube a Vercel/Railway/etc. como siempre. Si usas el script de este repo:
-  ```bash
-  scripts\DEPLOY_Y_NOTIFICAR.bat
-  ```
-  o `python scripts/deploy_y_notificar.py` (build, git push, notificación Telegram).
+- **Deploy**: usa la cadena completa (arriba): en este repo `DEPLOY_Y_NOTIFICAR.bat`; en otros `DEPLOY_CADENA.bat` o `deploy_cadena.py`.
 
 ---
 
@@ -104,5 +132,6 @@ Luego:
 - [ ] Build con `node scripts/write-version.js && vite build`.
 - [ ] Cabeceras no-cache para `/`, `/index.html` y `/version.json` en el host (vercel.json o equivalente).
 - [ ] Service Worker (si existe) registrado con `updateViaCache: 'none'`.
+- [ ] Cadena: usar `scripts/deploy_cadena.py` o `DEPLOY_CADENA.bat` (build + push + opcional Telegram); rama por `DEPLOY_BRANCH`.
 
-Con esto el sistema queda implementado para ese proyecto y no hace falta volver a tocar este tema.
+Con esto el sistema de actualización automática y la cadena (repo en GitHub + Vercel/Railway + notificación) quedan implementados y no hace falta volver a tocar este tema.
