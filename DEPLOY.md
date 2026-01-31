@@ -112,6 +112,14 @@ Tras esto, cada **push a `maestro`** actualiza frontend y backend y comprueba la
 scripts\ACTUALIZAR_TODO.bat
 ```
 
+**Solo ejecutar actualización (sin git)** — si no quieres hacer commit/push y solo quieres disparar el deploy en Vercel y Railway:
+
+```bash
+scripts\EJECUTAR_ACTUALIZACION.bat
+```
+
+O: `python scripts/actualizar_todo.py --solo-deploy`
+
 O con mensaje de commit:
 
 ```bash

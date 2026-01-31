@@ -35,11 +35,11 @@ const ensurePersistentStorage = async () => {
   }
 };
 
-// Registrar Service Worker
+// Registrar Service Worker (updateViaCache: none para que "Buscar actualizaciones" traiga la versión nueva)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     ensurePersistentStorage();
-    navigator.serviceWorker.register('/sw.js').then(
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(
       (registration) => {
         console.log('✓ Service Worker registrado:', registration.scope);
       },

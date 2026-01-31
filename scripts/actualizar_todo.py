@@ -3,9 +3,11 @@
 Actualiza TODO: push a GitHub (hub) con token de bóveda + deploy Vercel + Railway + comprobación.
 Carga desde bóveda: GH_TOKEN o GITHUB_TOKEN (push), VERCEL_TOKEN, RAILWAY_TOKEN (deploy).
 Uso: python scripts/actualizar_todo.py [mensaje_commit]
+      python scripts/actualizar_todo.py --solo-deploy   (solo Vercel + Railway, sin git)
 """
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
@@ -82,71 +84,80 @@ def git_push_with_token(token: str, branch: str = "maestro") -> bool:
 
 
 def main() -> int:
-    commit_msg = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Actualizacion: dashboard, bordes movil y despliegue"
-    print("=== ACTUALIZAR TODO (Hub -> Vercel -> Railway -> Comprobacion) ===\n")
+    parser = argparse.ArgumentParser(description="Actualizar todo: push + Vercel + Railway")
+    parser.add_argument("--solo-deploy", action="store_true", help="Solo ejecutar deploy (Vercel + Railway), sin git")
+    parser.add_argument("mensaje_commit", nargs="*", help="Mensaje para el commit")
+    args = parser.parse_args()
+    commit_msg = " ".join(args.mensaje_commit) if args.mensaje_commit else "Actualizacion: despliegue"
 
-    # 1) Git add
-    subprocess.run(["git", "add", "-A"], cwd=str(ROOT), timeout=10, check=False)
-    r = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=str(ROOT), timeout=5)
-    has_changes = r.returncode != 0
-
-    if has_changes:
-        subprocess.run(["git", "commit", "-m", commit_msg], cwd=str(ROOT), timeout=10, check=False)
-        print("  Commit creado.\n")
+    if args.solo_deploy:
+        print("=== EJECUTAR ACTUALIZACION (solo Vercel + Railway) ===\n")
     else:
-        print("  Sin cambios que commitear.\n")
-        # Aun así intentamos push por si hay commits locales no subidos
+        print("=== ACTUALIZAR TODO (Hub -> Vercel -> Railway -> Comprobacion) ===\n")
 
-    # 2) Push a GitHub
-    gh_token = _load_from_vault(("GH_TOKEN", "GITHUB_TOKEN"))
-    if gh_token:
-        print("--- Push a GitHub (maestro) ---\n")
-        if git_push_with_token(gh_token, "maestro"):
-            print("  OK Push a GitHub.\n")
-        else:
-            print("  Falló push. Revisa GH_TOKEN en bóveda o ejecuta: git push origin maestro\n")
-    else:
-        print("--- Push a GitHub ---\n")
-        print("  GH_TOKEN no está en la bóveda. Intentando push con credenciales del sistema...\n")
-        r = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90)
-        if r.returncode != 0:
-            print("  Para actualizar todo sin pedir contraseña, añade en la bóveda (credenciales.txt):")
-            print("  GH_TOKEN=tu_token_github")
-            print("  (Crea token en: GitHub → Settings → Developer settings → Personal access tokens)\n")
-            # Continuamos con deploy: Vercel/Railway despliegan lo que ya está en GitHub
-        else:
-            print("  OK Push a GitHub.\n")
+    if not args.solo_deploy:
+        # 1) Git add
+        subprocess.run(["git", "add", "-A"], cwd=str(ROOT), timeout=10, check=False)
+        r = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=str(ROOT), timeout=5)
+        has_changes = r.returncode != 0
 
-    # 3) Deploy Vercel + Railway + comprobar (usa lo que está en GitHub)
-    print("--- Deploy Vercel + Railway + Comprobación ---\n")
-    r = subprocess.run(
+        if has_changes:
+            subprocess.run(["git", "commit", "-m", commit_msg], cwd=str(ROOT), timeout=10, check=False)
+            print("  Commit creado.\n")
+        else:
+            print("  Sin cambios que commitear.\n")
+
+        # 2) Push a GitHub
+        gh_token = _load_from_vault(("GH_TOKEN", "GITHUB_TOKEN"))
+        if gh_token:
+            print("--- Push a GitHub (maestro) ---\n")
+            if git_push_with_token(gh_token, "maestro"):
+                print("  OK Push a GitHub.\n")
+            else:
+                print("  Fallo push. Revisa GH_TOKEN en boveda.\n")
+        else:
+            print("--- Push a GitHub ---\n")
+            r = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90)
+            if r.returncode != 0:
+                print("  GH_TOKEN no en boveda. Push fallo. Deploy usara lo ya en GitHub.\n")
+            else:
+                print("  OK Push a GitHub.\n")
+
+    # 3) Deploy Vercel + Railway (siempre se ejecuta)
+    print("--- Deploy Vercel + Railway ---\n")
+    r1 = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "vercel_config_deploy.py")],
         cwd=str(ROOT),
         timeout=120,
     )
-    if r.returncode != 0:
-        print("  [AVISO] Vercel salió con código", r.returncode, "\n")
-    r = subprocess.run(
+    if r1.returncode != 0:
+        print("  [AVISO] Vercel salio con codigo", r1.returncode)
+    else:
+        print("  Vercel: deploy disparado.\n")
+    r2 = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "railway_deploy.py")],
         cwd=str(ROOT),
         timeout=120,
     )
-    if r.returncode != 0:
-        print("  [AVISO] Railway salió con código", r.returncode, "\n")
+    if r2.returncode != 0:
+        print("  [AVISO] Railway salio con codigo", r2.returncode)
+    else:
+        print("  Railway: deploy disparado.\n")
 
-    print("\n--- Esperando 90 s para que los deploys terminen ---\n")
+    print("--- Esperando 90 s ---\n")
     time.sleep(90)
 
-    r = subprocess.run(
+    r3 = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "comprobar_urls.py")],
         cwd=str(ROOT),
         timeout=90,
     )
     print("\n" + "=" * 50)
-    if r.returncode == 0:
-        print("  Todo actualizado: Hub, Vercel, Railway y comprobacion OK.")
+    if r3.returncode == 0:
+        print("  Actualizacion completada: Vercel y Railway OK.")
     else:
-        print("  Deploy lanzado. Revisa en 1-2 min: python scripts/comprobar_urls.py")
+        print("  Deploy lanzado. En 1-2 min la app tendra la version nueva.")
+        print("  En movil: abre el menu -> Buscar actualizaciones -> Actualizar ahora.")
     print("=" * 50)
     return 0
 
