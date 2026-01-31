@@ -1,0 +1,153 @@
+# -*- coding: utf-8 -*-
+"""
+Configura proyecto en Vercel (rootDirectory, env) y dispara deploy.
+Carga VERCEL_TOKEN desde bóveda o env.
+Uso: python scripts/vercel_config_deploy.py
+"""
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+# Bóveda según directiva (opcional si no existe)
+VAULT = os.environ.get(
+    "RAULI_VAULT",
+    r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt",
+)
+
+def load_token():
+    token = os.environ.get("VERCEL_TOKEN", "").strip()
+    if token:
+        return token
+    p = Path(VAULT)
+    if p.exists():
+        for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+            line = line.strip()
+            if "=" in line and not line.startswith("#"):
+                k, _, v = line.partition("=")
+                if k.strip().upper() == "VERCEL_TOKEN":
+                    return v.strip().strip("'\"").strip()
+    return ""
+
+def main():
+    token = load_token()
+    if not token:
+        print("ERROR: VERCEL_TOKEN no encontrado. Definir en env o en bóveda.")
+        return 1
+
+    try:
+        import urllib.request
+        import json
+    except Exception:
+        pass
+
+    base = "https://api.vercel.com"
+    project_name = "rauli-panaderia-app"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+
+    # 1) Obtener proyecto (por nombre)
+    req = urllib.request.Request(
+        f"{base}/v9/projects/{project_name}",
+        headers={**headers, "Content-Type": "application/json"},
+        method="GET",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            project = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode() if e.fp else ""
+        print(f"GET project error {e.code}: {body[:300]}")
+        return 1
+
+    # 2) PATCH proyecto: rootDirectory = frontend, framework = vite
+    payload = {
+        "rootDirectory": "frontend",
+        "framework": "vite",
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist",
+    }
+    req = urllib.request.Request(
+        f"{base}/v9/projects/{project_name}",
+        data=json.dumps(payload).encode(),
+        headers=headers,
+        method="PATCH",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            updated = json.loads(r.read().decode())
+        print("OK Project actualizado: rootDirectory=frontend, framework=vite")
+    except urllib.error.HTTPError as e:
+        body = e.read().decode() if e.fp else ""
+        print(f"PATCH project warning {e.code}: {body[:300]}")
+
+    # 3) Listar env vars y crear VITE_API_BASE si no existe
+    req = urllib.request.Request(
+        f"{base}/v9/projects/{project_name}/env",
+        headers=headers,
+        method="GET",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            env_list = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        env_list = {"envs": []}
+
+    envs = env_list.get("envs", []) if isinstance(env_list, dict) else []
+    has_api_base = any(e.get("key") == "VITE_API_BASE" for e in envs)
+
+    if not has_api_base:
+        api_base_value = "https://rauli-panaderia.onrender.com/api"
+        payload = {
+            "key": "VITE_API_BASE",
+            "value": api_base_value,
+            "type": "plain",
+            "target": ["production", "preview", "development"],
+        }
+        req = urllib.request.Request(
+            f"{base}/v10/projects/{project_name}/env",
+            data=json.dumps(payload).encode(),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                print("OK Variable VITE_API_BASE creada")
+        except urllib.error.HTTPError as e:
+            body = e.read().decode() if e.fp else ""
+            print(f"POST env warning {e.code}: {body[:200]}")
+    else:
+        print("OK VITE_API_BASE ya existe")
+
+    # 4) Crear deployment (rama maestro -> production)
+    payload = {
+        "name": project_name,
+        "project": project_name,
+        "target": "production",
+        "gitSource": {"ref": "maestro", "type": "branch"},
+    }
+    req = urllib.request.Request(
+        f"{base}/v13/deployments",
+        data=json.dumps(payload).encode(),
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            dep = json.loads(r.read().decode())
+        url = dep.get("url") or dep.get("alias", [])
+        if isinstance(url, list):
+            url = url[0] if url else "—"
+        print(f"OK Deploy disparado: {url}")
+        print("  Espera 1–2 min y ejecuta: python scripts/comprobar_urls.py")
+        return 0
+    except urllib.error.HTTPError as e:
+        body = e.read().decode() if e.fp else ""
+        print(f"POST deployment error {e.code}: {body[:400]}")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())
