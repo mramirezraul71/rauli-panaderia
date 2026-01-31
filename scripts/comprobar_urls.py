@@ -5,10 +5,11 @@ import sys
 # Actualiza con tu URL real tras el deploy
 URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
 URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
-# Si usas Railway en lugar de Render, pon aquí la URL (ej. https://tu-servicio.up.railway.app/api/health)
+# Si usas Railway, pon aquí la URL /api/health o define RAILWAY_PUBLIC_URL al ejecutar
 URL_RAILWAY = ""  # ej. "https://rauli-panaderia-production.up.railway.app/api/health"
 
 def check():
+    import os
     results = []
     try:
         import httpx
@@ -16,8 +17,9 @@ def check():
         print("Instala: pip install httpx")
         return 1
 
+    url_railway = (os.environ.get("RAILWAY_PUBLIC_URL", "") or URL_RAILWAY or "").strip()
     urls_to_check = [("Vercel (frontend)", URL_VERCEL)]
-    api_url = URL_RAILWAY.strip() if URL_RAILWAY else URL_RENDER
+    api_url = url_railway if url_railway else URL_RENDER
     urls_to_check.append(("API (Render/Railway)", api_url))
     timeouts = {URL_RENDER: 90, URL_VERCEL: 15}
     if URL_RAILWAY.strip():
