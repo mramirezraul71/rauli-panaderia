@@ -23,9 +23,13 @@ def _vault_paths():
     yield Path(r"C:\dev\credenciales.txt")
     yield Path(__file__).resolve().parent.parent / "credenciales.txt"
     yield Path(__file__).resolve().parent.parent / "backend" / ".env"
+    home = Path.home()
+    yield home / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield home / "Escritorio" / "credenciales.txt"
+    yield home / "Desktop" / "credenciales.txt"
 
 
-RAILWAY_KEYS = ("RAILWAY_TOKEN", "RAILWAY_API_TOKEN")
+RAILWAY_KEYS = ("RAILWAY_TOKEN", "RAILWAY_API_TOKEN", "RAILWAY_KEY")
 
 def load_token():
     for key in RAILWAY_KEYS:
