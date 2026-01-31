@@ -44,24 +44,31 @@ class ApiClient {
   }
 
   /**
-   * Manejar respuesta
+   * Manejar respuesta (soporta HTML/404 cuando el backend no está disponible)
    */
   async handleResponse(response) {
-    const data = await response.json().catch(() => ({}));
-    
+    const contentType = response.headers.get('content-type') || '';
+    let data = {};
+    try {
+      const text = await response.text();
+      if (contentType.includes('application/json') && text && text.trim().startsWith('{')) {
+        data = JSON.parse(text);
+      }
+    } catch (_) {
+      // Respuesta no es JSON (p. ej. HTML 404) → no re-lanzar
+    }
+
     if (!response.ok) {
-      // Token expirado o no válido
       if (response.status === 401) {
         this.setToken(null);
         window.dispatchEvent(new CustomEvent('auth:logout'));
       }
-      
       const error = new Error(data.message || `Error ${response.status}`);
       error.status = response.status;
       error.data = data;
       throw error;
     }
-    
+
     return { data, status: response.status, ok: true };
   }
 
