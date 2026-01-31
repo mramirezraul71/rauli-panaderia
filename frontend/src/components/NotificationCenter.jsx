@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import SupportService from "../services/SupportService";
 import { HiOutlineBell, HiOutlineX } from "react-icons/hi";
 import { useAuth } from "../context/AuthContext";
+import { runUpdateNow } from "./VersionChecker";
 
 export default function NotificationCenter() {
   const { user } = useAuth();
@@ -52,13 +53,13 @@ export default function NotificationCenter() {
               <div className="text-xs text-slate-500">Sin notificaciones.</div>
             )}
             {visibleNotifications.map((note) => (
-              <div key={note.id} className={`p-3 rounded-lg border ${note.read ? "bg-slate-800/50 border-slate-700" : "bg-emerald-500/10 border-emerald-500/30"}`}>
+              <div key={note.id} className={`p-3 rounded-lg border ${note.read && note.type !== "update" ? "bg-slate-800/50 border-slate-700" : "bg-emerald-500/10 border-emerald-500/30"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-sm text-white">{note.title}</p>
                     <p className="text-xs text-slate-400 mt-1">{note.message}</p>
                   </div>
-                  {!note.read && (
+                  {!note.read && note.type !== "update" && (
                     <button
                       onClick={() => SupportService.markNotificationRead(note.id)}
                       className="text-xs text-emerald-300 hover:text-emerald-200"
@@ -67,7 +68,15 @@ export default function NotificationCenter() {
                     </button>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-2">{new Date(note.created_at).toLocaleString()}</p>
+                {(note.type === "update" || note.id === "update-available") && (
+                  <button
+                    onClick={() => runUpdateNow()}
+                    className="mt-2 w-full py-2 px-3 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg"
+                  >
+                    Actualizar ahora
+                  </button>
+                )}
+                <p className="text-[11px] text-slate-500 mt-2">{note.created_at && new Date(note.created_at).toLocaleString()}</p>
               </div>
             ))}
           </div>
