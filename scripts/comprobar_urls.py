@@ -2,9 +2,11 @@
 """Verifica URLs de Vercel y Render."""
 import sys
 
-# Actualiza con tu URL real tras el deploy en Vercel
+# Actualiza con tu URL real tras el deploy
 URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
 URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
+# Si usas Railway en lugar de Render, pon aquí la URL (ej. https://tu-servicio.up.railway.app/api/health)
+URL_RAILWAY = ""  # ej. "https://rauli-panaderia-production.up.railway.app/api/health"
 
 def check():
     results = []
@@ -14,9 +16,13 @@ def check():
         print("Instala: pip install httpx")
         return 1
 
-    # Render free tier: cold start ~50–90 s
+    urls_to_check = [("Vercel (frontend)", URL_VERCEL)]
+    api_url = URL_RAILWAY.strip() if URL_RAILWAY else URL_RENDER
+    urls_to_check.append(("API (Render/Railway)", api_url))
     timeouts = {URL_RENDER: 90, URL_VERCEL: 15}
-    urls_to_check = [("Vercel (frontend)", URL_VERCEL), ("Render (API)", URL_RENDER)]
+    if URL_RAILWAY.strip():
+        timeouts[URL_RAILWAY.strip()] = 30
+    timeouts[api_url] = timeouts.get(api_url, 60)
     for name, url in urls_to_check:
         try:
             r = httpx.get(url, follow_redirects=True, timeout=timeouts.get(url, 20))

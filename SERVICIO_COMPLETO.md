@@ -1,6 +1,6 @@
-# Servicio completo — Vercel + Render
+# Servicio completo — Vercel + Backend (Render o Railway)
 
-Para que la app funcione al 100% en producción necesitas **frontend (Vercel)** y **backend (Render)**.
+Para que la app funcione al 100% en producción necesitas **frontend (Vercel)** y **backend** (Render o **Railway**).
 
 ---
 
@@ -9,9 +9,10 @@ Para que la app funcione al 100% en producción necesitas **frontend (Vercel)** 
 | Servicio | URL | Uso |
 |----------|-----|-----|
 | **Frontend** | https://rauli-panaderia-app.vercel.app | App web (login, POS, inventario, etc.) |
-| **Backend** | https://rauli-panaderia.onrender.com/api | API (auth, productos, ventas, BD) |
+| **Backend** | Render o Railway | API (auth, productos, ventas, BD) |
 
-El frontend en Vercel ya está configurado con `VITE_API_BASE` apuntando al backend en Render.
+- **Render:** https://rauli-panaderia.onrender.com/api (cold start ~1 min en plan free).
+- **Railway (recomendado):** deploy con `python scripts/railway_deploy.py` si tienes `RAILWAY_TOKEN` en credenciales. Ver **RAILWAY_SETUP.md**.
 
 ---
 
@@ -23,16 +24,22 @@ El frontend en Vercel ya está configurado con `VITE_API_BASE` apuntando al back
 
 ---
 
-## 2. Render (backend) — qué revisar
+## 2. Backend: Render o Railway
+
+### Opción A — Railway (recomendada, deploy por script)
+
+1. Configuración única: **RAILWAY_SETUP.md**
+2. Añade `RAILWAY_TOKEN` en C:\dev\credenciales.txt
+3. Deploy: `python scripts/railway_deploy.py`
+4. En Vercel, `VITE_API_BASE` = URL de tu servicio Railway (ej. `https://xxx.up.railway.app/api`)
+
+### Opción B — Render
 
 1. Entra en [render.com](https://render.com) → Dashboard.
 2. Busca el servicio **rauli-panaderia** (Web Service).
-3. Comprueba:
-   - **Root Directory:** `backend`
-   - **Branch:** `maestro` (o la rama de producción)
-   - **Environment:** `CORS_ORIGIN` = `https://rauli-panaderia-app.vercel.app`
-4. Si el servicio no existe: **New +** → **Web Service** → Conecta el repo `mramirezraul71/rauli-panaderia` y usa la config de **render.yaml** (o pon Root Directory = `backend`, Build = `npm install`, Start = `npm start`, rama `maestro`).
-5. En plan gratuito, el backend se “duerme” tras inactividad; la primera petición puede tardar ~50 s (cold start).
+3. Comprueba: **Root Directory** = `backend`, **Branch** = `maestro`, **CORS_ORIGIN** = `https://rauli-panaderia-app.vercel.app`
+4. Si no existe: **New +** → **Web Service** → Conecta el repo y usa **render.yaml**.
+5. Plan free: cold start ~50 s.
 
 ---
 
