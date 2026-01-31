@@ -36,11 +36,9 @@ def main():
         print("ERROR: VERCEL_TOKEN no encontrado. Definir en env o en bóveda.")
         return 1
 
-    try:
-        import urllib.request
-        import json
-    except Exception:
-        pass
+    import json
+    import urllib.request
+    import urllib.error
 
     base = "https://api.vercel.com"
     project_name = "rauli-panaderia-app"
@@ -122,13 +120,38 @@ def main():
     else:
         print("OK VITE_API_BASE ya existe")
 
-    # 4) Crear deployment (rama maestro -> production)
-    payload = {
-        "name": project_name,
-        "project": project_name,
-        "target": "production",
-        "gitSource": {"ref": "maestro", "type": "branch"},
-    }
+    # 4) Disparar deploy: Deploy Hook si existe, si no POST deployment con gitSource
+    link = project.get("link") or {}
+    repo_id = link.get("repoId")
+    deploy_hook_url = None
+    for dh in (link.get("deployHooks") or []):
+        if (dh.get("ref") or "").strip() == "maestro":
+            deploy_hook_url = dh.get("url")
+            break
+    if deploy_hook_url:
+        try:
+            r = urllib.request.urlopen(
+                urllib.request.Request(deploy_hook_url, method="POST"),
+                timeout=30,
+            )
+            print("OK Deploy disparado vía Deploy Hook (maestro)")
+            print("  Espera 1–2 min y ejecuta: python scripts/comprobar_urls.py")
+            return 0
+        except Exception as e:
+            print(f"Deploy Hook falló: {e}")
+    if repo_id:
+        payload = {
+            "name": project_name,
+            "project": project_name,
+            "target": "production",
+            "gitSource": {"type": "github", "ref": "maestro", "repoId": repo_id},
+        }
+    else:
+        payload = {
+            "name": project_name,
+            "project": project_name,
+            "target": "production",
+        }
     req = urllib.request.Request(
         f"{base}/v13/deployments",
         data=json.dumps(payload).encode(),
