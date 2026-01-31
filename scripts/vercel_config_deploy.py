@@ -22,10 +22,14 @@ def _vault_paths():
         yield one / "Escritorio" / "credenciales.txt"
         yield one / "Desktop" / "credenciales.txt"
 
+# Acepta VERCEL_TOKEN y VERSEL_TOKEN (typo común)
+TOKEN_KEYS = ("VERCEL_TOKEN", "VERSEL_TOKEN")
+
 def load_token():
-    token = os.environ.get("VERCEL_TOKEN", "").strip()
-    if token:
-        return token
+    for key in TOKEN_KEYS:
+        token = os.environ.get(key, "").strip()
+        if token:
+            return token
     # Bóveda (varias rutas)
     for v in _vault_paths():
         p = Path(v) if isinstance(v, str) else v
@@ -34,9 +38,9 @@ def load_token():
                 for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
                     line = line.strip()
                     if "=" in line and not line.startswith("#"):
-                        k, _, v = line.partition("=")
-                        if k.strip().upper() == "VERCEL_TOKEN":
-                            t = v.strip().strip("'\"").strip()
+                        k, _, val = line.partition("=")
+                        if k.strip().upper() in TOKEN_KEYS:
+                            t = val.strip().strip("'\"").strip()
                             if t:
                                 return t
             except Exception:
@@ -49,9 +53,9 @@ def load_token():
                 for line in env_path.read_text(encoding="utf-8", errors="ignore").splitlines():
                     line = line.strip()
                     if "=" in line and not line.startswith("#"):
-                        k, _, v = line.partition("=")
-                        if k.strip().upper() == "VERCEL_TOKEN":
-                            t = v.strip().strip("'\"").strip()
+                        k, _, val = line.partition("=")
+                        if k.strip().upper() in TOKEN_KEYS:
+                            t = val.strip().strip("'\"").strip()
                             if t:
                                 return t
             except Exception:
