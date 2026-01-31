@@ -5,6 +5,12 @@
 
 ---
 
+## Sistema de actualización automática (todos los proyectos)
+
+Para que los usuarios (PC y móvil) reciban la nueva versión sin depender de la caché del navegador, este repo incluye un **sistema estándar** (version.json + VersionChecker). Para implementarlo en **otro proyecto** o repasar los pasos, ver **[ACTUALIZACION_AUTO.md](ACTUALIZACION_AUTO.md)**. Instalación rápida en un proyecto: `scripts\INSTALAR_ACTUALIZACION.bat` o `python scripts/instalar_sistema_actualizacion.py --proyecto <ruta>`.
+
+---
+
 ## Setup una sola vez (clon nuevo)
 
 En un clon nuevo del repo, ejecuta **una sola vez** para crear `credenciales.txt` y `frontend/.env` desde los ejemplos (si no existen):
