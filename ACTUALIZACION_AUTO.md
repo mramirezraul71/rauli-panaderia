@@ -7,8 +7,10 @@ Este documento describe el **sistema estándar de actualización** para que los 
 ## Qué hace el sistema
 
 1. **En build**: se genera `public/version.json` con la versión actual (desde `src/config/version.js`).
-2. **En la app**: al cargar, se consulta `/version.json` al servidor. Si la versión del servidor es mayor que la del cliente, se muestra un **banner** “Nueva actualización disponible” y, si existe, una notificación en el centro de notificaciones.
-3. **Al pulsar “Actualizar ahora”**: se borran cachés, se desregistra el Service Worker y se recarga la página, cargando la nueva versión.
+2. **En la app**: al cargar se consulta `/version.json` al servidor. Si la versión del servidor es mayor que la del cliente, se muestra un **banner** “Nueva actualización disponible” y, si existe SupportService, una notificación en la **bandeja de notificaciones**.
+3. **Gatillo manual**: el botón **“Buscar actualización”** (menú y panel ACTUALIZACIONES) dispara un escaneo al instante: letrero “Buscando actualización…”; si hay nueva versión lo comunica y permite ejecutar; si no, lo comunica también.
+4. **Automático**: si pasado un tiempo se han desplegado cambios y el usuario **no** ha pulsado el botón de forma manual, saldrá de manera **automática** el mensaje de existencia de actualización en la **bandeja de notificaciones** (comprobación periódica en segundo plano, cada 10 minutos).
+5. **Al pulsar “Actualizar ahora”**: se borran cachés, se desregistra el Service Worker y se recarga la página, cargando la nueva versión.
 
 Con esto se evita el problema de “no veo los cambios en móvil” por caché.
 
