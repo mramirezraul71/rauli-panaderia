@@ -20,9 +20,19 @@ def load_token():
     token = os.environ.get("VERCEL_TOKEN", "").strip()
     if token:
         return token
+    # Bóveda
     p = Path(VAULT)
     if p.exists():
         for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+            line = line.strip()
+            if "=" in line and not line.startswith("#"):
+                k, _, v = line.partition("=")
+                if k.strip().upper() == "VERCEL_TOKEN":
+                    return v.strip().strip("'\"").strip()
+    # .env en raíz del repo (scripts/../.env)
+    root_env = Path(__file__).resolve().parent.parent / ".env"
+    if root_env.exists():
+        for line in root_env.read_text(encoding="utf-8", errors="ignore").splitlines():
             line = line.strip()
             if "=" in line and not line.startswith("#"):
                 k, _, v = line.partition("=")
