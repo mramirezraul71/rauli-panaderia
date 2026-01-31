@@ -2,6 +2,7 @@
 """Verifica URLs de Vercel y Render."""
 import sys
 
+# Actualiza con tu URL real tras el deploy en Vercel
 URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
 URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
 
