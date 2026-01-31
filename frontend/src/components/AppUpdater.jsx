@@ -57,8 +57,11 @@ export default function AppUpdater() {
       }
       setLastCheckedAt(new Date().toISOString());
     } catch (error) {
-      console.error("Error al buscar actualizaciones:", error);
-      if (manual) toast("No se pudo buscar actualizaciones", { icon: "⚠️" });
+      // En PWA/Vercel el SW puede no estar disponible; no ensuciar consola
+      if (manual) {
+        console.warn("AppUpdater:", error?.message || error);
+        toast("No se pudo buscar actualizaciones", { icon: "⚠️" });
+      }
       setLastCheckedAt(new Date().toISOString());
     } finally {
       setIsChecking(false);
