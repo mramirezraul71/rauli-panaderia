@@ -1,15 +1,44 @@
 # -*- coding: utf-8 -*-
-"""Verifica URLs de Vercel y Render."""
+"""Verifica URLs de Vercel y API (Render o Railway)."""
+import os
 import sys
+from pathlib import Path
 
-# Actualiza con tu URL real tras el deploy
+# URLs por defecto
 URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
 URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
-# Si usas Railway, pon aquí la URL /api/health o define RAILWAY_PUBLIC_URL al ejecutar
-URL_RAILWAY = ""  # ej. "https://rauli-panaderia-production.up.railway.app/api/health"
+URL_RAILWAY = ""  # Se rellena desde credenciales (RAILWAY_PUBLIC_URL) si existe
+
+def _vault_paths():
+    yield Path(r"C:\dev\credenciales.txt")
+    yield Path(__file__).resolve().parent.parent / "credenciales.txt"
+    yield Path(__file__).resolve().parent.parent / "backend" / ".env"
+    home = Path.home()
+    yield home / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield home / "Escritorio" / "credenciales.txt"
+    yield home / "Desktop" / "credenciales.txt"
+
+def _load_railway_url():
+    v = os.environ.get("RAILWAY_PUBLIC_URL", "").strip()
+    if v:
+        return v if "/api" in v else v.rstrip("/") + "/api/health"
+    for p in _vault_paths():
+        if not p.exists():
+            continue
+        try:
+            for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    k, _, val = line.partition("=")
+                    if k.strip().upper() == "RAILWAY_PUBLIC_URL":
+                        v = val.strip().strip("'\"").strip()
+                        if v:
+                            return v if "/api" in v else v.rstrip("/") + "/api/health"
+        except Exception:
+            pass
+    return (URL_RAILWAY or "").strip()
 
 def check():
-    import os
     results = []
     try:
         import httpx
@@ -17,10 +46,11 @@ def check():
         print("Instala: pip install httpx")
         return 1
 
-    url_railway = (os.environ.get("RAILWAY_PUBLIC_URL", "") or URL_RAILWAY or "").strip()
+    url_railway = _load_railway_url()
     urls_to_check = [("Vercel (frontend)", URL_VERCEL)]
     api_url = url_railway if url_railway else URL_RENDER
-    urls_to_check.append(("API (Render/Railway)", api_url))
+    api_label = "API (Railway)" if url_railway else "API (Render)"
+    urls_to_check.append((api_label, api_url))
     timeouts = {URL_RENDER: 90, URL_VERCEL: 15}
     if url_railway:
         timeouts[url_railway] = 30
