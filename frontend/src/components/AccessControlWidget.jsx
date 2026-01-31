@@ -166,10 +166,10 @@ export default function AccessControlWidget() {
               return (
                 <div
                   key={u.id}
-                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 sm:border border-slate-600/50 sm:border-transparent transition-all ${
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 sm:border transition-all ${
                     u.active === 1 
                       ? `${roleConfig.bgColor} ${roleConfig.borderColor}` 
-                      : "bg-slate-800/30 border-slate-700/30 opacity-60"
+                      : "bg-slate-800/30 border-slate-600/60 sm:border-slate-700/30 opacity-60"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -258,7 +258,7 @@ export default function AccessControlWidget() {
       )}
 
       {/* Footer - Security Status */}
-      <div className="p-4 bg-slate-900/50 border-t border-slate-700/50">
+      <div className="p-3 sm:p-4 bg-slate-900/50 border-t-2 sm:border-t border-slate-600/80 sm:border-slate-700/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-500/50" />
