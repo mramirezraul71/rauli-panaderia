@@ -423,10 +423,10 @@ export default function POS() {
                 ))
               )}
             </div>
-            <div className="p-4 border-t border-slate-700 space-y-3">
-              <div className="flex justify-between text-xl font-bold">
+            <div className="flex-shrink-0 p-4 border-t border-slate-700 space-y-3">
+              <div className="flex justify-between items-center gap-2 text-xl font-bold min-h-[2rem]">
                 <span className="text-white">Total:</span>
-                <span className="text-emerald-400">{formatCurrency(total)}</span>
+                <span className="text-emerald-400 truncate">{formatCurrency(total)}</span>
               </div>
               <button 
                 onClick={processSale} 
