@@ -1,11 +1,11 @@
 /**
  * Comprueba si hay una versión nueva en el servidor.
- * Si la hay: muestra un banner arriba en el dashboard y añade la notificación al Centro de notificaciones.
- * Al pulsar "Actualizar ahora" (banner o notificación): borra caché, desregistra SW y recarga.
+ * Si la hay: muestra un banner arriba y, si existe SupportService, añade notificación al Centro de notificaciones.
+ * Al pulsar "Actualizar ahora": borra caché, desregistra SW y recarga.
+ * Reutilizable en cualquier proyecto (SupportService opcional).
  */
 import { useEffect, useRef, useState } from "react";
 import { APP_VERSION } from "../config/version";
-import SupportService from "../services/SupportService";
 
 function parseVersion(v) {
   if (!v || typeof v !== "string") return [0, 0, 0];
@@ -74,18 +74,22 @@ export default function VersionChecker() {
 
   useEffect(() => {
     if (!updateAvailable || !serverVersion || notifiedRef.current) return;
-    const list = SupportService.listNotifications();
-    if (list.some((n) => n.id === "update-available")) return;
-    notifiedRef.current = true;
-    SupportService.addNotification({
-      id: "update-available",
-      type: "update",
-      title: "Nueva actualización disponible",
-      message: `Versión ${serverVersion} desplegada. Pulsa "Actualizar ahora" para cargar la app (PC o móvil).`,
-      user_id: "all",
-      read: false,
-      created_at: new Date().toISOString(),
-    });
+    import("../services/SupportService")
+      .then(({ default: SupportService }) => {
+        const list = SupportService.listNotifications?.() ?? [];
+        if (list.some((n) => n.id === "update-available")) return;
+        notifiedRef.current = true;
+        SupportService.addNotification?.({
+          id: "update-available",
+          type: "update",
+          title: "Nueva actualización disponible",
+          message: `Versión ${serverVersion} desplegada. Pulsa "Actualizar ahora" para cargar la app (PC o móvil).`,
+          user_id: "all",
+          read: false,
+          created_at: new Date().toISOString(),
+        });
+      })
+      .catch(() => {});
   }, [updateAvailable, serverVersion]);
 
   useEffect(() => {
