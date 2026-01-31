@@ -104,6 +104,21 @@ Actualiza `URL_VERCEL` (env o bóveda) si tu proyecto tiene otra URL (p. ej. baj
 
 Tras esto, cada **push a `maestro`** actualiza frontend y backend y comprueba las URLs sin tu intervención.
 
+### Deploy y notificar (recomendado: una sola vez por actualización)
+
+Un solo script que: **construye** el frontend (genera `version.json`), **sube** a GitHub, **despliega** en Vercel y Railway, y **envía un mensaje** por Telegram: "RAULI vX.Y.Z desplegada. Abre la app (PC o móvil)...". En **PC y móvil** la app detecta la nueva versión y muestra el aviso **"Nueva actualización disponible"**; el usuario pulsa **"Actualizar ahora"** y la app **borra caché y se actualiza sola** (sin pasos manuales).
+
+```bash
+scripts\DEPLOY_Y_NOTIFICAR.bat
+```
+
+O: `python scripts/deploy_y_notificar.py`
+
+Opciones: `--no-git` (no hacer push), `--no-notify` (no enviar Telegram).  
+Credenciales en bóveda: `VERCEL_TOKEN`, `RAILWAY_TOKEN`, `GH_TOKEN` o `GITHUB_TOKEN`, y para notificar: `OMNI_BOT_TELEGRAM_TOKEN`, `OMNI_BOT_TELEGRAM_CHAT_ID`.
+
+---
+
 ### Actualizar TODO (Hub + Vercel + Railway + comprobación)
 
 **Un solo comando** — push a GitHub (con token de bóveda si existe) + deploy Vercel + Railway + comprobar URLs:
