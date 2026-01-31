@@ -423,7 +423,7 @@ function Layout() {
             });
             if (visibleItems.length === 0) return null;
             return (
-            <div key={section.section}>
+            <div key={section.sectionKey || section.section || section.items?.[0]?.path || "section"}>
               <p className="px-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">{t(section.sectionKey || section.section || "")}</p>
               <ul className="space-y-1">
                 {visibleItems.map((item) => {
