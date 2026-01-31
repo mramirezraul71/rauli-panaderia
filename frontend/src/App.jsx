@@ -12,7 +12,7 @@ import { WelcomeTourProvider } from "./components/WelcomeTour";
 import NotificationCenter from "./components/NotificationCenter";
 import SupportService from "./services/SupportService";
 import AppUpdater from "./components/AppUpdater";
-import { HiOutlineHome, HiOutlineShoppingCart, HiOutlineDocumentText, HiOutlineCube, HiOutlineUsers, HiOutlineCreditCard, HiOutlineCash, HiOutlineReceiptTax, HiOutlineExclamation, HiOutlineChartBar, HiOutlineCog, HiOutlineMenu, HiOutlineX, HiCheck, HiOutlineDatabase, HiOutlineShieldCheck, HiOutlineCalculator, HiOutlineArchive, HiOutlineCloud, HiOutlineBell, HiOutlineCode, HiOutlineTruck, HiOutlineRefresh } from "react-icons/hi";
+import { HiOutlineHome, HiOutlineShoppingCart, HiOutlineDocumentText, HiOutlineCube, HiOutlineUsers, HiOutlineCreditCard, HiOutlineCash, HiOutlineReceiptTax, HiOutlineExclamation, HiOutlineChartBar, HiOutlineCog, HiOutlineMenu, HiOutlineX, HiCheck, HiOutlineDatabase, HiOutlineShieldCheck, HiOutlineCalculator, HiOutlineArchive, HiOutlineCloud, HiOutlineBell, HiOutlineCode, HiOutlineTruck, HiOutlineRefresh, HiOutlineLockClosed } from "react-icons/hi";
 import { Package } from 'lucide-react';
 import { useAuth } from "./context/AuthContext";
 
@@ -234,6 +234,7 @@ const MENU = [
     { path: "/employees", nameKey: "menu.employees", icon: HiOutlineUsers, roles: ["admin", "gerente"] },
   ]},
   { sectionKey: "menu.section.system", items: [
+    { path: "/control-acceso", nameKey: "menu.accessControl", icon: HiOutlineLockClosed, roles: ["admin"] },
     { path: "/settings", nameKey: "menu.settings", icon: HiOutlineCog, roles: ["admin"] },
     { path: "/config-productos", nameKey: "menu.configProducts", icon: HiOutlineCog, roles: ["admin", "gerente"] },
     { path: "/support", nameKey: "menu.feedback", icon: HiOutlineBell, roles: ["admin", "gerente"] },
@@ -715,6 +716,7 @@ export default function App() {
           {allowRoute("/shrinkage") && featureFlags.inventory !== false && <Route path="shrinkage" element={<Suspense fallback={<Loader />}><Shrinkage /></Suspense>} />}
           {allowRoute("/reports") && featureFlags.reports !== false && <Route path="reports" element={<Suspense fallback={<Loader />}><Reports /></Suspense>} />}
           {allowRoute("/settings") && <Route path="settings" element={<Suspense fallback={<Loader />}><Settings /></Suspense>} />}
+          <Route path="control-acceso" element={<Suspense fallback={<Loader />}><AccessControlPage /></Suspense>} />
           <Route path="control-tower" element={<Suspense fallback={<Loader />}><ControlTower /></Suspense>} />
           {featureFlags.production !== false && <Route path="produccion" element={<Suspense fallback={<Loader />}><ProductionModule /></Suspense>} />}
           <Route path="config-productos" element={<Suspense fallback={<Loader />}><ProductConfig /></Suspense>} />
