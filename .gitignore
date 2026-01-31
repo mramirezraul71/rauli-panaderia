@@ -15,6 +15,7 @@ backend/database/*.db-wal
 
 # Robot ATLAS
 robot/omni_telegram.env
+robot/packages/
 robot/chrome_data/
 robot/evidencia/
 robot/downloads/
