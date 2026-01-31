@@ -2,6 +2,9 @@
 """
 Cerebro IA — Robot RAULI integrado con Google Gemini.
 Lee GEMINI_API_KEY desde la Bóveda (archivo maestro de credenciales).
+
+Requisito: pip install google-generativeai
+Prueba:    python robot/cerebro_ia.py
 """
 from __future__ import annotations
 
@@ -10,6 +13,9 @@ import sys
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
+# Permitir usar paquetes instalados en robot/packages (pip install --target robot/packages google-generativeai)
+if (BASE / "packages").exists() and str(BASE / "packages") not in sys.path:
+    sys.path.insert(0, str(BASE / "packages"))
 
 # Bóveda: mismo orden que en scripts del repo (env → C:\\dev → repo → OneDrive → Escritorio)
 def _vault_paths():
