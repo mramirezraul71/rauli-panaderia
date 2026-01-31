@@ -74,6 +74,8 @@ export default function VersionChecker() {
 
   useEffect(() => {
     if (!updateAvailable || !serverVersion || notifiedRef.current) return;
+    const list = SupportService.listNotifications();
+    if (list.some((n) => n.id === "update-available")) return;
     notifiedRef.current = true;
     SupportService.addNotification({
       id: "update-available",
