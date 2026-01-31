@@ -154,21 +154,25 @@ def main():
     else:
         print("OK VITE_API_BASE ya existe")
 
-    # 4) Disparar deploy: Deploy Hook si existe, si no POST deployment con gitSource
+    # 4) Disparar deploy: Deploy Hook (cualquiera) o POST deployment con gitSource
     link = project.get("link") or {}
     repo_id = link.get("repoId")
+    production_branch = (link.get("productionBranch") or "maestro").strip() or "maestro"
     deploy_hook_url = None
     for dh in (link.get("deployHooks") or []):
-        if (dh.get("ref") or "").strip() == "maestro":
+        ref = (dh.get("ref") or "").strip()
+        if ref == "maestro" or ref == production_branch:
             deploy_hook_url = dh.get("url")
             break
+    if not deploy_hook_url and (link.get("deployHooks") or []):
+        deploy_hook_url = (link.get("deployHooks") or [{}])[0].get("url")
     if deploy_hook_url:
         try:
-            r = urllib.request.urlopen(
+            urllib.request.urlopen(
                 urllib.request.Request(deploy_hook_url, method="POST"),
                 timeout=30,
             )
-            print("OK Deploy disparado vía Deploy Hook (maestro)")
+            print("OK Deploy disparado vía Deploy Hook")
             print("  Espera 1–2 min y ejecuta: python scripts/comprobar_urls.py")
             return 0
         except Exception as e:
@@ -178,7 +182,7 @@ def main():
             "name": project_name,
             "project": project_name,
             "target": "production",
-            "gitSource": {"type": "github", "ref": "maestro", "repoId": repo_id},
+            "gitSource": {"type": "github", "ref": production_branch, "repoId": repo_id},
         }
     else:
         payload = {
