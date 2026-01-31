@@ -83,7 +83,7 @@ def git_push_with_token(token: str, branch: str = "maestro") -> bool:
 
 def main() -> int:
     commit_msg = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Actualizacion: dashboard, bordes movil y despliegue"
-    print("=== ACTUALIZAR TODO (Hub → Vercel → Railway → Comprobación) ===\n")
+    print("=== ACTUALIZAR TODO (Hub -> Vercel -> Railway -> Comprobacion) ===\n")
 
     # 1) Git add
     subprocess.run(["git", "add", "-A"], cwd=str(ROOT), timeout=10, check=False)
