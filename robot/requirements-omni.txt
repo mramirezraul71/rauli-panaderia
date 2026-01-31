@@ -8,6 +8,7 @@ python-dotenv
 openai-whisper
 pydub
 python-telegram-bot
+twilio
 pyttsx3
 pandas
 openpyxl
