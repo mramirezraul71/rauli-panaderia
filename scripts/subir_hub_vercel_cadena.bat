@@ -3,7 +3,8 @@ chcp 65001 >nul
 cd /d "%~dp0.."
 echo.
 echo === Actualizar en Hub (GitHub), Vercel y cadena (Railway) ===
-echo    Push a maestro dispara GitHub Actions: Vercel + Railway + comprobacion
+echo    Solo git push a maestro; Vercel/Railway se actualizan por webhook.
+echo    Para cadena COMPLETA (build + push + deploy Vercel/Railway + Telegram): DEPLOY_Y_NOTIFICAR.bat
 echo.
 
 git add -A
