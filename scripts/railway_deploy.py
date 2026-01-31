@@ -16,6 +16,8 @@ from pathlib import Path
 
 RAILWAY_GRAPHQL = "https://backboard.railway.com/graphql/v2"
 PROJECT_NAME = os.environ.get("RAILWAY_PROJECT_NAME", "rauli-panaderia")
+# Nombres alternativos de proyecto a buscar (ej. "RAUL")
+PROJECT_NAMES = ("rauli-panaderia", "RAUL", "rauli-panadería-backend", "rauli-panadería")
 # Si tienes el ID del proyecto en Railway, ponlo aquí o en RAILWAY_PROJECT_ID (env/credenciales)
 PROJECT_ID_OVERRIDE = os.environ.get("RAILWAY_PROJECT_ID", "5435fa54-9b63-4a92-97e2-449832f67e5d").strip() or None
 
@@ -69,13 +71,16 @@ def load_project_id():
 
 
 def gql(token: str, query: str, variables: dict | None = None):
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+    }
     req = urllib.request.Request(
         RAILWAY_GRAPHQL,
         data=json.dumps({"query": query, "variables": variables or {}}).encode(),
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        },
+        headers=headers,
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=30) as r:
@@ -92,27 +97,33 @@ def main():
     try:
         project_id = load_project_id()
         if not project_id:
-            # Listar proyectos por nombre
+            # Listar proyectos por nombre (incluye "RAUL", "rauli-panaderia", etc.)
             data = gql(token, "query { projects { edges { node { id name } } } }")
             projects = data.get("data", {}).get("projects", {}).get("edges", [])
             proj_node = None
+            names_to_try = [PROJECT_NAME.strip()] + [p for p in PROJECT_NAMES if p != PROJECT_NAME.strip()]
             for e in projects:
                 n = e.get("node", {})
-                if (n.get("name") or "").strip().lower() == PROJECT_NAME.strip().lower():
-                    proj_node = n
+                name = (n.get("name") or "").strip()
+                for target in names_to_try:
+                    if name.lower() == target.lower():
+                        proj_node = n
+                        break
+                if proj_node:
                     break
             if not proj_node:
                 for e in projects:
                     n = e.get("node", {})
                     name = (n.get("name") or "").lower()
-                    if "rauli" in name or "panaderia" in name:
+                    if "rauli" in name or "panaderia" in name or name == "raul":
                         proj_node = n
                         break
             if not proj_node:
-                print(f"ERROR: No hay proyecto en Railway con nombre '{PROJECT_NAME}'.")
+                print(f"ERROR: No hay proyecto en Railway con nombre '{PROJECT_NAME}', 'RAUL', etc.")
                 print("  Define RAILWAY_PROJECT_ID=tu-id en credenciales o env.")
                 return 1
             project_id = proj_node["id"]
+            print(f"  Proyecto: {proj_node.get('name', project_id)}")
 
         # Proyecto con servicios y entornos
         data = gql(
