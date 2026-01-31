@@ -22,8 +22,8 @@ def check():
     api_url = url_railway if url_railway else URL_RENDER
     urls_to_check.append(("API (Render/Railway)", api_url))
     timeouts = {URL_RENDER: 90, URL_VERCEL: 15}
-    if URL_RAILWAY.strip():
-        timeouts[URL_RAILWAY.strip()] = 30
+    if url_railway:
+        timeouts[url_railway] = 30
     timeouts[api_url] = timeouts.get(api_url, 60)
     for name, url in urls_to_check:
         try:
@@ -34,7 +34,7 @@ def check():
         except Exception as e:
             results.append((name, url, str(e)[:60], False))
 
-    print("\n=== SERVICIO COMPLETO (Vercel + Render) ===\n")
+    print("\n=== SERVICIO COMPLETO (Vercel + API) ===\n")
     all_ok = True
     for name, url, status, ok in results:
         icon = "OK" if ok else "FALLO"
