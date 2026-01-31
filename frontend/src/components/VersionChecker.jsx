@@ -1,7 +1,8 @@
 /**
  * Comprueba si hay una versión nueva en el servidor (version.json).
- * Gatillo: botón "Buscar actualización" en menú y en panel ACTUALIZACIONES.
+ * Gatillo manual: botón "Buscar actualización" en menú y en panel ACTUALIZACIONES.
  * Al pulsar: escaneo al instante, letrero "Buscando actualización..."; si hay nueva versión lo comunica y permite ejecutar; si no, lo comunica también.
+ * Automático: si pasado un tiempo se han desplegado cambios y el usuario no ha pulsado el botón, saldrá de manera automática el mensaje de existencia de actualización en la bandeja de notificaciones (comprobación periódica en segundo plano).
  * Reutilizable en cualquier proyecto (SupportService opcional).
  */
 import { useEffect, useRef, useState } from "react";
@@ -56,6 +57,9 @@ async function fetchServerVersion() {
   return data?.version ?? null;
 }
 
+/** Intervalo de comprobación automática en segundo plano (ms). Si hay versión nueva, se añade a la bandeja de notificaciones. */
+const PERIODIC_CHECK_MS = 10 * 60 * 1000; // 10 minutos
+
 export default function VersionChecker() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [serverVersion, setServerVersion] = useState(null);
@@ -83,6 +87,21 @@ export default function VersionChecker() {
       clearTimeout(t);
     };
   }, []);
+
+  useEffect(() => {
+    const periodicCheck = async () => {
+      if (updateAvailable) return;
+      try {
+        const v = await fetchServerVersion();
+        if (v && isNewer(v, APP_VERSION)) {
+          setServerVersion(v);
+          setUpdateAvailable(true);
+        }
+      } catch {}
+    };
+    const interval = setInterval(periodicCheck, PERIODIC_CHECK_MS);
+    return () => clearInterval(interval);
+  }, [updateAvailable]);
 
   useEffect(() => {
     const runCheck = async (manual) => {
