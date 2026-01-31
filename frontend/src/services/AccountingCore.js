@@ -230,7 +230,7 @@ class AccountingCore {
     }
 
     try {
-      const response = await fetch('/api/accounting/entries', {
+      const response = await fetch(apiUrl("/api/accounting/entries"), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entryData)
@@ -424,7 +424,7 @@ class AccountingCore {
 
   async getBalanceSheet() {
     try {
-      const response = await fetch('/api/accounting/balance-sheet');
+      const response = await fetch(apiUrl("/api/accounting/balance-sheet"));
       if (response.ok) {
         return await response.json();
       }
@@ -449,7 +449,7 @@ class AccountingCore {
 
   async getTrialBalance() {
     try {
-      const response = await fetch('/api/accounting/trial-balance');
+      const response = await fetch(apiUrl("/api/accounting/trial-balance"));
       if (response.ok) {
         return await response.json();
       }
