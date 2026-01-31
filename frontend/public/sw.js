@@ -3,9 +3,9 @@
  * Offline-first PWA support
  */
 
-const CACHE_NAME = 'rauli-erp-v2';
-const STATIC_CACHE = 'rauli-erp-static-v2';
-const API_CACHE = 'rauli-erp-api-v2';
+const CACHE_NAME = 'rauli-erp-v3';
+const STATIC_CACHE = 'rauli-erp-static-v3';
+const API_CACHE = 'rauli-erp-api-v3';
 
 // Archivos estáticos para cache
 const STATIC_FILES = [
