@@ -7,7 +7,7 @@ import { formatCurrency, getFeatureFlags, setBusinessConfig } from "./config/bus
 import { t } from "./i18n";
 import RauliAssistant from "./components/RauliAssistant/RauliAssistant";
 import { CommandCenterProvider } from "./context/CommandCenterContext";
-import { RauliProvider, useRauli } from "./context/RauliContext";
+import { RauliProvider } from "./context/RauliContext";
 import { WelcomeTourProvider } from "./components/WelcomeTour";
 import NotificationCenter from "./components/NotificationCenter";
 import SupportService from "./services/SupportService";
@@ -266,8 +266,7 @@ function Layout() {
   const navigate = useNavigate();
   const systemStatus = useSystemStatus();
   const featureFlags = getFeatureFlags();
-  const { user } = useAuth();
-  const { isOnline } = useRauli();
+  const { user, isOnline } = useAuth();
   const [isAutonomo, setIsAutonomo] = useState(false);
   
   useEffect(() => {
