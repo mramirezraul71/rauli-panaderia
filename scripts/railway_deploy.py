@@ -90,29 +90,29 @@ def main():
         return 1
 
     try:
-        # Listar proyectos
-        data = gql(token, "query { projects { edges { node { id name } } } }")
-        projects = data.get("data", {}).get("projects", {}).get("edges", [])
-        proj_node = None
-        for e in projects:
-            n = e.get("node", {})
-            if (n.get("name") or "").strip().lower() == PROJECT_NAME.strip().lower():
-                proj_node = n
-                break
-        if not proj_node:
-            # Intentar por nombre que contenga "rauli" o "panaderia"
+        project_id = load_project_id()
+        if not project_id:
+            # Listar proyectos por nombre
+            data = gql(token, "query { projects { edges { node { id name } } } }")
+            projects = data.get("data", {}).get("projects", {}).get("edges", [])
+            proj_node = None
             for e in projects:
                 n = e.get("node", {})
-                name = (n.get("name") or "").lower()
-                if "rauli" in name or "panaderia" in name:
+                if (n.get("name") or "").strip().lower() == PROJECT_NAME.strip().lower():
                     proj_node = n
                     break
-        if not proj_node:
-            print(f"ERROR: No hay proyecto en Railway con nombre '{PROJECT_NAME}'.")
-            print("  Crea el proyecto en Railway (ver RAILWAY_SETUP.md) o define RAILWAY_PROJECT_NAME.")
-            return 1
-
-        project_id = proj_node["id"]
+            if not proj_node:
+                for e in projects:
+                    n = e.get("node", {})
+                    name = (n.get("name") or "").lower()
+                    if "rauli" in name or "panaderia" in name:
+                        proj_node = n
+                        break
+            if not proj_node:
+                print(f"ERROR: No hay proyecto en Railway con nombre '{PROJECT_NAME}'.")
+                print("  Define RAILWAY_PROJECT_ID=tu-id en credenciales o env.")
+                return 1
+            project_id = proj_node["id"]
 
         # Proyecto con servicios y entornos
         data = gql(
