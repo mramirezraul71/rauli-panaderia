@@ -377,6 +377,20 @@ export const STRINGS = {
     ko: "상품 설정",
     hi: "उत्पाद कॉन्फ़िग"
   },
+  "menu.accessControl": {
+    es: "Control de Acceso",
+    en: "Access Control",
+    pt: "Controle de Acesso",
+    fr: "Contrôle d'accès",
+    de: "Zugriffskontrolle",
+    it: "Controllo accessi",
+    ru: "Контроль доступа",
+    ar: "التحكم في الوصول",
+    zh: "访问控制",
+    ja: "アクセス制御",
+    ko: "액세스 제어",
+    hi: "एक्सेस कंट्रोल"
+  },
   "menu.controlTower": {
     es: "Control Tower",
     en: "Control Tower",
