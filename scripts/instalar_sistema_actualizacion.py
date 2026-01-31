@@ -137,16 +137,20 @@ def main():
 
     # Copiar archivos
     scripts_dir = frontend / "scripts"
+    scripts_root = proyecto / "scripts"
     components_dir = frontend / "src" / "components"
     config_dir = frontend / "src" / "config"
 
     ensure_dir(scripts_dir)
+    ensure_dir(scripts_root)
     ensure_dir(components_dir)
     ensure_dir(config_dir)
 
     for name, dest_subdir in [
         ("write-version.js", scripts_dir),
         ("VersionChecker.jsx", components_dir),
+        ("deploy_cadena.py", scripts_root),
+        ("DEPLOY_CADENA.bat", scripts_root),
     ]:
         src = template / name
         if not src.exists():
