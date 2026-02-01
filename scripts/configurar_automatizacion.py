@@ -28,10 +28,15 @@ def _has_credenciales() -> bool:
         if not p.exists():
             continue
         try:
-            text = p.read_text(encoding="utf-8", errors="ignore")
-            has_vercel = "VERCEL_TOKEN=" in text and "=" in text.split("VERCEL_TOKEN=", 1)[1].split("\n")[0].strip("= ")
-            has_gh = "GH_TOKEN=" in text or "GITHUB_TOKEN=" in text
-            if has_vercel and has_gh:
+            vals = {}
+            for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    k, _, v = line.partition("=")
+                    vals[k.strip().upper()] = v.strip().strip("'\"")
+            v = vals.get("VERCEL_TOKEN", "")
+            g = vals.get("GH_TOKEN", "") or vals.get("GITHUB_TOKEN", "")
+            if v and len(v) > 10 and g and len(g) > 10:
                 return True
         except Exception:
             pass
