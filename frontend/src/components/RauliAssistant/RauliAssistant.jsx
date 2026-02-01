@@ -939,44 +939,45 @@ export default function RauliAssistant() {
     setVoiceConfirmText("");
   }, []);
 
+  const sendFromVoice = useCallback((text) => {
+    const cleaned = String(text || "").trim();
+    if (!cleaned || !handleSendMessageRef.current) return;
+    handleSendMessageRef.current(cleaned);
+    setInputText("");
+  }, []);
+
   const handleVoiceToggle = useCallback(() => {
     if (voiceInput.isListening) {
       voiceInput.stopListening();
       setShowVoiceInput(false);
-      
-      // Si hay transcript, enviarlo
-      if (voiceInput.transcript) {
-        requestVoiceConfirm(voiceInput.transcript);
-      }
+      if (voiceInput.transcript) sendFromVoice(voiceInput.transcript);
     } else {
       voiceInput.startListening();
       setShowVoiceInput(true);
     }
-  }, [voiceInput, requestVoiceConfirm]);
+  }, [voiceInput, sendFromVoice]);
 
   useEffect(() => {
     voiceInput.onComplete((fullText) => {
       if (!fullText) return;
       voiceInput.stopListening();
       setShowVoiceInput(false);
-      requestVoiceConfirm(fullText);
+      sendFromVoice(fullText);
     });
-  }, [voiceInput, requestVoiceConfirm]);
+  }, [voiceInput, sendFromVoice]);
 
-  // Actualizar input con transcript
   useEffect(() => {
     if (voiceInput.transcript && voiceInput.isListening && !voiceConfirmOpen) {
       setInputText(voiceInput.transcript);
     }
   }, [voiceInput.transcript, voiceInput.isListening, voiceConfirmOpen]);
 
-  // Detener voz cuando termina
   useEffect(() => {
     if (!voiceInput.isListening && showVoiceInput && voiceInput.transcript && !voiceConfirmRequestedRef.current) {
       setShowVoiceInput(false);
-      requestVoiceConfirm(voiceInput.transcript);
+      sendFromVoice(voiceInput.transcript);
     }
-  }, [voiceInput.isListening, showVoiceInput, voiceInput.transcript, requestVoiceConfirm]);
+  }, [voiceInput.isListening, showVoiceInput, voiceInput.transcript, sendFromVoice]);
 
   const handleProfileChange = useCallback((profileId) => {
     setActiveProfileIdState(profileId);
