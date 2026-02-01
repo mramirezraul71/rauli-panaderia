@@ -235,6 +235,9 @@ const MENU = [
   { sectionKey: "menu.section.hr", items: [
     { path: "/employees", nameKey: "menu.employees", icon: HiOutlineUsers, roles: ["admin", "gerente"] },
   ]},
+  { sectionKey: "menu.section.management", items: [
+    { path: "/gerencia", nameKey: "menu.management", icon: HiOutlineChartBar, roles: ["admin", "gerente"] },
+  ]},
   { sectionKey: "menu.section.system", items: [
     { path: "/control-acceso", nameKey: "menu.accessControl", icon: HiOutlineLockClosed, roles: ["admin"] },
     { path: "/settings", nameKey: "menu.settings", icon: HiOutlineCog, roles: ["admin"] },

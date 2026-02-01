@@ -40,6 +40,42 @@ const DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
 const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
 const DEFAULT_OLLAMA_MODEL = "llama3.1";
 
+// ══════════════════════════════════════════════════════════════════════════════
+// OMNICHANNEL FUNCTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+const processVoice = async (audioBlob, context = "") => {
+  if (!navigator.onLine) {
+    const language = getBusinessConfig().appLanguage || "es";
+    return localOfflineResponse("", language);
+  }
+  
+  try {
+    // Implementación futura: Speech-to-Text
+    return {
+      text: "Procesamiento de voz en desarrollo. Próximamente disponible.",
+      action: null,
+      placeholder: true
+    };
+  } catch (error) {
+    return { text: "Error en procesamiento de voz", action: null };
+  }
+};
+
+const processVision = async (imageFile, context = "") => {
+  if (!navigator.onLine) {
+    const language = getBusinessConfig().appLanguage || "es";
+    return localOfflineResponse("", language);
+  }
+  
+  try {
+    // Usar funciones existentes de visión
+    return await AIEngine.analyzeReceipt(imageFile);
+  } catch (error) {
+    return { text: "Error en procesamiento de visión", action: null };
+  }
+};
+
 const decodeKeyValue = (value) => {
   if (!value) return null;
   try {

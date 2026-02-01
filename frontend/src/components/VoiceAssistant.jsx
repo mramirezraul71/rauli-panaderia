@@ -403,47 +403,63 @@ export default function VoiceAssistant({ onAction }) {
       {/* Chat Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-[95] p-4">
-          <div className="w-full max-w-lg glass-panel rounded-2xl overflow-hidden animate-in slide-in-from-bottom-4">
+          <div className="w-full max-w-lg glass-panel rounded-2xl overflow-hidden animate-in slide-in-from-bottom-4" 
+               style={{
+                 background: 'rgba(15, 23, 42, 0.8)',
+                 backdropFilter: 'blur(20px)',
+                 WebkitBackdropFilter: 'blur(20px)',
+                 border: '1px solid rgba(255, 255, 255, 0.1)',
+                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+               }}>
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-violet-600/20 to-indigo-600/20 border-b border-slate-700/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-2xl"></span>
+                <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-110">
+                  <span className="text-2xl">🤖</span>
                 </div>
                 <div>
                   <h3 className="font-bold text-white flex items-center gap-2">
                     GENESIS IA
-                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">Online</span>
+                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full animate-pulse">Online</span>
                     {isListening && (
                       <span className="px-2 py-0.5 bg-violet-500/20 text-violet-300 text-xs rounded-full animate-pulse">
-                        Escuchando
+                        🎤 Escuchando
                       </span>
                     )}
                   </h3>
-                  <p className="text-xs text-slate-400">Asistente inteligente  Gemini</p>
+                  <p className="text-xs text-slate-400">Asistente inteligente con Gemini</p>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
+              <button onClick={() => setIsOpen(false)} 
+                      className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all hover:scale-110">
                 <HiOutlineX className="w-5 h-5" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className="h-80 overflow-y-auto p-4 space-y-4">
+            <div className="h-80 overflow-y-auto p-4 space-y-4" 
+                 style={{
+                   background: 'rgba(15, 23, 42, 0.3)',
+                   backdropFilter: 'blur(10px)'
+                 }}>
               {messages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] p-3 rounded-2xl message-animate ${
-                    msg.role === "user" 
-                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-br-md" 
-                      : "bg-slate-800/80 text-slate-200 rounded-bl-md border border-slate-700/50"
-                  }`}>
+                <div key={idx} 
+                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                     style={{
+                       animationDelay: `${idx * 100}ms`
+                     }}>
+                  <div className={`max-w-[85%] p-3 rounded-2xl transition-all hover:scale-105 ${
+                      msg.role === "user" 
+                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-br-md shadow-lg shadow-violet-500/25" 
+                        : "bg-slate-800/80 text-slate-200 rounded-bl-md border border-slate-700/50 backdrop-blur-sm"
+                    }`}>
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   </div>
                 </div>
               ))}
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-slate-800/80 p-4 rounded-2xl rounded-bl-md border border-slate-700/50">
+                <div className="flex justify-start animate-in fade-in duration-300">
+                  <div className="bg-slate-800/80 p-4 rounded-2xl rounded-bl-md border border-slate-700/50 backdrop-blur-sm">
                     <div className="flex gap-1.5">
                       <span className="w-2.5 h-2.5 bg-violet-500 rounded-full animate-bounce" />
                       <span className="w-2.5 h-2.5 bg-violet-500 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
