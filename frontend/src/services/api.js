@@ -310,5 +310,15 @@ export const predictions = {
   businessInsights: () => api.get('/predictions/insights'),
 };
 
+// ==================== INVITES (circuito cerrado: códigos por rol) ====================
+
+export const invites = {
+  create: (role) => api.post('/invites', { role }),
+  list: () => api.get('/invites'),
+  validate: (code) => api.get('/invites/validate', { code }),
+  use: (code, used_by) => api.post('/invites/use', { code, used_by }),
+  revoke: (code) => api.patch(`/invites/${encodeURIComponent(code)}/revoke`),
+};
+
 // Exportar instancia del cliente
 export default api;
