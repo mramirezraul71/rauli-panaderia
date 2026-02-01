@@ -531,8 +531,8 @@ function Layout() {
               <HiOutlineMenu className="w-6 h-6" />
             </button>
             <div>
-              <h2 className="text-xl font-bold text-white">{getCurrentPage()}</h2>
-              <p className="text-xs text-slate-500">Sistema de Gestión Empresarial</p>
+              <h2 className="text-base sm:text-lg font-bold text-white">{getCurrentPage()}</h2>
+              <p className="text-[10px] sm:text-xs text-slate-500 hidden sm:block">Sistema de Gestión Empresarial</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -588,7 +588,7 @@ function Layout() {
                 </div>
               </div>
             )}
-            <div className="min-w-0 w-full">
+            <div className="min-w-0 w-full flex-shrink-0">
               <Outlet />
             </div>
           </div>
@@ -621,7 +621,7 @@ function Layout() {
           </div>
         )}
 
-        <footer className="h-14 bg-slate-900/50 border-t border-slate-800/50 flex items-center justify-center">
+        <footer className="h-10 sm:h-12 bg-slate-900/50 border-t border-slate-800/50 flex items-center justify-center">
           <p className="text-sm text-slate-600">
             RAULI v{APP_VERSION} Panaderia y Dulceria · {LAST_IMPROVEMENT_NOTE} 2026
           </p>
