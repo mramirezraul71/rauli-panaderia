@@ -54,13 +54,13 @@ LLM_TIMEOUT_S = 180
 
 
 def _telegram_env_candidates():
-    yield BASE / "omni_telegram.env"
-    yield BASE.parent / "omni_telegram.env"
-    yield Path(r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt")
+    """C:\\dev\\credenciales.txt primero (Bóveda típica)."""
+    yield Path(r"C:\dev\credenciales.txt")
     yield Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
     yield Path.home() / "Escritorio" / "credenciales.txt"
     yield Path.home() / "Desktop" / "credenciales.txt"
-    yield Path(r"C:\dev\credenciales.txt")
+    yield BASE / "omni_telegram.env"
+    yield BASE.parent / "omni_telegram.env"
 
 
 def _load_telegram_config() -> tuple[str, str]:
@@ -75,13 +75,13 @@ def _load_telegram_config() -> tuple[str, str]:
                     k, _, v = line.partition("=")
                     v = v.strip().strip("'\"")
                     k = k.strip()
-                    if v and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
+                    if v and v not in ("TU_BOT_TOKEN", "TU_CHAT_ID") and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
                         token = v
-                    if v and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID"):
+                    if v and v not in ("TU_BOT_TOKEN", "TU_CHAT_ID") and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "OPERATOR_TELEGRAM"):
                         chat = v
         except Exception:
             pass
-        if token != "TU_BOT_TOKEN" and chat != "TU_CHAT_ID":
+        if token and chat:
             break
     if token == "TU_BOT_TOKEN":
         token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "") or os.environ.get("TELEGRAM_TOKEN", token)
