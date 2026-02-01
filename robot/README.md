@@ -12,10 +12,10 @@ Bot de Telegram para **rauli-panaderia**: despliegues por voz, capturas y compro
 
 ## Configuración
 
-1. **Telegram**
-   - Copia `omni_telegram.env.example` → `omni_telegram.env`
-   - Rellena `OMNI_BOT_TELEGRAM_TOKEN` y `OMNI_BOT_TELEGRAM_CHAT_ID`
-   - No subas `omni_telegram.env` a git
+1. **Telegram (obligatorio para activar el bot)**
+   - **Opción A:** En `robot/` copia `omni_telegram.env.example` → `omni_telegram.env` y rellena `OMNI_BOT_TELEGRAM_TOKEN` y `OMNI_BOT_TELEGRAM_CHAT_ID`.
+   - **Opción B (Bóveda):** Pon las mismas claves en tu archivo de credenciales (p. ej. `C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt` o `C:\dev\credenciales.txt`) con los nombres `OMNI_BOT_TELEGRAM_TOKEN` y `OMNI_BOT_TELEGRAM_CHAT_ID`.
+   - No subas `omni_telegram.env` ni credenciales a git.
 
 2. **Entorno**
    - Python 3.10+
@@ -25,10 +25,11 @@ Bot de Telegram para **rauli-panaderia**: despliegues por voz, capturas y compro
 
 ## Activar seguimiento: audio en PC y bot Telegram
 
-- **Audio en PC:** En la app (Centro de notificaciones) activa «Sonido al recibir notificaciones». Las notificaciones nuevas reproducirán un sonido corto.
-- **Bot Telegram:** Desde la carpeta `robot`:
-  1. `python activar_telegram.py` — envía mensaje de prueba y confirma que el seguimiento está activo.
-  2. `run_bot_siempre.bat` (o `run_bot_siempre.ps1`) — deja el bot escuchando comandos (/ping, /captura, voz).
+- **Audio en PC:** En la app abre **Centro de notificaciones** (icono campana), marca «Sonido al recibir notificaciones (PC)» y pulsa **Probar sonido de seguimiento**. Las notificaciones nuevas reproducirán un beep.
+- **Bot Telegram:**
+  1. Configura token y chat_id (ver arriba: `robot/omni_telegram.env` o Bóveda).
+  2. Desde la carpeta `robot`: `python activar_telegram.py` — debe enviar un mensaje a Telegram y mostrar «Mensaje enviado a Telegram. Seguimiento activo.» Si no, revisa que las claves estén en `omni_telegram.env` o en credenciales.txt.
+  3. Para dejar el bot escuchando: `run_bot_siempre.bat` (o `run_bot_siempre.ps1`). En Telegram prueba `/ping` o `/start` → debe responder «ATLAS RAULI :: BOT OK».
 
 ## Uso
 
