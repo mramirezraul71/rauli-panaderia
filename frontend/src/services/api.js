@@ -51,11 +51,13 @@ class ApiClient {
     let data = {};
     try {
       const text = await response.text();
-      if (contentType.includes('application/json') && text && text.trim().startsWith('{')) {
+      // Evitar parsear HTML (proxy/404/502 devuelven HTML)
+      const looksLikeJson = text && text.trim().startsWith('{') && !text.trim().startsWith('<!');
+      if (looksLikeJson) {
         data = JSON.parse(text);
       }
     } catch (_) {
-      // Respuesta no es JSON (p. ej. HTML 404) → no re-lanzar
+      // Respuesta no es JSON (p. ej. HTML 404/502) → no re-lanzar
     }
 
     if (!response.ok) {
