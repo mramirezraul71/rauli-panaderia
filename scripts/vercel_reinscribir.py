@@ -122,7 +122,7 @@ def main():
     # 4) Vincular repo GitHub (si no se hizo en creación)
     proj2, _ = _req("GET", f"/v9/projects/{PROJECT_NAME}{tq}", token)
     if proj2 and not proj2.get("link", {}).get("repoId"):
-        print("  Conecta el repo en Vercel Dashboard: Settings → Git → Connect Git Repository")
+        print("  Conecta el repo en Vercel Dashboard: Settings -> Git -> Connect Git Repository")
         print(f"  Repo: https://github.com/{GITHUB_REPO}")
 
     # 5) Disparar deploy (necesita repo vinculado; si no, usuario conecta en Dashboard)
