@@ -3,6 +3,11 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/version.js": {
+      "includeFiles": "api/version.json"
+    }
+  },
   "rewrites": [
     { "source": "/api/version", "destination": "/api/version" },
     { "source": "/api/:path*", "destination": "https://rauli-panaderia.onrender.com/api/:path*" },
