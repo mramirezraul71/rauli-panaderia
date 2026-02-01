@@ -4,7 +4,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/api/version", "destination": "/api/version" },
+    { "source": "/api/:path*", "destination": "https://rauli-panaderia.onrender.com/api/:path*" },
     { "source": "/version.json", "destination": "/version.json" },
     { "source": "/sw.js", "destination": "/sw.js" },
     { "source": "/workbox-:hash.js", "destination": "/workbox-:hash.js" },

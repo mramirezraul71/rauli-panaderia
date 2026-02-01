@@ -129,30 +129,58 @@ def main():
         env_list = {"envs": []}
 
     envs = env_list.get("envs", []) if isinstance(env_list, dict) else []
-    has_api_base = any(e.get("key") == "VITE_API_BASE" for e in envs)
+    api_base_value = "https://rauli-panaderia.onrender.com/api"
+    # Preferir Railway si está en bóveda
+    for v in _vault_paths():
+        p = Path(v) if isinstance(v, str) else v
+        if p and getattr(p, "exists", lambda: False) and p.exists():
+            try:
+                for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                    if "=" in line and not line.strip().startswith("#"):
+                        k, _, val = line.partition("=")
+                        if k.strip().upper() == "RAILWAY_PUBLIC_URL":
+                            url = val.strip().strip("'\"").rstrip("/")
+                            if url and "railway" in url.lower():
+                                api_base_value = f"{url}/api"
+                                print(f"  Usando Railway: {api_base_value}")
+                                break
+            except Exception:
+                pass
 
-    if not has_api_base:
-        api_base_value = "https://rauli-panaderia.onrender.com/api"
-        payload = {
-            "key": "VITE_API_BASE",
-            "value": api_base_value,
-            "type": "plain",
-            "target": ["production", "preview", "development"],
-        }
-        req = urllib.request.Request(
-            f"{base}/v10/projects/{project_name}/env",
-            data=json.dumps(payload).encode(),
-            headers=headers,
-            method="POST",
-        )
+    existing = next((e for e in envs if e.get("key") == "VITE_API_BASE"), None)
+    payload = {
+        "key": "VITE_API_BASE",
+        "value": api_base_value,
+        "type": "plain",
+        "target": ["production", "preview", "development"],
+    }
+
+    if existing:
+        # Actualizar: eliminar y recrear (Vercel no tiene PATCH para env)
         try:
-            with urllib.request.urlopen(req, timeout=30) as r:
-                print("OK Variable VITE_API_BASE creada")
-        except urllib.error.HTTPError as e:
-            body = e.read().decode() if e.fp else ""
-            print(f"POST env warning {e.code}: {body[:200]}")
-    else:
-        print("OK VITE_API_BASE ya existe")
+            env_id = existing.get("id")
+            if env_id:
+                del_req = urllib.request.Request(
+                    f"{base}/v9/projects/{project_name}/env/{env_id}",
+                    headers=headers,
+                    method="DELETE",
+                )
+                urllib.request.urlopen(del_req, timeout=15)
+        except Exception:
+            pass
+
+    req = urllib.request.Request(
+        f"{base}/v10/projects/{project_name}/env",
+        data=json.dumps(payload).encode(),
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            print(f"OK VITE_API_BASE = {api_base_value}")
+    except urllib.error.HTTPError as e:
+        body = e.read().decode() if e.fp else ""
+        print(f"POST env warning {e.code}: {body[:200]}")
 
     # 4) Disparar deploy: Deploy Hook (cualquiera) o POST deployment con gitSource
     link = project.get("link") or {}
