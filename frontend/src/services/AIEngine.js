@@ -39,6 +39,14 @@ const OPENAI_PROXY_ENDPOINT = "/api/ai/openai";
 const DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
 const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
 const DEFAULT_OLLAMA_MODEL = "llama3.1";
+const AI_FETCH_TIMEOUT_MS = 12000;
+
+const fetchWithTimeout = (url, options = {}, timeout = AI_FETCH_TIMEOUT_MS) => {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), timeout);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(tid));
+};
 
 // ══════════════════════════════════════════════════════════════════════════════
 // OMNICHANNEL FUNCTIONS
@@ -261,7 +269,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
       if (!ollamaEnabled || !ollamaBaseUrl) return null;
       try {
         console.log("Ollama intentando...");
-        const response = await fetch(`${ollamaBaseUrl.replace(/\/+$/, "")}/api/chat`, {
+        const response = await fetchWithTimeout(`${ollamaBaseUrl.replace(/\/+$/, "")}/api/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -307,7 +315,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
           let url = buildGeminiUrl(baseUrl, modelId, geminiKey);
           console.log("Gemini intentando:", modelId);
           
-          const response = await fetch(url, {
+          const response = await fetchWithTimeout(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -326,7 +334,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
 
           if (response.status === 404 && baseUrl !== DEFAULT_GEMINI_BASE_URL) {
             url = buildGeminiUrl(DEFAULT_GEMINI_BASE_URL, modelId, geminiKey);
-            const retry = await fetch(url, {
+            const retry = await fetchWithTimeout(url, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -377,7 +385,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
 
       const sendDirect = async () => {
         if (!openaiKey) return null;
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -390,7 +398,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
 
       const sendProxy = async () => {
         if (!allowOpenaiProxy) return null;
-        return await fetch(OPENAI_PROXY_ENDPOINT, {
+        return await fetchWithTimeout(OPENAI_PROXY_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ endpoint: "/v1/chat/completions", payload })
