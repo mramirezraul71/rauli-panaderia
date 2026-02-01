@@ -82,6 +82,16 @@ def main() -> int:
     if proj:
         env["VERCEL_PROJECT_ID"] = proj
 
+    # vercel build genera .vercel/output; luego deploy --prebuilt lo sube
+    rb = subprocess.run(
+        ["npx", "vercel", "build", "--prod", "--yes", "--token", token],
+        cwd=str(FRONTEND),
+        shell=True,
+        timeout=300,
+        env=env,
+    )
+    if rb.returncode != 0:
+        return 1
     r = subprocess.run(
         ["npx", "vercel", "deploy", "--prebuilt", "--prod", "--yes", "--token", token],
         cwd=str(FRONTEND),

@@ -95,13 +95,12 @@ def main():
         print(f"GET project error {e.code}: {body[:300]}")
         return 1
 
-    # 2) PATCH proyecto: rootDirectory, framework, productionBranch = maestro
+    # 2) PATCH proyecto: rootDirectory, framework
     payload = {
         "rootDirectory": "frontend",
         "framework": "vite",
         "buildCommand": "npm run build",
         "outputDirectory": "dist",
-        "productionBranch": "maestro",
     }
     req = urllib.request.Request(
         f"{base}/v9/projects/{project_name}",
