@@ -1,5 +1,6 @@
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import AccessControlWidget from "../components/AccessControlWidget";
+import InviteTeamSection from "../components/InviteTeamSection";
 import { useAuth } from "../context/AuthContext";
 
 const MENU_TABS = [
@@ -49,6 +50,8 @@ export default function AccessControl() {
       <div className="rounded-2xl border border-slate-700/80 bg-slate-900/60 overflow-hidden">
         <AccessControlWidget />
       </div>
+
+      <InviteTeamSection />
     </div>
   );
 }

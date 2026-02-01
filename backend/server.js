@@ -23,6 +23,7 @@ import predictionsRoutes from './routes/predictions.js';
 import sentinelRoutes from './routes/sentinel.js';
 import productionRoutes from './routes/production.js';
 import openaiProxyRoutes from './routes/openaiProxy.js';
+import invitesRoutes from './routes/invites.js';
 
 // Cargar variables de entorno (forzar .env del backend)
 const __filename = fileURLToPath(import.meta.url);
@@ -75,6 +76,7 @@ app.use('/api/predictions', predictionsRoutes);
 app.use('/api/sentinel', sentinelRoutes);
 app.use('/api/production', productionRoutes);
 app.use('/api/ai', openaiProxyRoutes);
+app.use('/api/invites', invitesRoutes);
 
 // Manejo de errores global
 app.use((err, req, res, next) => {
