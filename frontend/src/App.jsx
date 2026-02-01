@@ -5,7 +5,7 @@ import { db, logAudit } from "./services/dataService";
 import sentinelService from "./services/SentinelService";
 import { formatCurrency, getFeatureFlags, setBusinessConfig } from "./config/businessConfig";
 import { t } from "./i18n";
-import RauliAssistant from "./components/RauliAssistant/RauliAssistant";
+const RauliAssistant = lazy(() => import("./components/RauliAssistant/RauliAssistant"));
 import { CommandCenterProvider } from "./context/CommandCenterContext";
 import { RauliProvider } from "./context/RauliContext";
 import { WelcomeTourProvider } from "./components/WelcomeTour";
@@ -577,7 +577,16 @@ function Layout() {
                   Asistente RAULI siempre activo
                 </div>
                 <div className="h-[420px] lg:h-[460px] max-h-[55vh]">
-                  <RauliAssistant />
+                  <Suspense fallback={
+                    <div className="h-full flex items-center justify-center bg-slate-800/30">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        <p className="text-sm text-slate-400">Cargando asistente RAULI...</p>
+                      </div>
+                    </div>
+                  }>
+                    <RauliAssistant />
+                  </Suspense>
                 </div>
               </div>
             )}
