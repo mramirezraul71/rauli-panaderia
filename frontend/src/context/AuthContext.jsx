@@ -81,7 +81,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const registerWithInvite = async ({ inviteCode, username, password, name, email, phone }) => {
+  const registerWithInvite = async ({ inviteCode, username, password, name, email, phone, department, payroll_cycle, hire_date }) => {
     const code = (inviteCode || '').trim().toUpperCase();
     if (!code) throw new Error('Código de invitación requerido');
 
@@ -103,7 +103,7 @@ export function AuthProvider({ children }) {
       role = invite.role || 'cajero';
     }
 
-    const payrollCycle = (await db.settings?.get('payroll_cycle'))?.value || 'mensual';
+    const payrollCycle = payroll_cycle || (await db.settings?.get('payroll_cycle'))?.value || 'mensual';
 
     const passwordHash = await hashPassword(password);
     const created = await UsersDB.create({
@@ -123,9 +123,10 @@ export function AuthProvider({ children }) {
         email,
         phone,
         position: role,
-        department: 'Ventas',
+        department: department || 'Ventas',
+        hire_date: hire_date || new Date().toISOString().slice(0, 10),
         salary: 0,
-        commission_rate: 0.05,
+        commission_rate: 0,
         active: 1
       });
       employeeId = res?.data?.employee?.id || null;
@@ -146,7 +147,7 @@ export function AuthProvider({ children }) {
       employee_id: employeeId || created.id,
       username,
       role,
-      start_date: new Date().toISOString(),
+      start_date: hire_date ? `${hire_date}T12:00:00.000Z` : new Date().toISOString(),
       payroll_status: 'active',
       payroll_cycle: payrollCycle,
       system: 'standard'
