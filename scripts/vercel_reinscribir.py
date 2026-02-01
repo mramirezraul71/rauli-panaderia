@@ -113,7 +113,7 @@ def main():
 
     # Configurar .vercel para que deploy vaya a este proyecto
     if proj_id and org_id:
-        vdir = FRONTEND / ".vercel"
+        vdir = ROOT / ".vercel"
         vdir.mkdir(exist_ok=True)
         (vdir / "project.json").write_text(
             json.dumps({"projectId": proj_id, "orgId": org_id, "projectName": PROJECT_NAME}),

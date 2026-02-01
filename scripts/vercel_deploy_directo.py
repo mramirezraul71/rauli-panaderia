@@ -78,9 +78,10 @@ def main() -> int:
 
     # 2) Deploy con Vercel CLI (sube proyecto, Vercel construye en la nube)
     print("\n--- 2/3 Deploy a Vercel ---")
+    # Deploy desde raíz: el proyecto tiene rootDirectory=frontend
     r = subprocess.run(
         ["npx", "vercel", "deploy", "--prod", "--yes", "--token", token],
-        cwd=str(FRONTEND),
+        cwd=str(ROOT),
         shell=True,
         timeout=300,
         env=env,
