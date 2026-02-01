@@ -1,5 +1,12 @@
 @Codebase Actúa como Arquitecto de Software Senior y Lead Designer.
 
+## ENLACE ARREGLOS → ACTUALIZACIÓN
+Tras cada arreglo o mejora en la app, el asistente DEBE recordar o sugerir ejecutar:
+```batch
+DEPLOY_ARREGLOS.bat
+```
+Cada arreglo queda así enlazado con la actualización (version bump + deploy Vercel+Railway).
+
 ## NEXT-GEN UI/UX & ENGAGEMENT (The "Wow" Factor)
 1. **Motion & Micro-interactions:** The UI must feel alive. Static screens are forbidden. Use smooth transitions (fade/slide) and visual feedback on buttons (scale/glow).
 2. **Premium Aesthetics:** Aim for a top-tier look using glassmorphism (blur backgrounds), subtle gradients, and refined shadows.
