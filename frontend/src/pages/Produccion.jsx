@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { HiOutlineCube, HiOutlinePlus, HiOutlineMinus, HiOutlineClock, HiOutlineFire, HiOutlineCheckCircle, HiOutlineExclamation } from 'react-icons/hi';
 
 export default function Produccion() {
+  console.log('🏭 Componente Producción montado');
   const [recetas, setRecetas] = useState([]);
   const [produccionActiva, setProduccionActiva] = useState([]);
 
   useEffect(() => {
+    console.log('🥖 Cargando recetas de producción...');
     // Cargar recetas de producción
     const loadRecetas = async () => {
       try {

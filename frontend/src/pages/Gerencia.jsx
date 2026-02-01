@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HiOutlineChartBar, HiOutlineUsers, HiOutlineShoppingCart, HiOutlineCash, HiOutlineTrendingUp, HiOutlineCalendar, HiOutlineDocumentText, HiOutlineCube } from 'react-icons/hi';
 
 export default function Gerencia() {
+  console.log('🏢 Componente Gerencia montado');
   const [stats, setStats] = useState({
     totalVentas: 0,
     totalClientes: 0,
@@ -11,6 +12,7 @@ export default function Gerencia() {
   });
 
   useEffect(() => {
+    console.log('📊 Cargando estadísticas de Gerencia...');
     // Cargar estadísticas desde la base de datos
     const loadStats = async () => {
       try {

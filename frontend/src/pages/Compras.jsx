@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { HiOutlineShoppingCart, HiOutlinePlus, HiOutlineTruck, HiOutlineCalendar, HiOutlineDocumentText, HiOutlineCheckCircle, HiOutlineClock } from 'react-icons/hi';
 
 export default function Compras() {
+  console.log('🛒 Componente Compras montado');
   const [ordenes, setOrdenes] = useState([]);
   const [proveedores, setProveedores] = useState([]);
 
   useEffect(() => {
+    console.log('📦 Cargando órdenes de compra...');
     // Cargar órdenes de compra
     const loadOrdenes = async () => {
       try {

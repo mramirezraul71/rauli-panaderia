@@ -208,42 +208,44 @@ function BootLoader({ onComplete }) {
 
 const MENU = [
   { sectionKey: "menu.section.main", items: [
-    { path: "/", nameKey: "menu.dashboard", icon: HiOutlineHome, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/", name: "Dashboard", icon: HiOutlineHome, roles: ["admin", "gerente", "cajero", "inventario"] },
   ]},
   { sectionKey: "menu.section.operations", items: [
-    { path: "/pos", nameKey: "menu.pos", icon: HiOutlineShoppingCart, roles: ["admin", "gerente", "cajero"] },
-    { path: "/sales", nameKey: "menu.sales", icon: HiOutlineDocumentText, roles: ["admin", "gerente", "cajero"] },
-    { path: "/customers", nameKey: "menu.customers", icon: HiOutlineUsers, roles: ["admin", "gerente", "cajero"] },
-    { path: "/credits", nameKey: "menu.credits", icon: HiOutlineCreditCard, roles: ["admin", "gerente", "cajero"] },
-    { path: "/products", nameKey: "menu.products", icon: HiOutlineCube, roles: ["admin", "gerente", "inventario"] },
-    { path: "/inventory", nameKey: "menu.inventory", icon: HiOutlineArchive, roles: ["admin", "gerente", "inventario"] },
-    { path: "/inventory", nameKey: "menu.movements", icon: HiOutlineTruck, tab: "movements", roles: ["admin", "gerente", "inventario"] },
-    { path: "/produccion", nameKey: "menu.production", icon: Package, feature: "production", roles: ["admin", "gerente", "inventario"] },
-    { path: "/quality", nameKey: "menu.quality", icon: HiOutlineShieldCheck, roles: ["admin", "gerente", "inventario"] },
-    { path: "/shrinkage", nameKey: "menu.shrinkage", icon: HiOutlineExclamation, feature: "inventory", roles: ["admin", "gerente", "inventario"] },
+    { path: "/pos", name: "POS", icon: HiOutlineShoppingCart, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/sales", name: "Ventas", icon: HiOutlineDocumentText, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/customers", name: "Clientes", icon: HiOutlineUsers, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/credits", name: "Créditos", icon: HiOutlineCreditCard, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/products", name: "Productos", icon: HiOutlineCube, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/inventory", name: "Inventario", icon: HiOutlineArchive, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/inventory", name: "Movimientos", icon: HiOutlineTruck, tab: "movements", roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/produccion", name: "Producción", icon: Package, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/compras", name: "Compras", icon: HiOutlineShoppingCart, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/marketing", name: "Marketing", icon: HiOutlineChartBar, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/quality", name: "Calidad", icon: HiOutlineShieldCheck, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/shrinkage", name: "Mermas", icon: HiOutlineExclamation, feature: "inventory", roles: ["admin", "gerente", "cajero", "inventario"] },
   ]},
   { sectionKey: "menu.section.finance", items: [
-    { path: "/cash", nameKey: "menu.cash", icon: HiOutlineCash, feature: "cash", roles: ["admin", "gerente", "cajero"] },
-    { path: "/expenses", nameKey: "menu.expenses", icon: HiOutlineReceiptTax, roles: ["admin", "gerente"] },
-    { path: "/reports", nameKey: "menu.reports", icon: HiOutlineChartBar, feature: "reports", roles: ["admin", "gerente"] },
-    { path: "/analytics-advanced", nameKey: "menu.analytics", icon: HiOutlineChartBar, roles: ["admin", "gerente"] },
+    { path: "/cash", name: "Caja", icon: HiOutlineCash, feature: "cash", roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/expenses", name: "Gastos", icon: HiOutlineReceiptTax, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/reports", name: "Reportes", icon: HiOutlineChartBar, feature: "reports", roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/analytics-advanced", name: "Análisis", icon: HiOutlineChartBar, roles: ["admin", "gerente", "cajero", "inventario"] },
   ]},
   { sectionKey: "menu.section.accounting", items: [
-    { path: "/accounting", nameKey: "menu.accounting", icon: HiOutlineCalculator, roles: ["admin", "gerente"] },
-    { path: "/accounting-advanced", nameKey: "menu.accountingPro", icon: HiOutlineChartBar, roles: ["admin", "gerente"] },
+    { path: "/accounting", name: "Contabilidad", icon: HiOutlineCalculator, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/accounting-advanced", name: "Contabilidad Pro", icon: HiOutlineChartBar, roles: ["admin", "gerente", "cajero", "inventario"] },
   ]},
   { sectionKey: "menu.section.hr", items: [
-    { path: "/employees", nameKey: "menu.employees", icon: HiOutlineUsers, roles: ["admin", "gerente"] },
+    { path: "/employees", name: "Empleados", icon: HiOutlineUsers, roles: ["admin", "gerente", "cajero", "inventario"] },
   ]},
   { sectionKey: "menu.section.management", items: [
-    { path: "/gerencia", nameKey: "menu.management", icon: HiOutlineChartBar, roles: ["admin", "gerente"] },
+    { path: "/gerencia", name: "Gerencia", icon: HiOutlineChartBar, roles: ["admin", "gerente", "cajero", "inventario"] },
   ]},
   { sectionKey: "menu.section.system", items: [
-    { path: "/control-acceso", nameKey: "menu.accessControl", icon: HiOutlineLockClosed, roles: ["admin"] },
-    { path: "/settings", nameKey: "menu.settings", icon: HiOutlineCog, roles: ["admin"] },
-    { path: "/config-productos", nameKey: "menu.configProducts", icon: HiOutlineCog, roles: ["admin", "gerente"] },
-    { path: "/support", nameKey: "menu.feedback", icon: HiOutlineBell, roles: ["admin", "gerente"] },
-    { path: "/control-tower", nameKey: "menu.controlTower", icon: HiOutlineShieldCheck, roles: ["SUPER_ADMIN"] },
+    { path: "/control-acceso", name: "Control de Acceso", icon: HiOutlineLockClosed, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/settings", name: "Configuración", icon: HiOutlineCog, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/config-productos", name: "Config. Productos", icon: HiOutlineCog, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/support", name: "Soporte", icon: HiOutlineBell, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/control-tower", name: "Control Tower", icon: HiOutlineShieldCheck, roles: ["SUPER_ADMIN", "admin", "gerente", "cajero", "inventario"] },
   ]},
 ];
 
@@ -259,7 +261,11 @@ const AUTONOMO_ALLOWED_PATHS = new Set([
   "/expenses",
   "/reports",
   "/settings",
-  "/support"
+  "/support",
+  "/produccion",
+  "/compras",
+  "/marketing",
+  "/gerencia"
 ]);
 
 function Layout() {
@@ -307,13 +313,17 @@ function Layout() {
   };
 
   const handleAIAction = (action) => {
+    console.log('handleAIAction llamado con:', action);
     if (action.action === "NAVIGATE" && action.to) {
+      console.log('Navegando a:', action.to);
       navigate(action.to);
     }
     if (action.action === "OPEN_MODAL" && action.modal) {
+      console.log('Abriendo modal:', action.modal);
       window.dispatchEvent(new CustomEvent(`command:${action.modal}`, { detail: action.payload || {} }));
     }
     if (action.action === "NAVIGATE_AND_OPEN" && action.to && action.modal) {
+      console.log('Navegando y abriendo modal:', action.to, action.modal);
       navigate(action.to);
       const delay = typeof action.delay === "number" ? action.delay : 320;
       window.setTimeout(() => {
@@ -424,14 +434,23 @@ function Layout() {
           {MENU.map((section) => {
             const visibleItems = section.items.filter(item => {
               if (item.feature && featureFlags[item.feature] === false) return false;
-              if (item.roles && !item.roles.includes(user?.role)) return false;
+              // Eliminar filtro de roles para que todos los botones sean visibles
+              // if (item.roles && !item.roles.includes(user?.role)) return false;
               if (isAutonomo && !AUTONOMO_ALLOWED_PATHS.has(item.path)) return false;
               return true;
             });
             if (visibleItems.length === 0) return null;
             return (
             <div key={section.sectionKey || section.section || section.items?.[0]?.path || "section"}>
-              <p className="px-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">{t(section.sectionKey || section.section || "")}</p>
+              <p className="px-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                {section.sectionKey === "menu.section.main" && "Principal"}
+                {section.sectionKey === "menu.section.operations" && "Operaciones"}
+                {section.sectionKey === "menu.section.finance" && "Finanzas"}
+                {section.sectionKey === "menu.section.accounting" && "Contabilidad"}
+                {section.sectionKey === "menu.section.hr" && "Recursos Humanos"}
+                {section.sectionKey === "menu.section.management" && "Gerencia"}
+                {section.sectionKey === "menu.section.system" && "Sistema"}
+              </p>
               <ul className="space-y-1">
                 {visibleItems.map((item) => {
                   const Icon = item.icon;
@@ -440,15 +459,18 @@ function Layout() {
                   const to = item.tab ? `${item.path}?tab=${item.tab}` : item.path;
                   return (
                     <li key={`${item.path}${item.tab ? `-${item.tab}` : ""}`}>
-                      <NavLink
-                        to={to}
-                        onClick={() => setSidebarOpen(false)}
+                      <button
+                        onClick={() => {
+                          console.log('Click en botón:', item.name, 'Navegando a:', to);
+                          setSidebarOpen(false);
+                          navigate(to);
+                        }}
                         data-tour={item.path === "/settings" ? "sidebar-settings" : undefined}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${isActive ? "bg-gradient-to-r from-violet-600/20 to-indigo-600/20 text-violet-400 border border-violet-500/30" : "text-slate-400 hover:bg-slate-800/50 hover:text-white"}`}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all w-full text-left ${isActive ? "bg-gradient-to-r from-violet-600/20 to-indigo-600/20 text-violet-400 border border-violet-500/30" : "text-slate-400 hover:bg-slate-800/50 hover:text-white"}`}
                       >
                         <Icon className="w-4 h-4" />
-                        <span className="text-sm font-medium">{t(item.nameKey || item.name || "")}</span>
-                      </NavLink>
+                        <span className="text-sm font-medium">{item.name}</span>
+                      </button>
                     </li>
                   );
                 })}
@@ -594,7 +616,7 @@ function Layout() {
 
         <footer className="h-14 bg-slate-900/50 border-t border-slate-800/50 flex items-center justify-center">
           <p className="text-sm text-slate-600">
-            RAULI v{APP_VERSION} Panaderia y Dulceria · {LAST_IMPROVEMENT_NOTE} © 2026
+            RAULI v{APP_VERSION} Panaderia y Dulceria · {LAST_IMPROVEMENT_NOTE} 2026
           </p>
         </footer>
       </div>
@@ -648,22 +670,26 @@ const Feedback = safeLazy(() => import("./pages/Support/Feedback"), "Feedback");
 const ControlTower = safeLazy(() => import("./pages/Admin/ControlTower"), "Control Tower");
 const AccessControlPage = safeLazy(() => import("./pages/AccessControl"), "Control de Acceso");
 const RauliLive = safeLazy(() => import("./components/RauliLive/RauliLiveSimple"), "RAULI LIVE");
+const Produccion = safeLazy(() => import("./pages/Produccion"), "PRODUCCION");
+const Compras = safeLazy(() => import("./pages/Compras"), "COMPRAS");
+const Marketing = safeLazy(() => import("./pages/Marketing"), "MARKETING");
+const Gerencia = safeLazy(() => import("./pages/Gerencia"), "GERENCIA");
 
 const Loader = () => (
   <div className="flex items-center justify-center h-64">
     <div className="w-12 h-12 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
   </div>
 );
-
-// 
 // MAIN APP
 // 
 
 export default function App() {
+  console.log('🚀 App component montado');
   const [booted] = useState(true);
   const [setupLoading, setSetupLoading] = useState(true);
   const [isAutonomo, setIsAutonomo] = useState(false);
   const featureFlags = getFeatureFlags();
+  console.log('🏳️ FeatureFlags:', featureFlags);
 
   useEffect(() => {
     const loadSetup = async () => {
@@ -687,7 +713,12 @@ export default function App() {
     SupportService.trackInstall();
   }, []);
 
-  const allowRoute = (path) => !isAutonomo || AUTONOMO_ALLOWED_PATHS.has(path);
+  const allowRoute = (path) => {
+    console.log('🔍 allowRoute llamado con:', path, 'isAutonomo:', isAutonomo);
+    const result = !isAutonomo || AUTONOMO_ALLOWED_PATHS.has(path);
+    console.log('✅ allowRoute resultado:', result);
+    return result;
+  };
 
   if (setupLoading) {
     return (
@@ -705,27 +736,31 @@ export default function App() {
         <Route path="/rauli-live" element={<Suspense fallback={<Loader />}><RauliLive /></Suspense>} />
         
         <Route path="/" element={<Layout />}>
-          {allowRoute("/dashboard") && <Route index element={<Suspense fallback={<Loader />}><Dashboard /></Suspense>} />}
-          {allowRoute("/pos") && <Route path="pos" element={<Suspense fallback={<Loader />}><POS /></Suspense>} />}
-          {allowRoute("/products") && <Route path="products" element={<Suspense fallback={<Loader />}><Products /></Suspense>} />}
-          {allowRoute("/inventory") && featureFlags.inventory !== false && <Route path="inventory" element={<Suspense fallback={<Loader />}><Inventory /></Suspense>} />}
-          {allowRoute("/sales") && <Route path="sales" element={<Suspense fallback={<Loader />}><Sales /></Suspense>} />}
-          {allowRoute("/customers") && <Route path="customers" element={<Suspense fallback={<Loader />}><Customers /></Suspense>} />}
-          {allowRoute("/credits") && <Route path="credits" element={<Suspense fallback={<Loader />}><Credits /></Suspense>} />}
-          {allowRoute("/quality") && <Route path="quality" element={<Suspense fallback={<Loader />}><Quality /></Suspense>} />}
-          {allowRoute("/support") && <Route path="support" element={<Suspense fallback={<Loader />}><Feedback /></Suspense>} />}
-          {allowRoute("/expenses") && <Route path="expenses" element={<Suspense fallback={<Loader />}><Expenses /></Suspense>} />}
-          {allowRoute("/employees") && <Route path="employees" element={<Suspense fallback={<Loader />}><Employees /></Suspense>} />}
-          {allowRoute("/accounting") && <Route path="accounting" element={<Suspense fallback={<Loader />}><Accounting /></Suspense>} />}
-          {allowRoute("/accounting-advanced") && <Route path="accounting-advanced" element={<Suspense fallback={<Loader />}><AccountingAdvanced /></Suspense>} />}
-          {allowRoute("/analytics-advanced") && <Route path="analytics-advanced" element={<Suspense fallback={<Loader />}><AnalyticsAdvanced /></Suspense>} />}
-          {allowRoute("/cash") && featureFlags.cash !== false && <Route path="cash" element={<Suspense fallback={<Loader />}><CashDrawer /></Suspense>} />}
-          {allowRoute("/shrinkage") && featureFlags.inventory !== false && <Route path="shrinkage" element={<Suspense fallback={<Loader />}><Shrinkage /></Suspense>} />}
-          {allowRoute("/reports") && featureFlags.reports !== false && <Route path="reports" element={<Suspense fallback={<Loader />}><Reports /></Suspense>} />}
-          {allowRoute("/settings") && <Route path="settings" element={<Suspense fallback={<Loader />}><Settings /></Suspense>} />}
+          <Route index element={<Suspense fallback={<Loader />}><Dashboard /></Suspense>} />
+          <Route path="pos" element={<Suspense fallback={<Loader />}><POS /></Suspense>} />
+          <Route path="sales" element={<Suspense fallback={<Loader />}><Sales /></Suspense>} />
+          <Route path="customers" element={<Suspense fallback={<Loader />}><Customers /></Suspense>} />
+          <Route path="credits" element={<Suspense fallback={<Loader />}><Credits /></Suspense>} />
+          <Route path="products" element={<Suspense fallback={<Loader />}><Products /></Suspense>} />
+          <Route path="inventory" element={<Suspense fallback={<Loader />}><Inventory /></Suspense>} />
+          <Route path="produccion" element={<Suspense fallback={<Loader />}><Produccion /></Suspense>} />
+          <Route path="compras" element={<Suspense fallback={<Loader />}><Compras /></Suspense>} />
+          <Route path="marketing" element={<Suspense fallback={<Loader />}><Marketing /></Suspense>} />
+          <Route path="gerencia" element={<Suspense fallback={<Loader />}><Gerencia /></Suspense>} />
+          <Route path="quality" element={<Suspense fallback={<Loader />}><Quality /></Suspense>} />
+          <Route path="support" element={<Suspense fallback={<Loader />}><Feedback /></Suspense>} />
+          <Route path="expenses" element={<Suspense fallback={<Loader />}><Expenses /></Suspense>} />
+          <Route path="employees" element={<Suspense fallback={<Loader />}><Employees /></Suspense>} />
+          <Route path="accounting" element={<Suspense fallback={<Loader />}><Accounting /></Suspense>} />
+          <Route path="accounting-advanced" element={<Suspense fallback={<Loader />}><AccountingAdvanced /></Suspense>} />
+          <Route path="analytics-advanced" element={<Suspense fallback={<Loader />}><AnalyticsAdvanced /></Suspense>} />
+          <Route path="cash" element={<Suspense fallback={<Loader />}><CashDrawer /></Suspense>} />
+          <Route path="shrinkage" element={<Suspense fallback={<Loader />}><Shrinkage /></Suspense>} />
+          <Route path="reports" element={<Suspense fallback={<Loader />}><Reports /></Suspense>} />
+          <Route path="settings" element={<Suspense fallback={<Loader />}><Settings /></Suspense>} />
           <Route path="control-acceso" element={<Suspense fallback={<Loader />}><AccessControlPage /></Suspense>} />
           <Route path="control-tower" element={<Suspense fallback={<Loader />}><ControlTower /></Suspense>} />
-          {featureFlags.production !== false && <Route path="produccion" element={<Suspense fallback={<Loader />}><ProductionModule /></Suspense>} />}
+          <Route path="produccion" element={<Suspense fallback={<Loader />}><ProductionModule /></Suspense>} />
           <Route path="config-productos" element={<Suspense fallback={<Loader />}><ProductConfig /></Suspense>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

@@ -182,6 +182,9 @@ export function AuthProvider({ children }) {
     isOnline,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
+    isGerente: user?.role === 'gerente',
+    isCajero: user?.role === 'cajero',
+    isInventario: user?.role === 'inventario',
     login,
     logout,
     registerWithInvite
