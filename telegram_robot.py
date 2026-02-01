@@ -11,14 +11,13 @@ from typing import Optional
 BASE = Path(__file__).resolve().parent
 
 def _env_candidates():
-    """Rutas donde buscar token y chat_id: robot/, raíz, Bóveda."""
-    yield BASE / "robot" / "omni_telegram.env"
-    yield BASE / "omni_telegram.env"
-    yield Path(r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt")
+    """Rutas donde buscar token y chat_id. C:\\dev\\credenciales.txt primero (Bóveda típica)."""
+    yield Path(r"C:\dev\credenciales.txt")
     yield Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
     yield Path.home() / "Escritorio" / "credenciales.txt"
     yield Path.home() / "Desktop" / "credenciales.txt"
-    yield Path(r"C:\dev\credenciales.txt")
+    yield BASE / "robot" / "omni_telegram.env"
+    yield BASE / "omni_telegram.env"
 
 _TOKEN: Optional[str] = None
 _CHAT_ID: Optional[str] = None
@@ -35,9 +34,11 @@ def _parse_env_file(path: Path) -> tuple[str, str]:
                 k, _, v = line.partition("=")
                 v = v.strip().strip("'\"")
                 k = k.strip()
-                if v and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
+                if not v or v in ("TU_BOT_TOKEN", "TU_CHAT_ID"):
+                    continue
+                if k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
                     token = v
-                elif v and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID"):
+                elif k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "OPERATOR_TELEGRAM"):
                     chat = v
     except Exception:
         pass
