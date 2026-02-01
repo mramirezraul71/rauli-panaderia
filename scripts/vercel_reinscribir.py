@@ -52,12 +52,11 @@ def load_token():
     return ""
 
 
-def _req(method, path, token, data=None, team_id=None):
+def _req(method, path, token, data=None):
     url = f"{API_BASE}{path}"
-    if team_id:
-        url += ("&" if "?" in url else "?") + f"teamId={team_id}"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    req = urllib.request.Request(url, data=json.dumps(data).encode() if data else None, headers=headers, method=method)
+    body = json.dumps(data).encode() if data else None
+    req = urllib.request.Request(url, data=body, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.loads(r.read().decode()), None
@@ -73,20 +72,18 @@ def main():
 
     # Obtener team/org del proyecto actual (antes de borrarlo)
     proj, err = _req("GET", f"/v9/projects/{PROJECT_NAME}", token)
-    team_id = None
-    if proj:
-        team_id = proj.get("teamId") or proj.get("accountId")
-    team_q = f"&teamId={team_id}" if team_id else ""
+    team_id = (proj or {}).get("teamId") or (proj or {}).get("accountId")
+    tq = f"?teamId={team_id}" if team_id else ""
 
     # 1) Eliminar proyecto
     print("--- 1/5 Eliminando proyecto Vercel ---")
-    req = urllib.request.Request(
-        f"{API_BASE}/v9/projects/{PROJECT_NAME}{'?' + 'teamId=' + team_id if team_id else ''}",
+    del_req = urllib.request.Request(
+        f"{API_BASE}/v9/projects/{PROJECT_NAME}{tq}",
         headers={"Authorization": f"Bearer {token}"},
         method="DELETE",
     )
     try:
-        urllib.request.urlopen(req, timeout=30)
+        urllib.request.urlopen(del_req, timeout=30)
         print("  Proyecto eliminado.")
     except urllib.error.HTTPError as e:
         if e.code == 404:
@@ -109,7 +106,7 @@ def main():
             "repo": GITHUB_REPO,
         },
     }
-    created, err = _req("POST", f"/v10/projects?teamId={team_id}" if team_id else "/v10/projects", token, payload)
+    created, err = _req("POST", f"/v10/projects{tq}", token, payload)
     if err:
         # API v10 puede tener formato distinto; intentar sin gitRepository
         payload2 = {
@@ -119,7 +116,7 @@ def main():
             "outputDirectory": "dist",
             "rootDirectory": "frontend",
         }
-        created, err = _req("POST", f"/v10/projects?teamId={team_id}" if team_id else "/v10/projects", token, payload2)
+        created, err = _req("POST", f"/v10/projects{tq}", token, payload2)
     if err:
         print(f"  Error creando proyecto: {err}")
         return 1
@@ -133,17 +130,18 @@ def main():
         "type": "plain",
         "target": ["production", "preview", "development"],
     }
-    _req("POST", f"/v10/projects/{PROJECT_NAME}/env?teamId={team_id}" if team_id else f"/v10/projects/{PROJECT_NAME}/env", token, env_payload)
+    _req("POST", f"/v10/projects/{PROJECT_NAME}/env{tq}", token, env_payload)
     print("  VITE_API_BASE configurado.")
 
     # 4) Vincular repo GitHub (si no se hizo en creación)
-    proj2, _ = _req("GET", f"/v9/projects/{PROJECT_NAME}", token)
+    proj2, _ = _req("GET", f"/v9/projects/{PROJECT_NAME}{tq}", token)
     if proj2 and not proj2.get("link", {}).get("repoId"):
         print("  Conecta el repo en Vercel Dashboard: Settings → Git → Connect Git Repository")
         print(f"  Repo: https://github.com/{GITHUB_REPO}")
 
     # 5) Disparar deploy
     print("\n--- 4/5 Disparando deploy inicial ---")
+    proj2, _ = _req("GET", f"/v9/projects/{PROJECT_NAME}{tq}", token)
     link = (proj2 or created or proj or {}).get("link", {})
     repo_id = link.get("repoId")
     if repo_id:
