@@ -8,7 +8,7 @@
     { "source": "/version.json", "destination": "/version.json" },
     { "source": "/sw.js", "destination": "/sw.js" },
     { "source": "/workbox-:hash.js", "destination": "/workbox-:hash.js" },
-    { "source": "/((?!api/)[^/.]*(/[^/.]*)*)?", "destination": "/index.html" }
+    { "source": "/([^/.]*(/[^/.]*)*)?", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/manifest.webmanifest", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }] },
