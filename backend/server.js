@@ -53,6 +53,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Raíz: evitar 404 en GET / (p. ej. health checks que apuntan a la base URL)
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'GENESIS API',
+    health: '/api/health',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
