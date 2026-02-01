@@ -55,7 +55,7 @@ def load_token():
 def _req(method, path, token, data=None):
     url = f"{API_BASE}{path}"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    body = json.dumps(data).encode() if data else None
+    body = json.dumps(data).encode() if data and method != "GET" else None
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
@@ -152,7 +152,7 @@ def main():
                 "target": "production",
                 "gitSource": {"type": "github", "ref": branch, "repoId": repo_id},
             }
-            dep, err = _req("POST", f"/v13/deployments?teamId={team_id}" if team_id else "/v13/deployments", token, dep_payload)
+            dep, err = _req("POST", f"/v13/deployments{tq}", token, dep_payload)
             if not err:
                 print(f"  Deploy disparado (rama {branch}).")
                 break
