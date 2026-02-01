@@ -16,6 +16,7 @@ import urllib.error
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+FRONTEND = ROOT / "frontend"
 PROJECT_NAME = "rauli-panaderia-app"
 GITHUB_REPO = "mramirezraul71/rauli-panaderia"
 API_BASE = "https://api.vercel.com"
@@ -107,6 +108,18 @@ def main():
         print(f"  Error creando proyecto: {err}")
         return 1
     print("  Proyecto creado.")
+    proj_id = (created or {}).get("id")
+    org_id = (created or {}).get("accountId") or team_id
+
+    # Configurar .vercel para que deploy vaya a este proyecto
+    if proj_id and org_id:
+        vdir = FRONTEND / ".vercel"
+        vdir.mkdir(exist_ok=True)
+        (vdir / "project.json").write_text(
+            json.dumps({"projectId": proj_id, "orgId": org_id, "projectName": PROJECT_NAME}),
+            encoding="utf-8",
+        )
+        print("  .vercel/project.json actualizado.")
 
     # 3) Añadir variable VITE_API_BASE
     print("\n--- 3/5 Configurando variables de entorno ---")
