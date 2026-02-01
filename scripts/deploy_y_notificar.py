@@ -137,7 +137,9 @@ def main() -> int:
             rr = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
             push_ok = rr.returncode == 0
         if push_ok:
-            print("  Git OK (push a maestro).\n")
+            # Sincronizar maestro → master para que Vercel (que suele usar master/main) tenga el código
+            subprocess.run(["git", "push", "origin", "maestro:master"], cwd=str(ROOT), timeout=60, capture_output=True, check=False)
+            print("  Git OK (push a maestro + master).\n")
         else:
             print("  AVISO: git push fallo.\n  Añade GH_TOKEN en credenciales.txt (GitHub -> Settings -> Developer settings -> Tokens)\n")
     else:
