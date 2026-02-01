@@ -145,10 +145,10 @@ export function AuthProvider({ children }) {
     await addEnrollment({
       employee_id: employeeId || created.id,
       username,
-      role: invite.role || 'cajero',
+      role,
       start_date: new Date().toISOString(),
       payroll_status: 'active',
-      payroll_cycle: invite.payroll_cycle || payrollCycle,
+      payroll_cycle: payrollCycle,
       system: 'standard'
     });
 
@@ -159,9 +159,9 @@ export function AuthProvider({ children }) {
         action: 'enrollment_created',
         user_id: created.id,
         details: {
-          invite_code: inviteCode,
-          role: invite.role || 'cajero',
-          payroll_cycle: invite.payroll_cycle || payrollCycle
+          invite_code: code,
+          role,
+          payroll_cycle: payrollCycle
         },
         timestamp: new Date().toISOString()
       });
@@ -169,7 +169,7 @@ export function AuthProvider({ children }) {
       console.warn('No se pudo registrar auditoría:', auditError);
     }
 
-    const authUser = { id: created.id, username, name, role: invite.role || 'cajero' };
+    const authUser = { id: created.id, username, name, role };
     setUser(authUser);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
     return authUser;
