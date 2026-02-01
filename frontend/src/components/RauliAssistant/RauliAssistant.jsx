@@ -1153,7 +1153,7 @@ export default function RauliAssistant() {
   }, [profiles, handleProfileChange]);
 
   return (
-    <div className="relative flex flex-col h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
+    <div className="relative flex flex-col h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-2 sm:p-3">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-violet-500/20 blur-3xl" />
         <div className="absolute top-1/3 -right-24 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
@@ -1173,7 +1173,7 @@ export default function RauliAssistant() {
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         />
       {/* Header */}
-      <div className="relative flex flex-wrap items-center justify-between gap-3 px-6 py-4 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-slate-900/70 border-b border-white/10 backdrop-blur-md overflow-hidden">
+      <div className="relative flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-slate-900/70 border-b border-white/10 backdrop-blur-md overflow-hidden">
         <motion.div
           className="pointer-events-none absolute -inset-y-4 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent blur-md"
           animate={{ x: ["-60%", "160%"] }}
