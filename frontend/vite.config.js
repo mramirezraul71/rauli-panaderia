@@ -58,10 +58,8 @@ export default defineConfig({
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24
               },
-              cacheableResponse: {
-                statuses: [0, 200]
-              },
-              networkTimeoutSeconds: 5
+              cacheableResponse: { statuses: [200] },
+              networkTimeoutSeconds: 10
             }
           },
           {
@@ -101,10 +99,8 @@ export default defineConfig({
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24
               },
-              cacheableResponse: {
-                statuses: [0, 200]
-              },
-              networkTimeoutSeconds: 5
+              cacheableResponse: { statuses: [200] },
+              networkTimeoutSeconds: 10
             }
           }
         ]
