@@ -31,24 +31,28 @@ export function requestCheckForUpdate() {
 }
 
 export function runUpdateNow() {
-  const doReload = () => window.location.reload(true);
   const unregisterSW = () => {
     if (!("serviceWorker" in navigator)) return Promise.resolve();
-    return navigator.serviceWorker.getRegistration().then((reg) => {
-      if (reg?.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
-      return navigator.serviceWorker.getRegistrations();
-    }).then((regs) => {
-      if (regs && regs.length) return Promise.all(regs.map((r) => r.unregister()));
+    return navigator.serviceWorker.getRegistrations().then((regs) => {
+      if (regs?.length) {
+        regs.forEach((r) => { if (r.waiting) r.waiting.postMessage({ type: "SKIP_WAITING" }); });
+        return Promise.all(regs.map((r) => r.unregister()));
+      }
     }).catch(() => {});
   };
   const clearCaches = () => {
     if (!("caches" in window)) return Promise.resolve();
     return caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).catch(() => {});
   };
-  unregisterSW()
-    .then(clearCaches)
-    .then(() => { doReload(); })
-    .catch(() => { doReload(); });
+  const doHardReload = () => {
+    const { origin, pathname, search } = window.location;
+    const url = `${origin}${pathname}${search || ""}${search ? "&" : "?"}_=${Date.now()}`;
+    window.location.replace(url);
+  };
+  clearCaches()
+    .then(unregisterSW)
+    .then(() => setTimeout(doHardReload, 150))
+    .catch(doHardReload);
 }
 
 async function fetchServerVersion() {
@@ -57,8 +61,16 @@ async function fetchServerVersion() {
     headers: { Pragma: "no-cache" },
   });
   if (!res.ok) return null;
-  const data = await res.json();
-  return data?.version ?? null;
+  const ct = (res.headers.get("content-type") || "").toLowerCase();
+  if (ct.includes("text/html")) return null; // servidor devolvió index.html en vez de JSON
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    return null;
+  }
+  if (!data || typeof data.version !== "string") return null;
+  return data.version;
 }
 
 /** Intervalo de comprobación automática en segundo plano (ms). Si hay versión nueva, se añade a la bandeja de notificaciones. */

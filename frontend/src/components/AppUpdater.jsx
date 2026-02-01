@@ -20,8 +20,16 @@ function isNewer(serverV, clientV) {
 async function fetchServerVersion() {
   const res = await fetch(`/version.json?t=${Date.now()}`, { cache: "no-store", headers: { Pragma: "no-cache" } });
   if (!res.ok) return null;
-  const data = await res.json();
-  return data?.version ?? null;
+  const ct = (res.headers.get("content-type") || "").toLowerCase();
+  if (ct.includes("text/html")) return null;
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    return null;
+  }
+  if (!data || typeof data.version !== "string") return null;
+  return data.version;
 }
 
 export default function AppUpdater() {
