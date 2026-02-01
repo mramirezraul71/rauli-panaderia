@@ -4,6 +4,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/version.json", "destination": "/version.json" },
     { "source": "/sw.js", "destination": "/sw.js" },
     { "source": "/workbox-:hash.js", "destination": "/workbox-:hash.js" },
     { "source": "/([^/.]*(/[^/.]*)*)?", "destination": "/index.html" }
