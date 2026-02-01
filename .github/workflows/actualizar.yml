@@ -37,6 +37,13 @@ jobs:
       - name: Esperar a que terminen los deploys
         run: sleep 120
 
+      - name: Keep-alive API (despertar Render si estaba cold)
+        run: |
+          for i in 1 2 3; do
+            curl -sf --max-time 30 "https://rauli-panaderia.onrender.com/api/health" > /dev/null && break || true
+            sleep 5
+          done
+
       - name: Instalar httpx
         run: pip install httpx
 

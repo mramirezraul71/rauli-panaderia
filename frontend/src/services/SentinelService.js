@@ -9,7 +9,7 @@
 
 import localDB, { logAudit } from './dataService';
 import accountingCore from '../core/AccountingCore';
-import { inventory, products, accounting } from './api';
+import { inventory, products, accounting, checkBackendAvailable } from './api';
 
 const readWithMigration = (key, legacyKey) => {
   try {
@@ -253,8 +253,10 @@ class SentinelService {
     console.log('🔍 Sentinel: Ejecutando verificación de salud...');
     this.lastCheck = new Date().toISOString();
 
+    const backendOk = await checkBackendAvailable();
+
     try {
-      // Verificar ecuación contable
+      // Verificar ecuación contable (usa API si backend disponible)
       await this.checkAccountingBalance();
 
       // Verificar integridad de asientos contables
@@ -277,11 +279,11 @@ class SentinelService {
         await this.checkCashIntegrity();
       }
 
-      // Verificar stock bajo
-      await this.checkLowStock();
-
-      // Verificar productos por vencer
-      await this.checkExpiringProducts();
+      // Solo llamar API de stock/vencimientos si backend responde JSON (evita HTML en cold start)
+      if (backendOk) {
+        await this.checkLowStock();
+        await this.checkExpiringProducts();
+      }
 
       // Verificar estado de conexión
       this.checkConnectionStatus();
@@ -308,27 +310,32 @@ class SentinelService {
     return this.getState();
   }
 
-  // Verificar ecuación contable (usa API con token para evitar 401)
+  // Verificar ecuación contable (usa API si backend disponible, sino local)
   async checkAccountingBalance() {
     try {
-      const { data } = await accounting.balanceCheck();
-      if (data.balanced === false) {
-        this.addAlert(
-          ALERT_TYPES.ACCOUNTING_IMBALANCE,
-          'CRÍTICO: La ecuación contable no cuadra',
-          {
-            activos: data.activos,
-            pasivos: data.pasivos,
-            capital: data.capital,
-            diferencia: data.diferencia
-          }
-        );
-      } else {
-        this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.ACCOUNTING_IMBALANCE);
+      if (await checkBackendAvailable()) {
+        const { data } = await accounting.balanceCheck();
+        if (data.balanced === false) {
+          this.addAlert(
+            ALERT_TYPES.ACCOUNTING_IMBALANCE,
+            'CRÍTICO: La ecuación contable no cuadra',
+            {
+              activos: data.activos,
+              pasivos: data.pasivos,
+              capital: data.capital,
+              diferencia: data.diferencia
+            }
+          );
+        } else {
+          this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.ACCOUNTING_IMBALANCE);
+        }
+        return;
       }
-    } catch (error) {
-      // Si estamos offline, verificar localmente si es posible
-      try {
+    } catch {
+      // Backend no disponible o error
+    }
+    // Fallback: verificar localmente cuando backend no está disponible
+    try {
         await accountingCore.initialize();
         const report = await accountingCore.getBalanceSheet();
         if (!report?.balanced) {
@@ -345,9 +352,8 @@ class SentinelService {
         } else {
           this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.ACCOUNTING_IMBALANCE);
         }
-      } catch (e) {
-        console.log('Sentinel: Verificación contable local falló');
-      }
+    } catch {
+      // Silenciar: fallback local no disponible
     }
   }
 

@@ -150,6 +150,28 @@ class ApiClient {
 // Instancia única del cliente
 const api = new ApiClient();
 
+/**
+ * Comprueba si el backend responde con JSON (evita llamar endpoints que devolverían HTML en cold start).
+ * Raíz del problema: Render free tier devuelve HTML cuando el servicio está "despertando".
+ */
+export async function checkBackendAvailable() {
+  if (!navigator.onLine) return false;
+  try {
+    const base = (import.meta.env.VITE_API_BASE || '/api').replace(/\/+$/, '');
+    const url = base.startsWith('http') ? `${base.replace(/\/api$/, '')}/api/health` : '/api/health';
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 5000);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tid);
+    const text = await res.text();
+    if (!text || !text.trim().startsWith('{') || text.trim().startsWith('<')) return false;
+    const data = JSON.parse(text);
+    return data?.status === 'ok';
+  } catch {
+    return false;
+  }
+}
+
 // ==================== AUTH ENDPOINTS ====================
 
 export const auth = {
