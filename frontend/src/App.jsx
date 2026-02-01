@@ -643,6 +643,7 @@ const ProductConfig = safeLazy(() => import("./components/ProductConfig/ProductT
 const Quality = safeLazy(() => import("./pages/Quality/Quality"), "Calidad");
 const Feedback = safeLazy(() => import("./pages/Support/Feedback"), "Feedback");
 const ControlTower = safeLazy(() => import("./pages/Admin/ControlTower"), "Control Tower");
+const AccessControlPage = safeLazy(() => import("./pages/AccessControl"), "Control de Acceso");
 const RauliLive = safeLazy(() => import("./components/RauliLive/RauliLiveSimple"), "RAULI LIVE");
 
 const Loader = () => (
