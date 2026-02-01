@@ -14,4 +14,15 @@ m = re.search(r'window\.__APP_VERSION__\s*=\s*["\']([^"\']+)["\']', html)
 if m:
     print("OK version en HTML:", m.group(1))
 else:
-    print("NO: __APP_VERSION__ no encontrado en el HTML")
+    # Debug: buscar cualquier mención de version o APP_VERSION
+    if "__APP_VERSION__" in html:
+        print("__APP_VERSION__ presente pero regex no matchea")
+    elif "1.0.5" in html or "1.0.4" in html:
+        print("Version numerica en HTML, script puede estar minificado")
+    else:
+        print("NO: __APP_VERSION__ no encontrado en el HTML")
+    # Mostrar fragmento del head
+    start = html.find("<head")
+    if start != -1:
+        frag = html[start:start+1500]
+        print("Fragmento head:", frag[:800])
