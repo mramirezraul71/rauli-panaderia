@@ -9,6 +9,8 @@ services:
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
+    buildFilter:
+      paths: [backend/**]
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -28,6 +30,8 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: frontend/dist
+    buildFilter:
+      paths: [frontend/**]
     envVars:
       - key: VITE_API_BASE
         value: https://rauli-panaderia.onrender.com/api
