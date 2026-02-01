@@ -24,14 +24,14 @@ if (typeof window !== 'undefined') {
 // Utilidades de diagnóstico de Gemini (disponibles en consola)
 import './utils/testGeminiAPI';
 
-// React Query Client
+// React Query Client (escudo: mínima caché para forzar datos frescos)
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutos
-      cacheTime: 1000 * 60 * 30, // 30 minutos
+      staleTime: 0,
+      gcTime: 1000 * 60, // 1 min (antes cacheTime)
       retry: 1,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
     },
   },
 });
