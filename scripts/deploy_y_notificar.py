@@ -158,11 +158,11 @@ def main() -> int:
         check=False,
     )
     if rv.returncode != 0:
-        print("  Fallback: intentando deploy directo (sin Git)...")
+        print("  Fallback: deploy directo (CLI)...")
         subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "vercel_deploy_directo.py")],
             cwd=str(ROOT),
-            timeout=300,
+            timeout=360,
             check=False,
         )
     subprocess.run(
