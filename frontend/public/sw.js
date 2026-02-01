@@ -3,9 +3,9 @@
  * Offline-first PWA support
  */
 
-const CACHE_NAME = 'rauli-erp-v3';
-const STATIC_CACHE = 'rauli-erp-static-v3';
-const API_CACHE = 'rauli-erp-api-v3';
+const CACHE_NAME = 'rauli-erp-v4';
+const STATIC_CACHE = 'rauli-erp-static-v4';
+const API_CACHE = 'rauli-erp-api-v4';
 
 // Archivos estáticos para cache
 const STATIC_FILES = [
@@ -72,6 +72,12 @@ self.addEventListener('fetch', (event) => {
   // Navegación / documento: network first para que móvil reciba siempre la versión nueva
   if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('index.html')) {
     event.respondWith(networkFirstStrategy(request));
+    return;
+  }
+  
+  // version.json: SIEMPRE red, nunca caché — para que "Buscar actualización" detecte la versión nueva
+  if (url.pathname === '/version.json' || url.pathname.includes('version.json')) {
+    event.respondWith(fetch(request));
     return;
   }
   
