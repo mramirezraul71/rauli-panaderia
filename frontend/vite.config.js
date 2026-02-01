@@ -43,64 +43,35 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallbackDenylist: [/^\/api\/version$/],
+        cleanupOutdatedCaches: true,
+        navigateFallbackDenylist: [/^\/api/],
+        // Escudo anti-caché: API siempre red, navegación y app sin persistencia
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname === '/api/version',
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkOnly'
           },
           {
-            urlPattern: ({ url, request }) => url.pathname.startsWith('/api/') && request.method === 'GET',
+            urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'api-runtime-cache',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24
-              },
-              cacheableResponse: { statuses: [200] },
-              networkTimeoutSeconds: 10
+              cacheName: 'nav-shield',
+              expiration: { maxAgeSeconds: 1 },
+              networkTimeoutSeconds: 5,
+              cacheableResponse: { statuses: [0, 200] }
             }
           },
           {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: ({ url }) => url.pathname === '/' || url.pathname === '/index.html' || url.pathname.includes('version'),
+            handler: 'NetworkOnly'
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /\/api\/(products|categories|employees|settings)/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24
-              },
-              cacheableResponse: { statuses: [200] },
-              networkTimeoutSeconds: 10
+              cacheName: 'fonts',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] }
             }
           }
         ]

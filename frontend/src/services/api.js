@@ -29,18 +29,25 @@ class ApiClient {
   }
 
   /**
-   * Obtener headers con autenticación
+   * Obtener headers con autenticación y escudo anti-caché
    */
   getHeaders() {
     const headers = {
       'Content-Type': 'application/json',
+      'Pragma': 'no-cache',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     };
-    
     if (authToken) {
       headers['Authorization'] = `Bearer ${authToken}`;
     }
-    
     return headers;
+  }
+
+  /** Opciones de fetch para evitar caché (escudo permanente) */
+  getFetchOptions(method = 'GET', body = undefined) {
+    const opts = { method, headers: this.getHeaders(), cache: 'no-store' };
+    if (body !== undefined) opts.body = typeof body === 'string' ? body : JSON.stringify(body);
+    return opts;
   }
 
   /**
@@ -77,72 +84,39 @@ class ApiClient {
   }
 
   /**
-   * GET request
+   * GET request (escudo: no-store, sin caché)
    */
   async get(endpoint, params = {}) {
     const url = new URL(`${this.baseURL}${endpoint}`, window.location.origin);
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        url.searchParams.append(key, value);
-      }
+      if (value !== undefined && value !== null) url.searchParams.append(key, value);
     });
-    
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: this.getHeaders(),
-    });
-    
+    url.searchParams.set('_', String(Date.now()));
+    const response = await fetch(url.toString(), this.getFetchOptions('GET'));
     return this.handleResponse(response);
   }
 
-  /**
-   * POST request
-   */
+  /** POST request */
   async post(endpoint, body = {}) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify(body),
-    });
-    
+    const response = await fetch(`${this.baseURL}${endpoint}`, this.getFetchOptions('POST', body));
     return this.handleResponse(response);
   }
 
-  /**
-   * PUT request
-   */
+  /** PUT request */
   async put(endpoint, body = {}) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'PUT',
-      headers: this.getHeaders(),
-      body: JSON.stringify(body),
-    });
-    
+    const response = await fetch(`${this.baseURL}${endpoint}`, this.getFetchOptions('PUT', body));
     return this.handleResponse(response);
   }
 
-  /**
-   * DELETE request
-   */
+  /** DELETE request */
   async delete(endpoint) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'DELETE',
-      headers: this.getHeaders(),
-    });
-    
+    const response = await fetch(`${this.baseURL}${endpoint}`, this.getFetchOptions('DELETE'));
     return this.handleResponse(response);
   }
 
-  /**
-   * PATCH request
-   */
+  /** PATCH request */
   async patch(endpoint, body = {}) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'PATCH',
-      headers: this.getHeaders(),
-      body: JSON.stringify(body),
-    });
-    
+    const response = await fetch(`${this.baseURL}${endpoint}`, this.getFetchOptions('PATCH', body));
     return this.handleResponse(response);
   }
 }
@@ -161,7 +135,7 @@ export async function checkBackendAvailable() {
     const url = base.startsWith('http') ? `${base.replace(/\/api$/, '')}/api/health` : '/api/health';
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 5000);
-    const res = await fetch(url, { signal: ctrl.signal });
+    const res = await fetch(`${url}?_=${Date.now()}`, { signal: ctrl.signal, cache: 'no-store' });
     clearTimeout(tid);
     const text = await res.text();
     if (!text || !text.trim().startsWith('{') || text.trim().startsWith('<')) return false;
