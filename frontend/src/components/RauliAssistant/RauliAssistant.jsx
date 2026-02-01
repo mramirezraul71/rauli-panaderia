@@ -7,7 +7,8 @@ import {
   HiOutlineX,
   HiOutlineChip,
   HiOutlineSparkles,
-  HiOutlineCamera
+  HiOutlineCamera,
+  HiOutlinePencil
 } from "react-icons/hi";
 import { useVoiceInput } from "../../hooks/useVoiceInput";
 import { useCameraVision } from "../../hooks/useCameraVision";
@@ -15,6 +16,7 @@ import { useVoiceSynthesis } from "../../hooks/useVoiceSynthesis";
 import { useRauli } from "../../context/RauliContext";
 import { RAULI_SYSTEM_PROMPT, getRauliContext } from "../../config/rauliPersonality";
 import { executeAction } from "./actions";
+import { DEFAULT_PROFILES as DEFAULT_PROFILES_IMPORT } from "./permissions";
 import AIEngine from "../../services/AIEngine";
 
 const createToneDataUrl = (frequency, durationSeconds, volume = 0.18) => {
@@ -505,28 +507,11 @@ export default function RauliAssistant() {
   const [profiles, setProfiles] = useState(() => {
     const stored = getProfiles();
     if (stored?.length) return stored;
-    return [
-      { id: "owner", name: "Dueño", role: "Admin", permissions: OWNER_PERMISSIONS },
-      { id: "cajero", name: "Cajero", role: "Caja", permissions: {
-        ...DEFAULT_PERMISSIONS,
-        canDelete: false,
-        allowedRoutes: ["/dashboard", "/pos", "/sales", "/customers", "/cash"]
-      }},
-      { id: "inventario", name: "Inventario", role: "Stock", permissions: {
-        ...DEFAULT_PERMISSIONS,
-        allowedRoutes: ["/dashboard", "/inventory", "/products", "/reports"]
-      }},
-      { id: "produccion", name: "Produccion", role: "Horno", permissions: {
-        ...DEFAULT_PERMISSIONS,
-        allowedRoutes: ["/dashboard", "/produccion", "/inventory", "/products"]
-      }},
-      { id: "gerencia", name: "Gerencia", role: "Supervisor", permissions: {
-        ...DEFAULT_PERMISSIONS,
-        canDelete: false,
-        allowedRoutes: ["/dashboard", "/sales", "/reports", "/expenses", "/products", "/inventory"]
-      }}
-    ];
+    return DEFAULT_PROFILES_IMPORT;
   });
+  const [showRolesModal, setShowRolesModal] = useState(false);
+  const [editingProfileId, setEditingProfileId] = useState(null);
+  const [editDraft, setEditDraft] = useState({ name: "", role: "" });
   const [activeProfileId, setActiveProfileIdState] = useState(() => getActiveProfileId());
   const [messages, setMessages] = useState(() => {
     const stored = getStoredMessages(getActiveProfileId());
@@ -1119,6 +1104,35 @@ export default function RauliAssistant() {
         : profile
     )));
   }, []);
+
+  const handleUpdateProfileNameRole = useCallback((profileId, { name, role }) => {
+    setProfiles((prev) => prev.map((p) =>
+      p.id === profileId ? { ...p, name: (name || p.name).trim(), role: (role ?? p.role).trim() } : p
+    ));
+    setEditingProfileId(null);
+    setEditDraft({ name: "", role: "" });
+  }, []);
+
+  const handleStartEditProfile = useCallback((profile) => {
+    setEditingProfileId(profile.id);
+    setEditDraft({ name: profile.name, role: profile.role });
+  }, []);
+
+  const handleSaveEditProfile = useCallback(() => {
+    if (!editingProfileId) return;
+    const name = (editDraft.name || "").trim();
+    const role = (editDraft.role || "").trim();
+    if (name) handleUpdateProfileNameRole(editingProfileId, { name, role: role || "Operador" });
+  }, [editingProfileId, editDraft, handleUpdateProfileNameRole]);
+
+  const handleAddRoleInModal = useCallback(() => {
+    const id = `p_${Date.now().toString(36)}`;
+    const next = [...profiles, { id, name: "Nuevo rol", role: "Operador", permissions: DEFAULT_PERMISSIONS }];
+    setProfiles(next);
+    handleProfileChange(id);
+    setEditingProfileId(id);
+    setEditDraft({ name: "Nuevo rol", role: "Operador" });
+  }, [profiles, handleProfileChange]);
 
   return (
     <div className="relative flex flex-col h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
