@@ -87,14 +87,20 @@ def main() -> int:
     parser.add_argument("--no-notify", action="store_true", help="No enviar mensaje Telegram")
     args = parser.parse_args()
 
+    # 0) Bump versión patch si hay cambios (enlaza cada arreglo con versión nueva)
+    if not args.no_git:
+        r = subprocess.run(["git", "status", "--porcelain"], cwd=str(ROOT), capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and r.stdout.strip():
+            subprocess.run([sys.executable, str(ROOT / "scripts" / "bump_version.py")], cwd=str(ROOT), capture_output=True, check=False)
+
     version = read_version()
     print("=== DEPLOY Y NOTIFICAR (v{}) ===\n".format(version))
 
-    # 0) Limpiar caché (dist, Vite) antes de build
+    # 1) Limpiar caché (dist, Vite) antes de build
     subprocess.run([sys.executable, str(ROOT / "scripts" / "limpiar_cache.py")], cwd=str(ROOT), timeout=10, check=False)
 
-    # 1) Build frontend (genera version.json y dist)
-    print("--- 1/4 Build frontend ---\n")
+    # 2) Build frontend (genera version.json y dist)
+    print("--- 2/5 Build frontend ---\n")
     r = subprocess.run(
         ["npm", "run", "build"],
         cwd=str(FRONTEND),
@@ -107,8 +113,8 @@ def main() -> int:
     print("  Build OK.\n")
 
     if not args.no_git:
-        # 2) Git add, commit, push
-        print("--- 2/4 Git add/commit/push ---\n")
+        # 3) Git add, commit, push
+        print("--- 3/5 Git add/commit/push ---\n")
         subprocess.run(["git", "add", "-A"], cwd=str(ROOT), timeout=10, check=False)
         r = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=str(ROOT), timeout=5)
         if r.returncode != 0:
@@ -137,8 +143,8 @@ def main() -> int:
     else:
         print("--- 2/4 Git omitido (--no-git) ---\n")
 
-    # 3) Deploy Vercel + Railway
-    print("--- 3/4 Deploy Vercel + Railway ---\n")
+    # 4) Deploy Vercel + Railway
+    print("--- 4/5 Deploy Vercel + Railway ---\n")
     rv = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "vercel_config_deploy.py")],
         cwd=str(ROOT),
