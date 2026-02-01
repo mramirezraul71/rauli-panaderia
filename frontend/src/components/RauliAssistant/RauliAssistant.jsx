@@ -2051,8 +2051,8 @@ export default function RauliAssistant() {
       </AnimatePresence>
 
       {/* Input */}
-      <div className="px-6 py-4 bg-slate-900/50 border-t border-white/10 backdrop-blur-md">
-        <div className="flex flex-wrap gap-2 mb-3">
+      <div className="px-4 py-2.5 bg-slate-900/50 border-t border-white/10 backdrop-blur-md flex-shrink-0">
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {QUICK_PROMPTS.map((prompt) => (
             <motion.button
               key={prompt.label}
