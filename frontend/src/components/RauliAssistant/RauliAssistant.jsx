@@ -95,6 +95,16 @@ const ASSISTANT_MODES = [
   "Gerencia"
 ];
 
+const MODE_TO_ROUTE = {
+  Operaciones: "/",
+  Caja: "/cash",
+  Inventario: "/inventory",
+  Produccion: "/produccion",
+  Compras: "/compras",
+  Marketing: "/marketing",
+  Gerencia: "/gerencia"
+};
+
 const SEND_BURST_OFFSETS = [
   { x: -22, y: -14 },
   { x: -8, y: -24 },
@@ -1388,7 +1398,11 @@ export default function RauliAssistant() {
               type="button"
               role="button"
               aria-pressed={assistantMode === mode}
-              onClick={() => setAssistantMode(mode)}
+              onClick={() => {
+                setAssistantMode(mode);
+                const route = MODE_TO_ROUTE[mode];
+                if (route) navigate(route);
+              }}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               className={`min-h-[44px] px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer [touch-action:manipulation] border ${
