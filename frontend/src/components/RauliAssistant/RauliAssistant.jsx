@@ -1436,7 +1436,7 @@ export default function RauliAssistant() {
       </div>
 
       {/* Mensajes */}
-      <div className="relative flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div className="relative flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
         <motion.div
           className="pointer-events-none absolute inset-0"
           animate={{ opacity: [0.15, 0.3, 0.15] }}
