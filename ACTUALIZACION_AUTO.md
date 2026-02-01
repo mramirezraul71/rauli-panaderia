@@ -16,9 +16,27 @@ Con esto se evita el problema de “no veo los cambios en móvil” por caché.
 
 ---
 
-## Ejecutar toda la tarea (build + push + deploy + Telegram)
+## Configuración automática (UNA SOLA VEZ, sin pasos manuales)
 
-Para **actualizar la app de punta a punta** (construir, subir a GitHub, desplegar en Vercel/Railway y notificar por Telegram), ejecuta desde la raíz del proyecto:
+Ejecuta **una vez** desde la raíz del proyecto:
+
+```batch
+configurar_todo_automatico.bat
+```
+
+Eso configura:
+
+1. **Keep-alive Render** – Workflow en GitHub que hace ping a la API cada 15 min (evita cold start).
+2. **Deploy inicial** – Build + push + Vercel + Railway + Telegram.
+3. **Tarea programada** – Deploy diario a las 8:00 sin intervención.
+
+**Requisito previo:** `credenciales.txt` con `VERCEL_TOKEN` y `GH_TOKEN` rellenados. Si faltan, el script indica dónde crearlos.
+
+---
+
+## Ejecutar deploy manual (build + push + deploy + Telegram)
+
+Para **actualizar la app de punta a punta** manualmente:
 
 ```batch
 ACTUALIZAR_AUTO.bat
