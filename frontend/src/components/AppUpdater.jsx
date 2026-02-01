@@ -1,9 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { APP_VERSION } from "../config/version";
+import { runUpdateNow } from "./VersionChecker";
+
+function parseVersion(v) {
+  if (!v || typeof v !== "string") return [0, 0, 0];
+  const parts = v.trim().replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
+  return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+}
+function isNewer(serverV, clientV) {
+  const s = parseVersion(serverV);
+  const c = parseVersion(clientV);
+  for (let i = 0; i < 3; i++) {
+    if (s[i] > c[i]) return true;
+    if (s[i] < c[i]) return false;
+  }
+  return false;
+}
+async function fetchServerVersion() {
+  const res = await fetch(`/version.json?t=${Date.now()}`, { cache: "no-store", headers: { Pragma: "no-cache" } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.version ?? null;
+}
 
 export default function AppUpdater() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [serverVersion, setServerVersion] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
   const [lastCheckedAt, setLastCheckedAt] = useState("");
   const notifiedRef = useRef(false);
@@ -25,44 +48,21 @@ export default function AppUpdater() {
   };
 
   const checkForUpdate = async (manual = false) => {
+    setIsChecking(true);
+    setLastCheckedAt(new Date().toISOString());
     try {
-      if (!("serviceWorker" in navigator)) {
-        if (manual) toast("No hay service worker activo", { icon: "ℹ️" });
-        setLastCheckedAt(new Date().toISOString());
-        return;
-      }
-      setIsChecking(true);
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) {
-        if (manual) toast("No hay actualizaciones disponibles", { icon: "✅" });
-        setLastCheckedAt(new Date().toISOString());
-        return;
-      }
-
-      registration.addEventListener("updatefound", () => {
-        const installing = registration.installing;
-        if (!installing) return;
-        installing.addEventListener("statechange", () => {
-          if (installing.state === "installed" && navigator.serviceWorker.controller) {
-            setUpdateAvailable(true);
-          }
-        });
-      });
-
-      await registration.update();
-      if (registration.waiting) {
+      const v = await fetchServerVersion();
+      if (v && isNewer(v, APP_VERSION)) {
+        setServerVersion(v);
         setUpdateAvailable(true);
-      } else if (manual) {
-        toast("Sin actualizaciones nuevas", { icon: "✅" });
+        if (manual) toast.success("Hay actualización disponible (v" + v + "). Pulsa \"Actualizar ahora\".");
+      } else {
+        setUpdateAvailable(false);
+        setServerVersion(null);
+        if (manual) toast.success("Ya tienes la última versión.", { icon: "✅" });
       }
-      setLastCheckedAt(new Date().toISOString());
-    } catch (error) {
-      // En PWA/Vercel el SW puede no estar disponible; no ensuciar consola
-      if (manual) {
-        console.warn("AppUpdater:", error?.message || error);
-        toast("No se pudo buscar actualizaciones", { icon: "⚠️" });
-      }
-      setLastCheckedAt(new Date().toISOString());
+    } catch {
+      if (manual) toast.error("No se pudo comprobar. Revisa la conexión.");
     } finally {
       setIsChecking(false);
     }
@@ -70,15 +70,7 @@ export default function AppUpdater() {
 
   const handleUpdateCheck = async () => {
     if (updateAvailable) {
-      if ("serviceWorker" in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.getRegistration();
-          if (registration?.waiting) {
-            registration.waiting.postMessage({ type: "SKIP_WAITING" });
-          }
-        } catch {}
-      }
-      window.location.reload(true);
+      runUpdateNow();
       return;
     }
     await checkForUpdate(true);
@@ -115,7 +107,7 @@ export default function AppUpdater() {
           ? "bg-amber-500/10 text-amber-400"
           : "bg-emerald-500/10 text-emerald-400"
       }`}>
-        {updateAvailable ? `Actualización disponible (v${serverVersion})` : isChecking ? "Buscando actualización..." : "Sin actualizaciones"}
+        {updateAvailable ? (serverVersion ? `Actualización disponible (v${serverVersion})` : "Actualización disponible") : isChecking ? "Buscando actualización..." : "Sin actualizaciones"}
       </div>
       {lastCheckedAt && (
         <div className="mb-2 text-[11px] text-slate-400">
