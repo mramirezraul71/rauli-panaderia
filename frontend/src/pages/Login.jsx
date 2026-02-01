@@ -149,7 +149,7 @@ export default function Login() {
                   />
                 </div>
               </div>
-              <p className="text-xs text-slate-500 mt-1">Estos datos se usan para tu alta en Recursos Humanos.</p>
+              <p className="text-xs text-slate-500 mt-1">Estos datos se usan para tu alta en Recursos Humanos. El salario y condiciones de pago los determina el administrador desde su pantalla (RRHH).</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
