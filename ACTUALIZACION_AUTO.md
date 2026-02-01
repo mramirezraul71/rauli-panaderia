@@ -16,6 +16,18 @@ Con esto se evita el problema de “no veo los cambios en móvil” por caché.
 
 ---
 
+## Flujo: cada arreglo → actualización
+
+**Script de enlace** (ejecutar tras cada arreglo en la app):
+
+```batch
+DEPLOY_ARREGLOS.bat
+```
+
+Incrementa versión, hace build, push, deploy y verificación. Ver `FLUJO_ARREGLOS.md`.
+
+---
+
 ## Configuración automática (UNA SOLA VEZ, sin pasos manuales)
 
 Ejecuta **una vez** desde la raíz del proyecto:
