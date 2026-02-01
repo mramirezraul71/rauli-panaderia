@@ -101,22 +101,8 @@ def main():
         "installCommand": "npm install",
         "outputDirectory": "dist",
         "rootDirectory": "frontend",
-        "gitRepository": {
-            "type": "github",
-            "repo": GITHUB_REPO,
-        },
     }
     created, err = _req("POST", f"/v10/projects{tq}", token, payload)
-    if err:
-        # API v10 puede tener formato distinto; intentar sin gitRepository
-        payload2 = {
-            "name": PROJECT_NAME,
-            "framework": "vite",
-            "buildCommand": "npm run build",
-            "outputDirectory": "dist",
-            "rootDirectory": "frontend",
-        }
-        created, err = _req("POST", f"/v10/projects{tq}", token, payload2)
     if err:
         print(f"  Error creando proyecto: {err}")
         return 1
@@ -139,9 +125,8 @@ def main():
         print("  Conecta el repo en Vercel Dashboard: Settings → Git → Connect Git Repository")
         print(f"  Repo: https://github.com/{GITHUB_REPO}")
 
-    # 5) Disparar deploy
+    # 5) Disparar deploy (necesita repo vinculado; si no, usuario conecta en Dashboard)
     print("\n--- 4/5 Disparando deploy inicial ---")
-    proj2, _ = _req("GET", f"/v9/projects/{PROJECT_NAME}{tq}", token)
     link = (proj2 or created or proj or {}).get("link", {})
     repo_id = link.get("repoId")
     if repo_id:
