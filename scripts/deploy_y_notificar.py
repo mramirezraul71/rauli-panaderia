@@ -96,7 +96,7 @@ def main() -> int:
     version = read_version()
     print("=== DEPLOY Y NOTIFICAR (v{}) ===\n".format(version))
 
-    # 1) Limpiar caché (dist, Vite) antes de build
+    # 1) Limpiar caché (dist, Vite)
     subprocess.run([sys.executable, str(ROOT / "scripts" / "limpiar_cache.py")], cwd=str(ROOT), timeout=10, check=False)
 
     # 2) Build frontend (genera version.json y dist)
@@ -168,9 +168,9 @@ def main() -> int:
     print("\n  Esperando 60 s...\n")
     time.sleep(60)
 
-    # 4) Notificar (Telegram)
+    # 5) Notificar (Telegram)
     if not args.no_notify:
-        print("--- 4/4 Notificar nueva actualizacion ---\n")
+        print("--- 5/5 Notificar nueva actualizacion ---\n")
         msg = (
             "RAULI v{} desplegada.\n\n"
             "Abre la app (PC o movil): {}\n\n"
@@ -182,7 +182,7 @@ def main() -> int:
         else:
             print("  Telegram no configurado o fallo. Boveda: OMNI_BOT_TELEGRAM_TOKEN, OMNI_BOT_TELEGRAM_CHAT_ID.\n")
     else:
-        print("--- 4/4 Notificar omitido (--no-notify) ---\n")
+        print("--- 5/5 Notificar omitido (--no-notify) ---\n")
 
     print("=" * 50)
     print("  Listo. En PC y movil: abrir la app -> si hay version nueva, se mostrara el aviso y \"Actualizar ahora\".")
