@@ -3,6 +3,8 @@
 **Repo:** `mramirezraul71/rauli-panaderia`  
 **Rama de producción:** `maestro`
 
+**Estructura de atributos (no perder):** ver **[ESTRUCTURA_RAULI.md](ESTRUCTURA_RAULI.md)** — frontend, backend, robot, audio PC, Bóveda.
+
 ---
 
 ## Sistema de actualización automática + cadena (todos los proyectos)
