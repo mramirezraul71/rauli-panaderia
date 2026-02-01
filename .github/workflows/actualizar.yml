@@ -6,6 +6,8 @@ on:
   push:
     branches: [maestro, main]
   workflow_dispatch:  # Ejecutar manualmente desde pestaña Actions
+  schedule:
+    - cron: "0 14 * * *"  # Diario a las 14:00 UTC (redesplegar lo que haya en maestro)
 
 jobs:
   deploy-y-comprobar:

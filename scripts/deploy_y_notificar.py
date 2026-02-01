@@ -124,18 +124,13 @@ def main() -> int:
                 push_url = "https://{}@github.com/".format(gh) + url.split("github.com/", 1)[-1].lstrip("/")
                 rr = subprocess.run(["git", "push", push_url, "maestro:maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
                 push_ok = rr.returncode == 0
-        if not push_ok and gh:
-            rr = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
-            push_ok = rr.returncode == 0
-        if not push_ok and not gh:
-            rr = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
-            push_ok = rr.returncode == 0
         if not push_ok:
-            print("  AVISO: git push fallo. Sin GH_TOKEN en credenciales.txt el push puede fallar.")
-            print("  Solucion: crear token en GitHub (Settings -> Developer settings -> Personal access tokens)")
-            print("  y añadir GH_TOKEN=ghp_xxx en credenciales.txt")
-        else:
+            rr = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
+            push_ok = rr.returncode == 0
+        if push_ok:
             print("  Git OK (push a maestro).\n")
+        else:
+            print("  AVISO: git push fallo.\n  Añade GH_TOKEN en credenciales.txt (GitHub -> Settings -> Developer settings -> Tokens)\n")
     else:
         print("--- 2/4 Git omitido (--no-git) ---\n")
 
