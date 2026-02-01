@@ -241,7 +241,7 @@ const MENU = [
     { path: "/gerencia", name: "Gerencia", icon: HiOutlineChartBar, roles: ["admin", "gerente", "cajero", "inventario"] },
   ]},
   { sectionKey: "menu.section.system", items: [
-    { path: "/control-acceso", name: "Control de Acceso", icon: HiOutlineLockClosed, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "/control-acceso", name: "Centro de Control de Acceso", icon: HiOutlineLockClosed, roles: ["admin", "gerente", "cajero", "inventario"] },
     { path: "/settings", name: "Configuración", icon: HiOutlineCog, roles: ["admin", "gerente", "cajero", "inventario"] },
     { path: "/config-productos", name: "Config. Productos", icon: HiOutlineCog, roles: ["admin", "gerente", "cajero", "inventario"] },
     { path: "/support", name: "Soporte", icon: HiOutlineBell, roles: ["admin", "gerente", "cajero", "inventario"] },
@@ -265,7 +265,8 @@ const AUTONOMO_ALLOWED_PATHS = new Set([
   "/produccion",
   "/compras",
   "/marketing",
-  "/gerencia"
+  "/gerencia",
+  "/control-acceso"
 ]);
 
 function Layout() {
@@ -569,14 +570,14 @@ function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden min-w-0 safe-area-padding">
-          <div className="main-content-mobile space-y-4 sm:space-y-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden min-w-0 safe-area-padding flex flex-col min-h-0">
+          <div className="main-content-mobile flex flex-col flex-1 min-h-0 gap-4 sm:gap-6">
             {location.pathname !== "/auth" && (
-              <div className="rounded-2xl sm:rounded-3xl border-2 sm:border border-slate-700/80 sm:border-slate-800/60 bg-slate-900/40 backdrop-blur-sm overflow-hidden">
-                <div className="px-4 sm:px-5 py-3 border-b-2 sm:border-b border-slate-700/80 sm:border-slate-800/60 text-xs text-slate-400">
+              <div className="rounded-2xl sm:rounded-3xl border-2 sm:border border-slate-700/80 sm:border-slate-800/60 bg-slate-900/40 backdrop-blur-sm overflow-hidden flex-1 min-h-[60vh] flex flex-col">
+                <div className="px-4 sm:px-5 py-3 border-b-2 sm:border-b border-slate-700/80 sm:border-slate-800/60 text-xs text-slate-400 flex-shrink-0">
                   Asistente RAULI siempre activo
                 </div>
-                <div className="h-[420px] lg:h-[460px] max-h-[55vh]">
+                <div className="flex-1 min-h-[400px] overflow-auto">
                   <Suspense fallback={
                     <div className="h-full flex items-center justify-center bg-slate-800/30">
                       <div className="flex flex-col items-center gap-3">
