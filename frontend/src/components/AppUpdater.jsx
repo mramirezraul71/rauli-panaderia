@@ -69,7 +69,8 @@ export default function AppUpdater() {
     }
   };
 
-  const handleUpdateCheck = async () => {
+  const handleUpdateCheck = async (e) => {
+    e?.preventDefault?.();
     if (updateAvailable) {
       runUpdateNow();
       return;
@@ -116,6 +117,7 @@ export default function AppUpdater() {
         </div>
       )}
       <button
+        type="button"
         onClick={handleUpdateCheck}
         disabled={isChecking}
         className="w-full px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm rounded-lg transition-colors"
