@@ -45,6 +45,7 @@ def _has_credenciales() -> bool:
 
 def crear_tarea_programada() -> bool:
     bat = ROOT / "scripts" / "ejecutar_deploy_silencioso.bat"
+    script_completo = ROOT / "scripts" / "ejecutar_pasos_completos.py"
     if not bat.exists():
         return False
     task_name = "RauliERP_Deploy_Automatico"
