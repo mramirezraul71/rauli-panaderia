@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
 VERSION_JS = FRONTEND / "src" / "config" / "version.js"
 APP_URL = os.environ.get("URL_VERCEL", "https://rauli-panaderia-app.vercel.app")
+# Alternativa sin problemas de caché: https://rauli-panaderia-app.onrender.com
 
 
 def _vault_paths():
