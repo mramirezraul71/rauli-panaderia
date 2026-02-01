@@ -594,9 +594,9 @@ export default function RauliAssistant() {
 
   const voiceSynthesis = useVoiceSynthesis({
     lang: "es-ES",
-    rate: 1,
+    rate: 1.12,
     pitch: 1,
-    volume: 0.85
+    volume: 0.9
   });
 
   const cameraVision = useCameraVision({

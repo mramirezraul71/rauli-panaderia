@@ -49,7 +49,7 @@ export default function RauliLive() {
 
   const voiceSynthesis = useVoiceSynthesis({
     lang: "es-ES",
-    rate: 1.0,
+    rate: 1.12,
     volume: 0.9
   });
 
