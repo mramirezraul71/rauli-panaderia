@@ -1,0 +1,19 @@
+# Robot ATLAS RAULI — rauli-panaderia
+# pip install -r robot/requirements-omni.txt
+
+google-generativeai
+groq
+requests
+python-dotenv
+openai-whisper
+pydub
+python-telegram-bot
+twilio
+pyttsx3
+pandas
+openpyxl
+httpx
+Pillow
+browser-use
+langchain-ollama
+ollama

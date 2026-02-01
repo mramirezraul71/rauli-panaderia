@@ -1,0 +1,21 @@
+# Backend rauli-panaderia. URL: rauli-panaderia.onrender.com
+services:
+  - type: web
+    name: rauli-panaderia
+    env: node
+    plan: starter
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_BASE_URL
+        value: https://api.openai.com
+      - key: CORS_ORIGIN
+        value: https://rauli-panaderia-app.vercel.app

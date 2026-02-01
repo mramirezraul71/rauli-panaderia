@@ -1,0 +1,7 @@
+# Bóveda de credenciales (copiar a credenciales.txt y rellenar)
+# No subir credenciales.txt a Git (está en .gitignore)
+
+VERCEL_TOKEN=
+# Railway (scripts/railway_deploy.py y comprobar_urls.py)
+# RAILWAY_TOKEN=
+# RAILWAY_PUBLIC_URL=https://tu-servicio.up.railway.app

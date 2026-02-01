@@ -1,0 +1,14 @@
+MISION: Usar el robot programado para verificar deploy.
+
+EJECUTA (no hagas manualmente):
+  cd c:\dev\RauliERP-Panaderia-RAULI
+  python robot_verificar_deploy.py
+
+El robot:
+- Comprueba Vercel y Render
+- Toma capturas
+- Escribe mision_log.txt
+- Envia por Telegram
+- Anuncia por voz
+
+Para capturas completas: playwright install chromium

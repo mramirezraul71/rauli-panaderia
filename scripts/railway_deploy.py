@@ -1,0 +1,185 @@
+# -*- coding: utf-8 -*-
+"""
+Dispara deploy del backend en Railway.
+Carga RAILWAY_TOKEN desde C:\\dev\\credenciales.txt o env.
+Requisito: tener ya un proyecto en Railway con el repo conectado (root: backend).
+Uso: python scripts/railway_deploy.py
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+RAILWAY_GRAPHQL = "https://backboard.railway.com/graphql/v2"
+PROJECT_NAME = os.environ.get("RAILWAY_PROJECT_NAME", "rauli-panaderia")
+# Nombres alternativos de proyecto a buscar (ej. "RAUL")
+PROJECT_NAMES = ("rauli-panaderia", "RAUL", "rauli-panadería-backend", "rauli-panadería")
+# Si tienes el ID del proyecto en Railway, ponlo aquí o en RAILWAY_PROJECT_ID (env/credenciales)
+PROJECT_ID_OVERRIDE = os.environ.get("RAILWAY_PROJECT_ID", "5435fa54-9b63-4a92-97e2-449832f67e5d").strip() or None
+
+
+def _vault_paths():
+    yield os.environ.get("RAULI_VAULT", "")
+    yield Path(r"C:\dev\credenciales.txt")
+    yield Path(__file__).resolve().parent.parent / "credenciales.txt"
+    yield Path(__file__).resolve().parent.parent / "backend" / ".env"
+    home = Path.home()
+    yield home / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield home / "Escritorio" / "credenciales.txt"
+    yield home / "Desktop" / "credenciales.txt"
+
+
+RAILWAY_KEYS = ("RAILWAY_TOKEN", "RAILWAY_API_TOKEN", "RAILWAY_KEY")
+PROJECT_ID_KEYS = ("RAILWAY_PROJECT_ID",)
+
+def _load_from_vault(keys: tuple):
+    for v in _vault_paths():
+        p = Path(v) if isinstance(v, str) else v
+        if not p or not getattr(p, "exists", lambda: False) or not p.exists():
+            continue
+        try:
+            for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    k, _, val = line.partition("=")
+                    k = k.strip().upper()
+                    if k in keys:
+                        t = val.strip().strip("'\"").strip()
+                        if t:
+                            return t
+        except Exception:
+            pass
+    return None
+
+def load_token():
+    for key in RAILWAY_KEYS:
+        token = os.environ.get(key, "").strip()
+        if token:
+            return token
+    return _load_from_vault(RAILWAY_KEYS) or ""
+
+def load_project_id():
+    for key in PROJECT_ID_KEYS:
+        pid = os.environ.get(key, "").strip()
+        if pid:
+            return pid
+    return _load_from_vault(PROJECT_ID_KEYS) or PROJECT_ID_OVERRIDE or ""
+
+
+def gql(token: str, query: str, variables: dict | None = None):
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+    }
+    req = urllib.request.Request(
+        RAILWAY_GRAPHQL,
+        data=json.dumps({"query": query, "variables": variables or {}}).encode(),
+        headers=headers,
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode())
+
+
+def main():
+    token = load_token()
+    if not token:
+        print("ERROR: RAILWAY_TOKEN no encontrado. Añade RAILWAY_TOKEN=... (o RAILWAY_API_TOKEN=...) en C:\\dev\\credenciales.txt")
+        print("  Crea el token en: https://railway.com/account/tokens")
+        return 1
+
+    try:
+        project_id = load_project_id()
+        if not project_id:
+            # Listar proyectos por nombre (incluye "RAUL", "rauli-panaderia", etc.)
+            data = gql(token, "query { projects { edges { node { id name } } } }")
+            projects = data.get("data", {}).get("projects", {}).get("edges", [])
+            proj_node = None
+            names_to_try = [PROJECT_NAME.strip()] + [p for p in PROJECT_NAMES if p != PROJECT_NAME.strip()]
+            for e in projects:
+                n = e.get("node", {})
+                name = (n.get("name") or "").strip()
+                for target in names_to_try:
+                    if name.lower() == target.lower():
+                        proj_node = n
+                        break
+                if proj_node:
+                    break
+            if not proj_node:
+                for e in projects:
+                    n = e.get("node", {})
+                    name = (n.get("name") or "").lower()
+                    if "rauli" in name or "panaderia" in name or name == "raul":
+                        proj_node = n
+                        break
+            if not proj_node:
+                print(f"ERROR: No hay proyecto en Railway con nombre '{PROJECT_NAME}', 'RAUL', etc.")
+                print("  Define RAILWAY_PROJECT_ID=tu-id en credenciales o env.")
+                return 1
+            project_id = proj_node["id"]
+            print(f"  Proyecto: {proj_node.get('name', project_id)}")
+
+        # Proyecto con servicios y entornos
+        data = gql(
+            token,
+            """query project($id:String!) {
+              project(id:$id) {
+                id name
+                services { edges { node { id name } } }
+                environments { edges { node { id name } } }
+              }
+            }""",
+            {"id": project_id},
+        )
+        proj = (data.get("data") or {}).get("project")
+        if not proj:
+            print("ERROR: No se pudo obtener proyecto.")
+            return 1
+
+        services = [e["node"] for e in (proj.get("services") or {}).get("edges", [])]
+        envs = [e["node"] for e in (proj.get("environments") or {}).get("edges", [])]
+        if not services:
+            print("ERROR: El proyecto no tiene servicios. Conecta el repo en Railway.")
+            return 1
+        if not envs:
+            print("ERROR: El proyecto no tiene entornos.")
+            return 1
+
+        service_id = services[0]["id"]
+        environment_id = envs[0]["id"]
+
+        # Disparar deploy
+        data = gql(
+            token,
+            """mutation serviceInstanceDeployV2($serviceId:String!,$environmentId:String!) {
+              serviceInstanceDeployV2(serviceId:$serviceId, environmentId:$environmentId)
+            }""",
+            {"serviceId": service_id, "environmentId": environment_id},
+        )
+        errs = data.get("errors")
+        if errs:
+            print("ERROR Railway:", errs[0].get("message", errs))
+            return 1
+        dep_id = (data.get("data") or {}).get("serviceInstanceDeployV2")
+        print("OK Deploy disparado en Railway.")
+        if dep_id:
+            print(f"  Deployment ID: {dep_id}")
+        print("  Espera 1–2 min y comprueba: python scripts/comprobar_urls.py")
+        return 0
+    except urllib.error.HTTPError as e:
+        body = e.read().decode() if e.fp else ""
+        print(f"ERROR HTTP {e.code}: {body[:400]}")
+        return 1
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

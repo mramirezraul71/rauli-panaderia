@@ -1,0 +1,14 @@
+.product-type-config { padding: 24px; max-width: 1200px; margin: 0 auto; }
+.config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; }
+.config-header button { padding: 12px 24px; background: white; color: #667eea; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.config-header button:disabled { opacity: 0.6; cursor: not-allowed; }
+.message { padding: 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; }
+.message.success { background: rgba(72, 187, 120, 0.1); border-left: 4px solid #48bb78; color: #48bb78; }
+.message.error { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; color: #ef4444; }
+.products-table { background: #1a202c; border-radius: 12px; overflow: hidden; }
+.products-table table { width: 100%; border-collapse: collapse; }
+.products-table th { text-align: left; padding: 16px; background: #0f1419; color: #cbd5e0; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+.products-table td { padding: 16px; border-top: 1px solid #2d3748; color: #e2e8f0; }
+.products-table select { width: 100%; max-width: 250px; padding: 10px; background: #0f1419; border: 2px solid #4a5568; border-radius: 6px; color: #e2e8f0; font-size: 14px; cursor: pointer; }
+.products-table select:focus { outline: none; border-color: #667eea; }
+.config-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px; color: #718096; }

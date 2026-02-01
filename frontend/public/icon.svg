@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  
+  <!-- R letter stylized -->
+  <path d="M120 120 h160 q80 0 80 80 q0 60 -60 75 l90 117 h-70 l-85 -110 h-55 v110 h-60 v-272 z M180 230 h95 q35 0 35 -35 q0 -35 -35 -35 h-95 z" fill="url(#accent)"/>
+  
+  <!-- Generic accent mark -->
+  <circle cx="380" cy="380" r="70" fill="url(#brand)"/>
+  <circle cx="380" cy="380" r="38" fill="none" stroke="url(#accent)" stroke-width="8" opacity="0.9"/>
+  
+  <!-- Accent line -->
+  <rect x="120" y="420" width="160" height="8" rx="4" fill="url(#accent)" opacity="0.7"/>
+</svg>
