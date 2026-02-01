@@ -1,21 +1,53 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SupportService from "../services/SupportService";
 import { HiOutlineBell, HiOutlineX } from "react-icons/hi";
 import { useAuth } from "../context/AuthContext";
 import { runUpdateNow } from "./VersionChecker";
 
+const SOUND_STORAGE_KEY = "support_notification_sound";
+const NOTIFICATION_SOUND_WAV =
+  "data:audio/wav;base64,UklGRmQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAAAAAA//8AAP//AAD//wAA//8AAP//AAD//wAA";
+
+function playNotificationSound() {
+  try {
+    const enabled = localStorage.getItem(SOUND_STORAGE_KEY);
+    if (enabled === "false") return;
+    const audio = new Audio(NOTIFICATION_SOUND_WAV);
+    audio.volume = 0.4;
+    audio.play().catch(() => {});
+  } catch (_) {}
+}
+
 export default function NotificationCenter() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [soundOn, setSoundOn] = useState(() => localStorage.getItem(SOUND_STORAGE_KEY) !== "false");
+  const prevUnreadRef = useRef(undefined);
 
   useEffect(() => {
     const refresh = () => setNotifications(SupportService.listNotifications());
     refresh();
-    const handler = () => refresh();
+    const handler = () => {
+      const list = SupportService.listNotifications();
+      const visible = list.filter(
+        (n) => n.user_id === "all" || n.user_id === user?.id || n.user_id === "anon"
+      );
+      const unread = visible.filter((n) => !n.read).length;
+      if (prevUnreadRef.current !== undefined && unread > prevUnreadRef.current) {
+        playNotificationSound();
+      }
+      prevUnreadRef.current = unread;
+      setNotifications(list);
+    };
     window.addEventListener("support-updated", handler);
+    const initial = SupportService.listNotifications();
+    const visibleInit = initial.filter(
+      (n) => n.user_id === "all" || n.user_id === user?.id || n.user_id === "anon"
+    );
+    prevUnreadRef.current = visibleInit.filter((n) => !n.read).length;
     return () => window.removeEventListener("support-updated", handler);
-  }, []);
+  }, [user?.id]);
 
   const visibleNotifications = useMemo(
     () =>
@@ -48,6 +80,19 @@ export default function NotificationCenter() {
               <HiOutlineX className="w-4 h-4" />
             </button>
           </div>
+          <label className="flex items-center gap-2 mb-3 text-xs text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={soundOn}
+              onChange={(e) => {
+                const v = e.target.checked;
+                setSoundOn(v);
+                localStorage.setItem(SOUND_STORAGE_KEY, v ? "true" : "false");
+              }}
+              className="rounded border-slate-600 bg-slate-800 text-emerald-500"
+            />
+            Sonido al recibir notificaciones (PC)
+          </label>
           <div className="space-y-2 max-h-80 overflow-auto">
             {visibleNotifications.length === 0 && (
               <div className="text-xs text-slate-500">Sin notificaciones.</div>
