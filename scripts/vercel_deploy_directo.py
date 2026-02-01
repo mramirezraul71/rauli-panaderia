@@ -69,42 +69,20 @@ def main() -> int:
     if proj:
         env["VERCEL_PROJECT_ID"] = proj
 
-    # 1) vercel build (genera .vercel/output; usa config de vercel.json)
-    print("--- 1/3 Vercel build ---")
-    rb = subprocess.run(
-        ["npx", "vercel", "build", "--prod", "--yes", "--token", token],
+    # 1) Build local (para tener dist actualizado)
+    print("--- 1/3 Build frontend ---")
+    r = subprocess.run(["npm", "run", "build"], cwd=str(FRONTEND), shell=True, timeout=300)
+    if r.returncode != 0:
+        return 1
+    print("  Build OK.")
+
+    # 2) Deploy con Vercel CLI (sube proyecto, Vercel construye en la nube)
+    print("\n--- 2/3 Deploy a Vercel ---")
+    r = subprocess.run(
+        ["npx", "vercel", "deploy", "--prod", "--yes", "--token", token],
         cwd=str(FRONTEND),
         shell=True,
         timeout=300,
-        env=env,
-    )
-    if rb.returncode != 0:
-        print("ERROR: vercel build falló. Probando npm run build + deploy...")
-        r = subprocess.run(["npm", "run", "build"], cwd=str(FRONTEND), shell=True, timeout=300)
-        if r.returncode != 0:
-            return 1
-        # Crear .vercel/output/static copiando dist (formato Build Output API)
-        out_static = FRONTEND / ".vercel" / "output" / "static"
-        out_static.mkdir(parents=True, exist_ok=True)
-        import shutil
-        if (FRONTEND / "dist").exists():
-            for f in (FRONTEND / "dist").iterdir():
-                dst = out_static / f.name
-                if f.is_file():
-                    shutil.copy2(f, dst)
-                else:
-                    shutil.copytree(f, dst, dirs_exist_ok=True)
-        config = {"version": 3, "routes": [{"handle": "filesystem"}, {"src": "/(.*)", "dest": "/index.html"}]}
-        (FRONTEND / ".vercel" / "output" / "config.json").write_text(json.dumps(config), encoding="utf-8")
-    print("  Build OK.")
-
-    # 2) Deploy con Vercel CLI
-    print("\n--- 2/3 Deploy directo (Vercel CLI) ---")
-    r = subprocess.run(
-        ["npx", "vercel", "deploy", "--prebuilt", "--prod", "--yes", "--token", token],
-        cwd=str(FRONTEND),
-        shell=True,
-        timeout=180,
         env=env,
     )
     if r.returncode != 0:
