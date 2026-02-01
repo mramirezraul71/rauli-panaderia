@@ -16,27 +16,43 @@ if str(BASE.parent) not in sys.path:
 try:
     from telegram_robot import telegram_available, telegram_send
 except ImportError:
-    # Fallback si se ejecuta desde robot/
+    # Fallback: robot/omni_telegram.env y Bóveda
     import os
-    ENV_FILE = BASE / "omni_telegram.env"
     _token, _chat = "", ""
+
+    def _env_candidates():
+        yield BASE / "omni_telegram.env"
+        yield BASE.parent / "omni_telegram.env"
+        yield Path(r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt")
+        yield Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+        yield Path.home() / "Escritorio" / "credenciales.txt"
+        yield Path.home() / "Desktop" / "credenciales.txt"
+        yield Path(r"C:\dev\credenciales.txt")
 
     def _load():
         global _token, _chat
-        if ENV_FILE.exists():
-            for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
-                line = line.strip()
-                if "=" in line and not line.startswith("#"):
-                    k, _, v = line.partition("=")
-                    v = v.strip().strip("'\"")
-                    if k.strip() == "OMNI_BOT_TELEGRAM_TOKEN" and v:
-                        _token = v
-                    elif k.strip() == "OMNI_BOT_TELEGRAM_CHAT_ID" and v:
-                        _chat = v
+        for path in _env_candidates():
+            if not path.exists():
+                continue
+            try:
+                for line in path.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if "=" in line and not line.startswith("#"):
+                        k, _, v = line.partition("=")
+                        v = v.strip().strip("'\"")
+                        k = k.strip()
+                        if v and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
+                            _token = v
+                        if v and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID"):
+                            _chat = v
+            except Exception:
+                pass
+            if _token and _chat:
+                break
         if not _token:
-            _token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "")
+            _token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "") or os.environ.get("TELEGRAM_TOKEN", "")
         if not _chat:
-            _chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "")
+            _chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "") or os.environ.get("TELEGRAM_CHAT_ID", "")
         return _token, _chat
 
     def telegram_available():
