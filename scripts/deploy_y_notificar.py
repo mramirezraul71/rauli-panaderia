@@ -116,17 +116,26 @@ def main() -> int:
                 check=False,
             )
         gh = _load_from_vault(("GH_TOKEN", "GITHUB_TOKEN"))
+        push_ok = False
         if gh:
             r = subprocess.run(["git", "remote", "get-url", "origin"], cwd=str(ROOT), capture_output=True, text=True, timeout=5)
             url = (r.stdout or "").strip()
-            if url.startswith("https://github.com/"):
-                push_url = "https://{}@github.com/".format(gh) + url.split("github.com/", 1)[-1]
-                subprocess.run(["git", "push", push_url, "maestro:maestro"], cwd=str(ROOT), timeout=90, check=False)
-            else:
-                subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, check=False)
+            if "github.com" in url:
+                push_url = "https://{}@github.com/".format(gh) + url.split("github.com/", 1)[-1].lstrip("/")
+                rr = subprocess.run(["git", "push", push_url, "maestro:maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
+                push_ok = rr.returncode == 0
+        if not push_ok and gh:
+            rr = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
+            push_ok = rr.returncode == 0
+        if not push_ok and not gh:
+            rr = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
+            push_ok = rr.returncode == 0
+        if not push_ok:
+            print("  AVISO: git push fallo. Sin GH_TOKEN en credenciales.txt el push puede fallar.")
+            print("  Solucion: crear token en GitHub (Settings -> Developer settings -> Personal access tokens)")
+            print("  y añadir GH_TOKEN=ghp_xxx en credenciales.txt")
         else:
-            subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, check=False)
-        print("  Git OK.\n")
+            print("  Git OK (push a maestro).\n")
     else:
         print("--- 2/4 Git omitido (--no-git) ---\n")
 
