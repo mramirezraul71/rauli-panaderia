@@ -44,7 +44,7 @@ const AI_FETCH_TIMEOUT_MS = 12000;
 const fetchWithTimeout = (url, options = {}, timeout = AI_FETCH_TIMEOUT_MS) => {
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), timeout);
-  return fetch(url, { ...options, signal: controller.signal })
+  return fetch(url, { ...options, signal: controller.signal, cache: 'no-store' })
     .finally(() => clearTimeout(tid));
 };
 
