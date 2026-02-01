@@ -614,7 +614,10 @@ class SentinelService {
       }
     } catch (error) {
       // No loguear cuando la API no está (404/502/503/HTML) o sin red
-      const silent = [401, 404, 502, 503].includes(error?.status) || error?.name === 'TypeError' || error?.name === 'SyntaxError';
+      const msg = String(error?.message || '');
+      const silent = [401, 404, 502, 503].includes(error?.status)
+        || error?.name === 'TypeError' || error?.name === 'SyntaxError'
+        || msg.includes('Unexpected token') || msg.includes('is not valid JSON');
       if (!silent) console.log('Sentinel: Error verificando stock:', error);
     }
   }
@@ -634,7 +637,10 @@ class SentinelService {
         this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.EXPIRING_PRODUCTS);
       }
     } catch (error) {
-      const silent = [401, 404, 502, 503].includes(error?.status) || error?.name === 'TypeError' || error?.name === 'SyntaxError';
+      const msg = String(error?.message || '');
+      const silent = [401, 404, 502, 503].includes(error?.status)
+        || error?.name === 'TypeError' || error?.name === 'SyntaxError'
+        || msg.includes('Unexpected token') || msg.includes('is not valid JSON');
       if (!silent) console.log('Sentinel: Error verificando vencimientos:', error);
     }
   }
