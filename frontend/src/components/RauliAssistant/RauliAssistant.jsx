@@ -122,11 +122,11 @@ const RECEIVE_WAVE_STYLES = [
 ];
 
 const QUICK_PROMPTS = [
-  { label: "Abrir POS", text: "Abrir POS" },
-  { label: "Ventas de hoy", text: "Ventas de hoy" },
-  { label: "Stock harina", text: "Stock de harina" },
-  { label: "Productos mas vendidos", text: "Productos mas vendidos" },
-  { label: "Resumen del dia", text: "Resumen del dia" }
+  { label: "Abrir POS", text: "Abrir POS", route: "/pos" },
+  { label: "Ventas de hoy", text: "Ventas de hoy", route: "/sales" },
+  { label: "Stock harina", text: "Stock de harina", route: "/inventory" },
+  { label: "Productos mas vendidos", text: "Productos mas vendidos", route: "/products" },
+  { label: "Resumen del dia", text: "Resumen del dia", route: "/" }
 ];
 
 const ROUTE_PROMPTS = {
@@ -1094,11 +1094,14 @@ export default function RauliAssistant() {
     }
   }, [cameraVision, faceMode, profiles, activeProfileId, handleProfileChange, faceCaptureStage, faceFirstVector]);
 
-  const handleQuickPrompt = useCallback((text) => {
-    if (handleSendMessageRef.current) {
+  const handleQuickPrompt = useCallback((promptOrText) => {
+    const text = typeof promptOrText === "string" ? promptOrText : promptOrText?.text;
+    const route = typeof promptOrText === "object" ? promptOrText?.route : null;
+    if (route) navigate(route);
+    if (text && handleSendMessageRef.current) {
       handleSendMessageRef.current(text);
     }
-  }, []);
+  }, [navigate]);
 
   const currentRoutePrompts = ROUTE_PROMPTS[window.location.pathname] || [];
 
@@ -2054,7 +2057,7 @@ export default function RauliAssistant() {
             <motion.button
               key={prompt.label}
               type="button"
-              onClick={() => handleQuickPrompt(prompt.text)}
+              onClick={() => handleQuickPrompt(prompt)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               className="px-3 py-1.5 rounded-full text-xs text-slate-200 bg-white/10 hover:bg-white/15 transition"
