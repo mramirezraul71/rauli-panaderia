@@ -23,10 +23,20 @@ Bot de Telegram para **rauli-panaderia**: despliegues por voz, capturas y compro
    - `ffmpeg.exe` en `robot/` (o PATH): `python robot_instalar_ffmpeg.py --download`
    - Ollama: `ollama pull deepseek-r1:14b`
 
+## Activar seguimiento: audio en PC y bot Telegram
+
+- **Audio en PC:** En la app (Centro de notificaciones) activa «Sonido al recibir notificaciones». Las notificaciones nuevas reproducirán un sonido corto.
+- **Bot Telegram:** Desde la carpeta `robot`:
+  1. `python activar_telegram.py` — envía mensaje de prueba y confirma que el seguimiento está activo.
+  2. `run_bot_siempre.bat` (o `run_bot_siempre.ps1`) — deja el bot escuchando comandos (/ping, /captura, voz).
+
 ## Uso
 
 ```bash
 cd robot
+
+# Activar seguimiento (mensaje de prueba a Telegram)
+python activar_telegram.py
 
 # Preparar todo (pip, ffmpeg, comprobar bot)
 python robot_preparar_todo.py
@@ -51,13 +61,14 @@ python enviar_comprobacion_telegram.py
 ```
 robot/
   omni_gestor_proyectos.py   # Bot principal
+  activar_telegram.py        # Activar seguimiento (mensaje prueba Telegram)
   robot_preparar_todo.py     # Instalar y comprobar
   robot_instalar_ffmpeg.py   # ffmpeg
   comprobar_captura.py       # Captura + Telegram
   enviar_comprobacion_telegram.py
   omni_telegram.env.example
   requirements-omni.txt
-  run_bot_siempre.bat
+  run_bot_siempre.bat        # Bot siempre activo
   *.bat
   evidencia/                 # Capturas, historial
   chrome_data/               # Persistencia navegador
