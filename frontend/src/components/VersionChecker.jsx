@@ -56,21 +56,14 @@ export function runUpdateNow() {
 }
 
 async function fetchServerVersion() {
-  const res = await fetch(`/api/version?t=${Date.now()}`, {
+  const res = await fetch(`/?t=${Date.now()}`, {
     cache: "no-store",
     headers: { Pragma: "no-cache" },
   });
   if (!res.ok) return null;
-  const ct = (res.headers.get("content-type") || "").toLowerCase();
-  if (ct.includes("text/html")) return null; // servidor devolvió index.html en vez de JSON
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    return null;
-  }
-  if (!data || typeof data.version !== "string") return null;
-  return data.version;
+  const html = await res.text();
+  const m = html.match(/window\.__APP_VERSION__\s*=\s*["']([^"']+)["']/);
+  return m ? m[1] : null;
 }
 
 /** Intervalo de comprobación automática en segundo plano (ms). Si hay versión nueva, se añade a la bandeja de notificaciones. */
