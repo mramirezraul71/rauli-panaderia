@@ -96,9 +96,9 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
             clearTimeout(silenceTimerRef.current);
           }
           
-          console.log("useVoiceInput: Iniciando timer de silencio (2s)...");
+          const SILENCE_MS = 1100; // 1.1s: respuesta más rápida sin cortar frases
+          console.log("useVoiceInput: Iniciando timer de silencio (" + SILENCE_MS + "ms)...");
           
-          // Esperar 2 segundos de silencio antes de enviar
           silenceTimerRef.current = setTimeout(() => {
             const fullText = transcriptRef.current.trim(); // Usar ref actualizado
             console.log("useVoiceInput: Timer completado, enviando:", fullText);
@@ -111,7 +111,7 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
               console.log("useVoiceInput: ✅ Mensaje enviado, micrófono PERMANECE activo");
               console.log("useVoiceInput: Estado actual - isListening:", recognitionRef.current?.shouldRestart);
             }
-          }, 2000);
+          }, 1100);
         }
       }
     };
