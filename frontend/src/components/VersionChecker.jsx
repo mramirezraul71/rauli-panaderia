@@ -44,11 +44,15 @@ export function runUpdateNow() {
     if (!("caches" in window)) return Promise.resolve();
     return caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).catch(() => {});
   };
+  const clearSessionStorage = () => {
+    try { sessionStorage.clear(); } catch (_) {}
+  };
   const doHardReload = () => {
     const { origin, pathname, search } = window.location;
     const url = `${origin}${pathname}${search || ""}${search ? "&" : "?"}_=${Date.now()}`;
     window.location.replace(url);
   };
+  clearSessionStorage();
   clearCaches()
     .then(unregisterSW)
     .then(() => setTimeout(doHardReload, 150))
