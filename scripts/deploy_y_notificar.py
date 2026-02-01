@@ -135,13 +135,15 @@ def main() -> int:
                 push_ok = rr.returncode == 0
                 if push_ok:
                     subprocess.run(["git", "push", push_url, "maestro:master"], cwd=str(ROOT), timeout=60, capture_output=True, check=False)
+                    subprocess.run(["git", "push", push_url, "maestro:main"], cwd=str(ROOT), timeout=60, capture_output=True, check=False)
         if not push_ok:
             rr = subprocess.run(["git", "push", "origin", "maestro"], cwd=str(ROOT), timeout=90, capture_output=True, text=True)
             push_ok = rr.returncode == 0
             if push_ok:
                 subprocess.run(["git", "push", "origin", "maestro:master"], cwd=str(ROOT), timeout=60, capture_output=True, check=False)
+                subprocess.run(["git", "push", "origin", "maestro:main"], cwd=str(ROOT), timeout=60, capture_output=True, check=False)
         if push_ok:
-            print("  Git OK (push maestro + master).\n")
+            print("  Git OK (push maestro, master, main).\n")
         else:
             print("  AVISO: git push fallo.\n  Añade GH_TOKEN en credenciales.txt (GitHub -> Settings -> Developer settings -> Tokens)\n")
     else:
