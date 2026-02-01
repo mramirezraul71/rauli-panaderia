@@ -656,7 +656,7 @@ export default function RauliAssistant() {
   useEffect(() => {
     const mode = ROUTE_TO_MODE[location.pathname];
     if (mode && mode !== assistantMode) setAssistantMode(mode);
-  }, [location.pathname]);
+  }, [location.pathname, assistantMode]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
