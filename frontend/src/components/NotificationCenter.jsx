@@ -58,6 +58,7 @@ export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
   const [soundOn, setSoundOn] = useState(() => localStorage.getItem(SOUND_STORAGE_KEY) !== "false");
   const prevUnreadRef = useRef(undefined);
+  const audioUnlockedRef = useRef(false);
 
   useEffect(() => {
     const refresh = () => setNotifications(SupportService.listNotifications());
@@ -96,10 +97,22 @@ export default function NotificationCenter() {
     [visibleNotifications]
   );
 
+  const onBellClick = () => {
+    if (!audioUnlockedRef.current && soundOn) {
+      audioUnlockedRef.current = true;
+      try {
+        const a = new Audio(NOTIFICATION_BEEP);
+        a.volume = 0;
+        a.play().catch(() => {});
+      } catch (_) {}
+    }
+    setOpen((prev) => !prev);
+  };
+
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={onBellClick}
         className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border bg-slate-800/60 text-slate-200 border-slate-700 hover:bg-slate-700/60"
       >
         <span className={`w-2.5 h-2.5 rounded-full ${unreadCount > 0 ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
