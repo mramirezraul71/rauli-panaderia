@@ -563,6 +563,7 @@ export default function RauliAssistant() {
   const [sendBursts, setSendBursts] = useState([]);
   const [receiveWaves, setReceiveWaves] = useState([]);
   const [storageInfo, setStorageInfo] = useState({ used: 0, quota: 0, percentage: 0 });
+  const [storageLoaded, setStorageLoaded] = useState(false);
   const [voiceConfirmOpen, setVoiceConfirmOpen] = useState(false);
   const [voiceConfirmText, setVoiceConfirmText] = useState("");
 
@@ -732,13 +733,17 @@ export default function RauliAssistant() {
   useEffect(() => {
     let mounted = true;
     const loadStorage = async () => {
-      if (!navigator.storage?.estimate) return;
+      if (!navigator.storage?.estimate) {
+        setStorageLoaded(true);
+        return;
+      }
       const estimate = await navigator.storage.estimate();
       if (!mounted) return;
       const used = estimate.usage || 0;
       const quota = estimate.quota || 0;
       const percentage = quota ? (used / quota) * 100 : 0;
       setStorageInfo({ used, quota, percentage });
+      setStorageLoaded(true);
     };
     loadStorage();
     const interval = window.setInterval(loadStorage, 60000);
@@ -1227,7 +1232,7 @@ export default function RauliAssistant() {
                 Sync: {lastSyncAt ? new Date(lastSyncAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : "N/A"}
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full border bg-slate-800/60 text-slate-200 border-slate-700/60">
-                Storage: {formatBytes(storageInfo.used)} / {formatBytes(storageInfo.quota)} ({Math.round(storageInfo.percentage)}%)
+                Storage: {storageLoaded ? `${formatBytes(storageInfo.used)} / ${formatBytes(storageInfo.quota)} (${Math.round(storageInfo.percentage)}%)` : "…"}
               </span>
             </div>
             <div className="flex md:hidden items-center gap-2">
@@ -1253,7 +1258,7 @@ export default function RauliAssistant() {
                 S: {lastSyncAt ? new Date(lastSyncAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : "N/A"}
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full border bg-slate-800/60 text-slate-200 border-slate-700/60">
-                St: {Math.round(storageInfo.percentage)}%
+                St: {storageLoaded ? `${Math.round(storageInfo.percentage)}%` : "…"}
               </span>
             </div>
           </div>
