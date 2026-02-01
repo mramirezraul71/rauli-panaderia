@@ -46,14 +46,15 @@ def _has_credenciales() -> bool:
 def crear_tarea_programada() -> bool:
     bat = ROOT / "scripts" / "ejecutar_deploy_silencioso.bat"
     script_completo = ROOT / "scripts" / "ejecutar_pasos_completos.py"
-    cmd = str(script_completo) if script_completo.exists() else str(bat)
+    exe = str(script_completo) if script_completo.exists() else str(bat)
     if not bat.exists() and not script_completo.exists():
         return False
     task_name = "RauliERP_Deploy_Automatico"
     py = sys.executable
+    tr_arg = f'"{py}" "{exe}"' if exe.endswith(".py") else f'"{exe}"'
     cmd = [
         "schtasks", "/create", "/tn", task_name,
-        "/tr", f'"{py}" "{cmd}"',
+        "/tr", tr_arg,
         "/sc", "daily", "/st", "08:00", "/f"
     ]
     try:
