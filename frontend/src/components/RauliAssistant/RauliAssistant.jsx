@@ -1196,8 +1196,8 @@ export default function RauliAssistant() {
             animate={{ opacity: [0.4, 0.8, 0.4], scale: [0.95, 1.1, 0.95] }}
             transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
           />
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <HiOutlineChip className="w-7 h-7 text-white" />
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <HiOutlineChip className="w-6 h-6 text-white" />
           </div>
           
           {/* Sparkle de IA */}
@@ -1218,8 +1218,8 @@ export default function RauliAssistant() {
         </motion.div>
 
         {/* Título */}
-        <div className="flex-1 min-w-[220px] max-w-full">
-          <h2 className="text-white font-bold text-lg">RAULI Assistant</h2>
+        <div className="flex-1 min-w-[180px] max-w-full">
+          <h2 className="text-white font-bold text-base">RAULI Assistant</h2>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-slate-400 text-xs">Asistente Inteligente con IA</p>
             <div className="hidden md:flex flex-wrap items-center gap-2">
