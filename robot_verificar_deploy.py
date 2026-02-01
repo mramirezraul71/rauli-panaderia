@@ -21,14 +21,13 @@ URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
 
 
 def _env_candidates():
-    """Bóveda + robot/omni_telegram.env para no perder credenciales."""
-    yield BASE / "robot" / "omni_telegram.env"
-    yield BASE / "omni_telegram.env"
-    yield Path(r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt")
+    """Bóveda: C:\\dev\\credenciales.txt primero, luego robot/omni_telegram.env."""
+    yield Path(r"C:\dev\credenciales.txt")
     yield Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
     yield Path.home() / "Escritorio" / "credenciales.txt"
     yield Path.home() / "Desktop" / "credenciales.txt"
-    yield Path(r"C:\dev\credenciales.txt")
+    yield BASE / "robot" / "omni_telegram.env"
+    yield BASE / "omni_telegram.env"
 
 
 def _load_telegram():
@@ -43,9 +42,9 @@ def _load_telegram():
                     k, _, v = line.partition("=")
                     v = v.strip().strip("'\"")
                     k = k.strip().upper()
-                    if v and ("OMNI_BOT_TELEGRAM_TOKEN" in k or k == "TELEGRAM_TOKEN"):
+                    if v and "TU_" not in v and ("OMNI_BOT_TELEGRAM_TOKEN" in k or k == "TELEGRAM_TOKEN"):
                         token = v
-                    if v and ("OMNI_BOT_TELEGRAM_CHAT_ID" in k or k == "TELEGRAM_CHAT_ID"):
+                    if v and "TU_" not in v and ("OMNI_BOT_TELEGRAM_CHAT_ID" in k or k == "TELEGRAM_CHAT_ID" or k == "OPERATOR_TELEGRAM"):
                         chat = v
         except Exception:
             pass
