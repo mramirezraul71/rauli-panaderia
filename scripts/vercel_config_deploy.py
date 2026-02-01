@@ -182,14 +182,14 @@ def main():
         body = e.read().decode() if e.fp else ""
         print(f"POST env warning {e.code}: {body[:200]}")
 
-    # 4) Disparar deploy: Deploy Hook (cualquiera) o POST deployment con gitSource
+    # 4) Disparar deploy: SIEMPRE desde rama maestro (no productionBranch que puede ser master antiguo)
     link = project.get("link") or {}
     repo_id = link.get("repoId")
-    production_branch = (link.get("productionBranch") or "maestro").strip() or "maestro"
+    deploy_branch = "maestro"  # Fijar: nuestro código está en maestro
     deploy_hook_url = None
     for dh in (link.get("deployHooks") or []):
         ref = (dh.get("ref") or "").strip()
-        if ref == "maestro" or ref == production_branch:
+        if ref == "maestro":
             deploy_hook_url = dh.get("url")
             break
     if not deploy_hook_url and (link.get("deployHooks") or []):
@@ -210,7 +210,7 @@ def main():
             "name": project_name,
             "project": project_name,
             "target": "production",
-            "gitSource": {"type": "github", "ref": production_branch, "repoId": repo_id},
+            "gitSource": {"type": "github", "ref": deploy_branch, "repoId": repo_id},
         }
     else:
         payload = {
