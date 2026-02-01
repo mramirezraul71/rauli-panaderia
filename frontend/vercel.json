@@ -5,7 +5,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/version.js": {
-      "includeFiles": "api/version.json"
+      "includeFiles": "public/version.json"
     }
   },
   "rewrites": [
