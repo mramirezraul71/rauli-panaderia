@@ -1,7 +1,16 @@
 # Bóveda de credenciales (copiar a credenciales.txt y rellenar)
 # No subir credenciales.txt a Git (está en .gitignore)
 
+# Obligatorio para deploy automático (scripts/deploy_y_notificar.py)
 VERCEL_TOKEN=
-# Railway (scripts/railway_deploy.py y comprobar_urls.py)
+
+# Para push a GitHub sin pedir credenciales (Settings → Developer settings → Personal access tokens)
+GH_TOKEN=ghp_xxxxxxxxxxxx
+
+# Railway (scripts/railway_deploy.py)
 # RAILWAY_TOKEN=
 # RAILWAY_PUBLIC_URL=https://tu-servicio.up.railway.app
+
+# Telegram (notificación de nueva versión)
+# OMNI_BOT_TELEGRAM_TOKEN=
+# OMNI_BOT_TELEGRAM_CHAT_ID=
