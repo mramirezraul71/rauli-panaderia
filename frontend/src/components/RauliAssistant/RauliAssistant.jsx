@@ -554,8 +554,9 @@ export default function RauliAssistant() {
     return localStorage.getItem(getProfileStorageKey(getActiveProfileId(), "mode")) || "Operaciones";
   });
   const [voiceEnabled, setVoiceEnabled] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(getProfileStorageKey(getActiveProfileId(), "voice")) === "true";
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem(getProfileStorageKey(getActiveProfileId(), "voice"));
+    return stored === null ? true : stored === "true";
   });
   const [voiceRecognitionEnabled, setVoiceRecognitionEnabled] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -800,10 +801,18 @@ export default function RauliAssistant() {
       let response = "";
       let actions = [];
 
-      if (!navigator.onLine) {
+      // Ruta rápida: comandos conocidos sin esperar IA (respuesta instantánea)
+      const basicActions = extractBasicActions(text, navigate);
+      const isBasicCommand = basicActions.length > 0 || /^(hola|buenos|hi|hey|saludos|ayuda|help|qué puedes|estado|status)/i.test(text.trim());
+      if (isBasicCommand && basicActions.length >= 0) {
         response = getBasicResponse(text);
-        actions = extractBasicActions(text, navigate);
-      } else {
+        actions = basicActions.length > 0 ? basicActions : [];
+        if (response) {
+          // Respuesta inmediata sin llamar IA
+        }
+      }
+
+      if (!response && navigator.onLine) {
         const aiResult = await AIEngine.processText(text, rauliContext);
         response = aiResult?.text || "";
 
@@ -817,6 +826,7 @@ export default function RauliAssistant() {
 
         if (!response || /configura una api key/i.test(response)) {
           response = getBasicResponse(text);
+          if (actions.length === 0) actions = extractBasicActions(text, navigate);
         }
 
         if (actions.length === 0) {
@@ -825,6 +835,11 @@ export default function RauliAssistant() {
             actions = extractBasicActions(text, navigate);
           }
         }
+      }
+
+      if (!response && !navigator.onLine) {
+        response = getBasicResponse(text);
+        actions = extractBasicActions(text, navigate);
       }
       
       // Ejecutar acciones si hay
