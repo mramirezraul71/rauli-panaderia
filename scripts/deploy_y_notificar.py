@@ -66,7 +66,7 @@ def read_version() -> str:
 
 def send_telegram(text: str) -> bool:
     token = _load_from_vault(("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"))
-    chat = _load_from_vault(("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID"))
+    chat = _load_from_vault(("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "OPERATOR_TELEGRAM"))
     if not token or not chat:
         return False
     url = f"https://api.telegram.org/bot{token}/sendMessage"
