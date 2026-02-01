@@ -20,25 +20,41 @@ URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
 URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
 
 
+def _env_candidates():
+    """Bóveda + robot/omni_telegram.env para no perder credenciales."""
+    yield BASE / "robot" / "omni_telegram.env"
+    yield BASE / "omni_telegram.env"
+    yield Path(r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt")
+    yield Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield Path.home() / "Escritorio" / "credenciales.txt"
+    yield Path.home() / "Desktop" / "credenciales.txt"
+    yield Path(r"C:\dev\credenciales.txt")
+
+
 def _load_telegram():
     token = chat = ""
-    raulierp = Path(__file__).resolve().parent.parent / "RauliERP"
-    for p in (BASE / "omni_telegram.env", BASE / "robot" / "omni_telegram.env", raulierp / "omni_telegram.env"):
-        if p.exists():
+    for p in _env_candidates():
+        if not p.exists():
+            continue
+        try:
             for line in p.read_text(encoding="utf-8").splitlines():
                 line = line.strip()
                 if "=" in line and not line.startswith("#"):
                     k, _, v = line.partition("=")
                     v = v.strip().strip("'\"")
-                    if "TOKEN" in k.upper() and v:
+                    k = k.strip().upper()
+                    if v and ("OMNI_BOT_TELEGRAM_TOKEN" in k or k == "TELEGRAM_TOKEN"):
                         token = v
-                    elif "CHAT" in k.upper() and v:
+                    if v and ("OMNI_BOT_TELEGRAM_CHAT_ID" in k or k == "TELEGRAM_CHAT_ID"):
                         chat = v
+        except Exception:
+            pass
+        if token and chat:
             break
     if not token:
-        token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "")
+        token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "") or os.environ.get("TELEGRAM_TOKEN", "")
     if not chat:
-        chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "")
+        chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "") or os.environ.get("TELEGRAM_CHAT_ID", "")
     return token, chat
 
 
@@ -144,13 +160,13 @@ async def _run(headless=True):
     p_vercel = EVIDENCIA / "vercel_frontend.png"
     ok_vercel = await _captura_url(URL_VERCEL, p_vercel, headless=headless)
     status_vercel, body_vercel = await _check_url_httpx(URL_VERCEL)
+    # Solo considerar 404 cuando el HTTP status es 404 (evitar falso positivo si el body contiene "404")
+    vercel_fail = status_vercel == 404 or (status_vercel != 200 and status_vercel != 0)
     if p_vercel.exists():
         capturas.append((p_vercel, "Vercel frontend"))
-        vercel_404 = "404" in body_vercel or "NOT_FOUND" in body_vercel or "NO ENCONTRADO" in body_vercel
-        results.append(f"Vercel: {'404/Error' if vercel_404 else ('OK' if status_vercel == 200 else f'HTTP {status_vercel}')}")
+        results.append(f"Vercel: {'404/Error' if vercel_fail else ('OK' if status_vercel == 200 else f'HTTP {status_vercel}')}")
     else:
-        vercel_404 = "404" in body_vercel or "NOT_FOUND" in body_vercel or "NO ENCONTRADO" in body_vercel
-        results.append(f"Vercel: {'404/Error' if vercel_404 else ('OK' if status_vercel == 200 else f'HTTP {status_vercel}')}")
+        results.append(f"Vercel: {'404/Error' if vercel_fail else ('OK' if status_vercel == 200 else f'HTTP {status_vercel}')}")
 
     # Render
     print("[2] Comprobando Render...")
