@@ -42,6 +42,9 @@ services:
         name: Cache-Control
         value: no-store, max-age=0, must-revalidate
     routes:
+      - type: redirect
+        source: /favicon.ico
+        destination: /logo-genesis.png
       - type: rewrite
         source: /*
         destination: /index.html
