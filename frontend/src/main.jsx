@@ -10,6 +10,17 @@ import { AuthProvider } from './context/AuthContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import './index.css';
 
+// Limpiar URL tras "Actualizar ahora" (param _=timestamp)
+if (typeof window !== 'undefined') {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('_')) {
+    params.delete('_');
+    const newSearch = params.toString();
+    const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+    window.history.replaceState({}, '', newUrl);
+  }
+}
+
 // Utilidades de diagnóstico de Gemini (disponibles en consola)
 import './utils/testGeminiAPI';
 
