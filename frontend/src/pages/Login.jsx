@@ -16,6 +16,9 @@ export default function Login() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [department, setDepartment] = useState('Ventas');
+  const [payrollCycle, setPayrollCycle] = useState('mensual');
+  const [hireDate, setHireDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [isRegistering, setIsRegistering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,7 +55,10 @@ export default function Login() {
         password,
         name: fullName,
         email,
-        phone
+        phone,
+        department,
+        payroll_cycle: payrollCycle,
+        hire_date: hireDate
       });
     } catch (e) {
       alert(e.message);
