@@ -26,6 +26,14 @@
 
 ## Cómo usar
 
+### Todo en uno (pasos 1, 2 y 3 automáticos)
+```batch
+EJECUTAR_TODO.bat
+```
+O: `python scripts/ejecutar_pasos_completos.py`
+
+Ejecuta: Push a maestro → Deploy Vercel + Railway → Verificación.
+
 ### Opción A: Deploy normal (desde Git)
 ```batch
 ACTUALIZAR_AUTO.bat
