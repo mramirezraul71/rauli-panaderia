@@ -1,0 +1,16 @@
+# Keep-alive: evita cold start de Render (plan gratuito se duerme tras ~15 min)
+# Ejecuta cada 15 min sin intervención. No requiere secrets.
+name: Keep-alive Render
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"  # Cada 15 minutos
+  workflow_dispatch:  # Ejecutar manualmente si quieres
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API Render
+        run: |
+          curl -sf --max-time 25 "https://rauli-panaderia.onrender.com/api/health" || true
