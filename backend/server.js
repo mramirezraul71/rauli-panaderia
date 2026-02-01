@@ -62,12 +62,16 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check
+// Health check (versión permite verificar que el backend se actualizó)
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pkg = require('./package.json');
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: pkg.version || '1.0.0',
     name: 'GENESIS API'
   });
 });
