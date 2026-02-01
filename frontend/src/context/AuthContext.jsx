@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { UsersDB } from '../db/localDB';
 import { db } from '../services/dataService';
-import { employees } from '../services/api';
+import { employees, invites as invitesApi } from '../services/api';
 import { addEnrollment, getInvites, markInviteUsed } from '../services/employeeInvites';
 
 const AuthContext = createContext(null);
@@ -82,9 +82,26 @@ export function AuthProvider({ children }) {
   };
 
   const registerWithInvite = async ({ inviteCode, username, password, name, email, phone }) => {
-    const invites = await getInvites();
-    const invite = invites.find((i) => i.code === inviteCode && i.status === 'active');
-    if (!invite) throw new Error('Código inválido o usado');
+    const code = (inviteCode || '').trim().toUpperCase();
+    if (!code) throw new Error('Código de invitación requerido');
+
+    let role = 'cajero';
+    let usedApi = false;
+
+    try {
+      const { data } = await invitesApi.validate(code);
+      if (data?.valid && data?.role) {
+        role = data.role;
+        usedApi = true;
+      } else {
+        throw new Error(data?.message || 'Código inválido o usado');
+      }
+    } catch (apiErr) {
+      const localInvites = await getInvites();
+      const invite = localInvites.find((i) => (i.code || '').toUpperCase() === code && (i.status === 'active' || !i.status));
+      if (!invite) throw new Error(apiErr?.message || 'Código inválido o usado');
+      role = invite.role || 'cajero';
+    }
 
     const payrollCycle = (await db.settings?.get('payroll_cycle'))?.value || 'mensual';
 
@@ -94,7 +111,7 @@ export function AuthProvider({ children }) {
       email,
       name,
       phone,
-      role: invite.role || 'cajero',
+      role,
       password_hash: passwordHash,
       created_at: new Date().toISOString()
     });
@@ -105,10 +122,10 @@ export function AuthProvider({ children }) {
         name,
         email,
         phone,
-        position: invite.role || 'cajero',
-        department: invite.department || 'Ventas',
-        salary: invite.salary || 0,
-        commission_rate: invite.commission_rate || 0.05,
+        position: role,
+        department: 'Ventas',
+        salary: 0,
+        commission_rate: 0.05,
         active: 1
       });
       employeeId = res?.data?.employee?.id || null;
@@ -116,7 +133,15 @@ export function AuthProvider({ children }) {
       console.warn('No se pudo crear empleado en RRHH:', err);
     }
 
-    await markInviteUsed(inviteCode, username);
+    if (usedApi) {
+      try {
+        await invitesApi.use(code, name || username);
+      } catch (err) {
+        console.warn('No se pudo marcar invitación como usada en API:', err);
+      }
+    } else {
+      await markInviteUsed(code, username);
+    }
     await addEnrollment({
       employee_id: employeeId || created.id,
       username,
