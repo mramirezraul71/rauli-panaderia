@@ -5,15 +5,49 @@ import { useAuth } from "../context/AuthContext";
 import { runUpdateNow } from "./VersionChecker";
 
 const SOUND_STORAGE_KEY = "support_notification_sound";
-const NOTIFICATION_SOUND_WAV =
-  "data:audio/wav;base64,UklGRmQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAAAAAA//8AAP//AAD//wAA//8AAP//AAD//wAA";
+
+/** Genera un WAV corto (beep) para notificaciones — mismo método que RauliAssistant. */
+function createNotificationBeep() {
+  const sampleRate = 8000;
+  const durationSeconds = 0.2;
+  const frequency = 660;
+  const volume = 0.25;
+  const samples = Math.max(1, Math.floor(sampleRate * durationSeconds));
+  const headerSize = 44;
+  const buffer = new Uint8Array(headerSize + samples);
+  const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) buffer[off + i] = s.charCodeAt(i); };
+  const writeU32 = (off, v) => { buffer[off] = v & 0xff; buffer[off + 1] = (v >> 8) & 0xff; buffer[off + 2] = (v >> 16) & 0xff; buffer[off + 3] = (v >> 24) & 0xff; };
+  const writeU16 = (off, v) => { buffer[off] = v & 0xff; buffer[off + 1] = (v >> 8) & 0xff; };
+  writeStr(0, "RIFF");
+  writeU32(4, 36 + samples);
+  writeStr(8, "WAVE");
+  writeStr(12, "fmt ");
+  writeU32(16, 16);
+  writeU16(20, 1);
+  writeU16(22, 1);
+  writeU32(24, sampleRate);
+  writeU32(28, sampleRate);
+  writeU16(32, 1);
+  writeU16(34, 8);
+  writeStr(36, "data");
+  writeU32(40, samples);
+  for (let i = 0; i < samples; i++) {
+    const t = i / sampleRate;
+    const s = Math.sin(2 * Math.PI * frequency * t);
+    buffer[headerSize + i] = 128 + Math.round(127 * volume * s);
+  }
+  let binary = "";
+  for (let i = 0; i < buffer.length; i++) binary += String.fromCharCode(buffer[i]);
+  return `data:audio/wav;base64,${btoa(binary)}`;
+}
+
+const NOTIFICATION_BEEP = createNotificationBeep();
 
 function playNotificationSound() {
   try {
-    const enabled = localStorage.getItem(SOUND_STORAGE_KEY);
-    if (enabled === "false") return;
-    const audio = new Audio(NOTIFICATION_SOUND_WAV);
-    audio.volume = 0.4;
+    if (localStorage.getItem(SOUND_STORAGE_KEY) === "false") return;
+    const audio = new Audio(NOTIFICATION_BEEP);
+    audio.volume = 0.5;
     audio.play().catch(() => {});
   } catch (_) {}
 }
