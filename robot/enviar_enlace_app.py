@@ -46,7 +46,7 @@ def load_telegram():
     # Bóveda primero (C:\dev\credenciales.txt con TELEGRAM_TOKEN, OPERATOR_TELEGRAM, etc.)
     for v in _vault_paths():
         p = Path(v) if isinstance(v, str) else v
-        if not p or not getattr(p, "exists", lambda: False) or not p.exists():
+        if not p or not (p.exists() if hasattr(p, "exists") else False):
             continue
         try:
             for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
