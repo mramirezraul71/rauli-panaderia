@@ -10,7 +10,7 @@ if (Test-Path $credencialesPath) {
     }
 }
 
-Write-Host "🚀 Iniciando despliegue automático Rauli-Bot..."
+Write-Host "Iniciando despliegue automatico Rauli-Bot..."
 
 # Función de notificación por voz
 function Notificar-Voz {
@@ -18,9 +18,9 @@ function Notificar-Voz {
     try {
         Add-Type -AssemblyName System.Speech
         $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
-        $synth.Speak("Atención Comandante: $mensaje") | Out-Null
+        $synth.Speak("Atencion Comandante: $mensaje") | Out-Null
     } catch {
-        Write-Host "🔊 Notificación: $mensaje"
+        Write-Host "Notificacion: $mensaje"
     }
 }
 
@@ -31,46 +31,47 @@ function Notificar-Telegram {
         $token = $env:TELEGRAM_TOKEN
         $chatId = $env:TELEGRAM_ADMIN_CHAT_ID
         if ($token -and $chatId) {
-            $response = Invoke-RestMethod -Uri "https://api.telegram.org/bot$token/sendMessage" -Method POST -Body @{
+            $body = @{
                 chat_id = $chatId
-                text = "🤖 Rauli-Bot: $mensaje"
+                text = "Rauli-Bot: $mensaje"
             }
+            Invoke-RestMethod -Uri "https://api.telegram.org/bot$token/sendMessage" -Method POST -Body $body | Out-Null
         } else {
-            Write-Host "📱 Telegram no configurado"
+            Write-Host "Telegram no configurado"
         }
     } catch {
-        Write-Host "📱 Error notificación Telegram: $_"
+        Write-Host "Error notificacion Telegram: $_"
     }
 }
 
 # 1. Backup antes de cambios
-Write-Host "💾 Creando backup..."
-$backupDir = ".\backups\$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+Write-Host "Creando backup..."
+$backupDir = ".\backups\$(Get-Date -Format yyyyMMdd_HHmmss)"
 New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 Copy-Item -Path ".\*" -Destination $backupDir -Recurse -Force
 
 # 2. Git operations
-Write-Host "📡 Sincronizando con GitHub..."
+Write-Host "Sincronizando con GitHub..."
 git add .
-$commitMessage = "Auto deploy Rauli-Bot: $(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss')"
-git commit -m $commitMessage
+$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+git commit -m "Auto deploy Rauli-Bot: $timestamp"
 if ($LASTEXITCODE -eq 0) {
-    $pushResult = git push origin main
+    git push origin main
     if ($LASTEXITCODE -eq 0) {
         Notificar-Voz "Deploy exitoso"
-        Notificar-Telegram "✅ Deploy exitoso a GitHub"
+        Notificar-Telegram "Deploy exitoso a GitHub"
     } else {
-        Notificar-Voz "Error crítico en deploy"
-        Notificar-Telegram "❌ Error crítico en deploy"
+        Notificar-Voz "Error critico en deploy"
+        Notificar-Telegram "Error critico en deploy"
         exit 1
     }
 }
 
 # 3. GitHub operations (si aplica)
 if (Get-Command gh -ErrorAction SilentlyContinue) {
-    Write-Host "🔀 Creando PR automático..."
+    Write-Host "Creando PR automatico..."
     try {
-        gh pr create --title "Auto Deploy Rauli-Bot" --body "Despliegue automático $(Get-Date)" --assignee "@me" --draft 2>$null
+        gh pr create --title "Auto Deploy Rauli-Bot" --body "Despliegue automatico $(Get-Date)" --assignee "@me" --draft 2>$null
         gh pr merge --merge --delete-branch 2>$null
     } catch {
         Write-Host "GitHub CLI operations skipped"
@@ -79,36 +80,36 @@ if (Get-Command gh -ErrorAction SilentlyContinue) {
 
 # 4. Vercel deployment
 if (Get-Command vercel -ErrorAction SilentlyContinue) {
-    Write-Host "🌐 Desplegando a Vercel..."
+    Write-Host "Desplegando a Vercel..."
     $vercelToken = $env:VERCEL_TOKEN
     if ($vercelToken) {
-        $deployResult = vercel --prod --token $vercelToken
+        vercel --prod --token $vercelToken
         if ($LASTEXITCODE -eq 0) {
             Notificar-Voz "Sitio web actualizado"
-            Notificar-Telegram "🌐 Sitio web desplegado exitosamente"
+            Notificar-Telegram "Sitio web desplegado exitosamente"
         } else {
             Notificar-Voz "Error en despliegue web"
-            Notificar-Telegram "❌ Error en despliegue Vercel"
+            Notificar-Telegram "Error en despliegue Vercel"
         }
     }
 }
 
 # 5. Verificación de sitio
-Write-Host "🔍 Verificando sitio..."
+Write-Host "Verificando sitio..."
 $siteUrl = "https://rauli-panaderia-app.vercel.app"
 try {
     $response = Invoke-WebRequest -Uri $siteUrl -Method GET -TimeoutSec 30
     if ($response.StatusCode -eq 200) {
-        Notificar-Telegram "✅ Verificación exitosa: $siteUrl"
-        Write-Host "✅ Sitio responde correctamente"
+        Notificar-Telegram "Verificacion exitosa: $siteUrl"
+        Write-Host "Sitio responde correctamente"
     } else {
-        Notificar-Telegram "⚠️ Sitio responde con código $($response.StatusCode): $siteUrl"
-        Write-Host "⚠️ Sitio responde con código $($response.StatusCode)"
+        Notificar-Telegram "Sitio responde con codigo $($response.StatusCode): $siteUrl"
+        Write-Host "Sitio responde con codigo $($response.StatusCode)"
     }
 } catch {
-    Notificar-Telegram "❌ Sitio no responde: $siteUrl"
-    Write-Host "❌ Sitio no responde: $_"
+    Notificar-Telegram "Sitio no responde: $siteUrl"
+    Write-Host "Sitio no responde: $_"
 }
 
-Write-Host "✅ Despliegue completado - Sistema Rauli-Bot operativo"
+Write-Host "Despliegue completado - Sistema Rauli-Bot operativo"
 Notificar-Voz "Sistema operativo"
