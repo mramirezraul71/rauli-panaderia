@@ -30,13 +30,16 @@ def read_local_version() -> str:
 def fetch_vercel_version() -> str:
     try:
         req = urllib.request.Request(
-            VERCEL_URL + "/",
+            VERCEL_URL + "/?_=" + str(os.urandom(4).hex()),
             headers={"Cache-Control": "no-cache", "Pragma": "no-cache"},
         )
         with urllib.request.urlopen(req, timeout=15) as r:
             html = r.read().decode(errors="ignore")
         m = re.search(r'__APP_VERSION__\s*=\s*["\']([^"\']+)["\']', html)
-        return m.group(1) if m else "?"
+        if m:
+            return m.group(1)
+        m2 = re.search(r'v(\d+\.\d+\.\d+)', html)
+        return m2.group(1) if m2 else "?"
     except Exception as e:
         return f"Error: {e}"
 
@@ -82,10 +85,11 @@ def main() -> int:
     print("\n  Diagnóstico:")
     if "Error" in str(vercel_ver):
         print("    Vercel no responde o no accesible.")
-    elif local_ver != vercel_ver and vercel_ver != "?":
+    elif vercel_ver == "?":
+        print("    No se pudo leer versión en Vercel (caché, red, o formato distinto).")
+    elif local_ver != vercel_ver:
         print(f"    DESFASADO: local v{local_ver} vs Vercel v{vercel_ver}")
-        print("    Ejecutar: python scripts/deploy_y_notificar.py")
-        print("    O: python scripts/vercel_deploy_directo.py (sin Git)")
+        print("    Ejecutar: ACTUALIZAR_AUTO.bat o DEPLOY_DIRECTO_VERCEL.bat")
     else:
         print("    OK: Versiones coinciden.")
 

@@ -4,6 +4,10 @@
 # Obligatorio para deploy automático (scripts/deploy_y_notificar.py)
 VERCEL_TOKEN=
 
+# Para deploy directo sin Git (scripts/vercel_deploy_directo.py) - opcional
+# VERCEL_ORG_ID=team_xxxx   (Vercel Dashboard → Project → Settings)
+# VERCEL_PROJECT_ID=prj_xxxx
+
 # Para push a GitHub sin pedir credenciales (Settings → Developer settings → Personal access tokens)
 GH_TOKEN=ghp_xxxxxxxxxxxx
 

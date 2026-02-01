@@ -83,7 +83,7 @@ def main() -> int:
         env["VERCEL_PROJECT_ID"] = proj
 
     r = subprocess.run(
-        ["npx", "vercel", "deploy", "--prebuilt", "--prod", "--yes"],
+        ["npx", "vercel", "deploy", "--prebuilt", "--prod", "--yes", "--token", token],
         cwd=str(FRONTEND),
         shell=True,
         timeout=180,

@@ -139,12 +139,20 @@ def main() -> int:
 
     # 3) Deploy Vercel + Railway
     print("--- 3/4 Deploy Vercel + Railway ---\n")
-    subprocess.run(
+    rv = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "vercel_config_deploy.py")],
         cwd=str(ROOT),
         timeout=120,
         check=False,
     )
+    if rv.returncode != 0:
+        print("  Fallback: intentando deploy directo (sin Git)...")
+        subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "vercel_deploy_directo.py")],
+            cwd=str(ROOT),
+            timeout=300,
+            check=False,
+        )
     subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "railway_deploy.py")],
         cwd=str(ROOT),
