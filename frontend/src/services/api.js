@@ -47,17 +47,19 @@ class ApiClient {
    * Manejar respuesta (soporta HTML/404 cuando el backend no está disponible)
    */
   async handleResponse(response) {
-    const contentType = response.headers.get('content-type') || '';
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+    const isHtml = contentType.includes('text/html');
     let data = {};
     try {
       const text = await response.text();
-      // Evitar parsear HTML (proxy/404/502 devuelven HTML)
-      const looksLikeJson = text && text.trim().startsWith('{') && !text.trim().startsWith('<!');
+      const t = (text || '').trim();
+      const looksLikeHtml = !t || t.startsWith('<!') || t.startsWith('<html');
+      const looksLikeJson = !isHtml && !looksLikeHtml && t.startsWith('{');
       if (looksLikeJson) {
         data = JSON.parse(text);
       }
     } catch (_) {
-      // Respuesta no es JSON (p. ej. HTML 404/502) → no re-lanzar
+      // No parsear si falla (evita SyntaxError con HTML)
     }
 
     if (!response.ok) {

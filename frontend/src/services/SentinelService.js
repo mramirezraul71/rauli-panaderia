@@ -601,8 +601,8 @@ class SentinelService {
   // Verificar productos con stock bajo (usa API con token para evitar 401)
   async checkLowStock() {
     try {
-      const { data } = await products.lowStock();
-      const lowStockProducts = data.products || [];
+      const res = await products.lowStock();
+      const lowStockProducts = (res?.data?.products) || [];
       if (lowStockProducts.length > 0) {
         this.addAlert(
           ALERT_TYPES.LOW_STOCK,
@@ -612,21 +612,16 @@ class SentinelService {
       } else {
         this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.LOW_STOCK);
       }
-    } catch (error) {
-      // No loguear cuando la API no está (404/502/503/HTML) o sin red
-      const msg = String(error?.message || '');
-      const silent = [401, 404, 502, 503].includes(error?.status)
-        || error?.name === 'TypeError' || error?.name === 'SyntaxError'
-        || msg.includes('Unexpected token') || msg.includes('is not valid JSON');
-      if (!silent) console.log('Sentinel: Error verificando stock:', error);
+    } catch {
+      // Silenciar: API inaccesible, backend caído o respuesta HTML (404/502). No es crítico.
     }
   }
 
   // Verificar productos por vencer (usa API con token para evitar 401)
   async checkExpiringProducts() {
     try {
-      const { data } = await inventory.expiringLots(7);
-      const expiringLots = data.lots || [];
+      const res = await inventory.expiringLots(7);
+      const expiringLots = (res?.data?.lots) || [];
       if (expiringLots.length > 0) {
         this.addAlert(
           ALERT_TYPES.EXPIRING_PRODUCTS,
@@ -636,12 +631,8 @@ class SentinelService {
       } else {
         this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.EXPIRING_PRODUCTS);
       }
-    } catch (error) {
-      const msg = String(error?.message || '');
-      const silent = [401, 404, 502, 503].includes(error?.status)
-        || error?.name === 'TypeError' || error?.name === 'SyntaxError'
-        || msg.includes('Unexpected token') || msg.includes('is not valid JSON');
-      if (!silent) console.log('Sentinel: Error verificando vencimientos:', error);
+    } catch {
+      // Silenciar: API inaccesible, backend caído o respuesta HTML. No es crítico.
     }
   }
 
