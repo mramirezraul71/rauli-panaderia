@@ -63,10 +63,6 @@ app.get('/', (req, res) => {
 });
 
 // Health check (versión permite verificar que el backend se actualizó)
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const pkg = require('./package.json');
-
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
