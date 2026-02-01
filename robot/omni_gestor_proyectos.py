@@ -53,23 +53,40 @@ STEP_TIMEOUT_S = 120
 LLM_TIMEOUT_S = 180
 
 
+def _telegram_env_candidates():
+    yield BASE / "omni_telegram.env"
+    yield BASE.parent / "omni_telegram.env"
+    yield Path(r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt")
+    yield Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield Path.home() / "Escritorio" / "credenciales.txt"
+    yield Path.home() / "Desktop" / "credenciales.txt"
+    yield Path(r"C:\dev\credenciales.txt")
+
+
 def _load_telegram_config() -> tuple[str, str]:
     token, chat = "TU_BOT_TOKEN", "TU_CHAT_ID"
-    env_file = BASE / "omni_telegram.env"
-    if env_file.exists():
-        for line in env_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if "=" in line and not line.startswith("#"):
-                k, _, v = line.partition("=")
-                v = v.strip().strip("'\"")
-                if k.strip() == "OMNI_BOT_TELEGRAM_TOKEN" and v:
-                    token = v
-                elif k.strip() == "OMNI_BOT_TELEGRAM_CHAT_ID" and v:
-                    chat = v
+    for path in _telegram_env_candidates():
+        if not path.exists():
+            continue
+        try:
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    k, _, v = line.partition("=")
+                    v = v.strip().strip("'\"")
+                    k = k.strip()
+                    if v and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
+                        token = v
+                    if v and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID"):
+                        chat = v
+        except Exception:
+            pass
+        if token != "TU_BOT_TOKEN" and chat != "TU_CHAT_ID":
+            break
     if token == "TU_BOT_TOKEN":
-        token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", token)
+        token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "") or os.environ.get("TELEGRAM_TOKEN", token)
     if chat == "TU_CHAT_ID":
-        chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", chat)
+        chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "") or os.environ.get("TELEGRAM_CHAT_ID", chat)
     return token, chat
 
 
