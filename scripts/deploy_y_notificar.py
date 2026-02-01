@@ -90,6 +90,9 @@ def main() -> int:
     version = read_version()
     print("=== DEPLOY Y NOTIFICAR (v{}) ===\n".format(version))
 
+    # 0) Limpiar caché (dist, Vite) antes de build
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "limpiar_cache.py")], cwd=str(ROOT), timeout=10, check=False)
+
     # 1) Build frontend (genera version.json y dist)
     print("--- 1/4 Build frontend ---\n")
     r = subprocess.run(

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "clean": "node -e \"const fs=require('fs');const p=require('path');['dist','node_modules/.vite'].forEach(d=>{try{fs.rmSync(p.join(__dirname,d),{recursive:true});console.log('Limpio:',d)}catch(e){}})\"",
     "build": "node scripts/write-version.js && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx"
