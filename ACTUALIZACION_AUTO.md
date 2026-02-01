@@ -16,13 +16,14 @@ Con esto se evita el problema de “no veo los cambios en móvil” por caché.
 
 ---
 
-## Alternativa a Vercel: Render
+## Alternativa a Vercel: Render (frontend + backend)
 
-Si Vercel da problemas de actualización, usa **Render** para el frontend:
+Si Vercel da problemas de actualización, usa **Render** para todo:
 
-- **URL frontend**: https://rauli-panaderia-app.onrender.com
-- **Flujo**: Push a `main` → Render despliega en 2–3 min (sin caché problemática)
-- Ver `DEPLOY_RENDER.md` para el primer despliegue.
+- **Frontend**: https://rauli-panaderia-app.onrender.com  
+- **Backend**: https://rauli-panaderia.onrender.com  
+- **Flujo**: Push a `main` → Render despliega ambos en 2–3 min. El backend **sí responde** a actualizaciones (cambios en `backend/` → redeploy backend).
+- **Railway** (opcional): si usas Railway para el backend y falla el build, prioriza Render. Ver `DEPLOY_RENDER.md` y `RAILWAY_SETUP.md`.
 
 ---
 

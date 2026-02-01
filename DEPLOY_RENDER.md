@@ -31,7 +31,11 @@ git commit -m "Actualización"
 git push origin main
 ```
 
-Render desplegará automáticamente en 2–3 minutos.
+Render desplegará automáticamente en 2–3 minutos. **El backend responde a cada push**: si cambias `backend/`, solo el backend se reconstruye; si cambias `frontend/`, solo el frontend.
+
+## Comprobar que el backend se actualizó
+
+Abre `https://rauli-panaderia.onrender.com/api/health` y revisa el campo `version`. Debe coincidir con `backend/package.json`.
 
 ## Comparación con Vercel
 
