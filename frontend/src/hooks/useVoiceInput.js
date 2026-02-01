@@ -111,7 +111,7 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
               console.log("useVoiceInput: ✅ Mensaje enviado, micrófono PERMANECE activo");
               console.log("useVoiceInput: Estado actual - isListening:", recognitionRef.current?.shouldRestart);
             }
-          }, 1100);
+          }, SILENCE_MS);
         }
       }
     };
@@ -142,7 +142,7 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
         console.log("useVoiceInput: Reiniciando reconocimiento automáticamente...");
         // NO establecer isListening = false, mantenerlo activo durante el reinicio
         try {
-          // Pequeño delay para evitar errores de "already started"
+          // Mínimo delay para evitar "already started" (50ms es suficiente)
           setTimeout(() => {
             try {
               if (recognitionRef.current?.shouldRestart) {
@@ -154,7 +154,7 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
               // Solo aquí establecemos false si el reinicio falla
               setIsListening(false);
             }
-          }, 100);
+          }, 50);
         } catch (err) {
           console.error("useVoiceInput: Error preparando reinicio:", err);
           setIsListening(false);
@@ -196,7 +196,7 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
       try {
         recognitionRef.current.shouldRestart = false;
         recognitionRef.current.stop();
-        // Esperar un poco antes de reiniciar
+        // Delay mínimo para reinicio limpio
         setTimeout(() => {
           try {
             recognitionRef.current.shouldRestart = true;
@@ -207,7 +207,7 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
             setError("No se pudo reiniciar el micrófono");
             setIsListening(false);
           }
-        }, 200);
+        }, 80);
       } catch (err) {
         console.error("useVoiceInput: Error deteniendo para reiniciar:", err);
       }
