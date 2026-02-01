@@ -880,19 +880,20 @@ export default function RauliAssistant() {
     } catch (error) {
       console.error("Error procesando mensaje:", error);
       
-      // Respuesta de fallback
+      const fallbackText = "Entendido. Prueba con: Abrir POS, Ve a inventario, Ventas de hoy.";
       const fallbackMessage = {
         id: Date.now() + 1,
         role: "assistant",
-        content: "Entendido. ¿Puedes ser más específico? Por ejemplo:\n- 'Ve a inventario'\n- 'Muestra ventas'\n- 'Abre contabilidad'\n- 'Ver productos'",
+        content: fallbackText,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, fallbackMessage]);
+      if (voiceEnabled) voiceSynthesis.speak(fallbackText);
     } finally {
       setIsProcessing(false);
     }
-  }, [isProcessing, navigate, rauliContext]);
+  }, [isProcessing, navigate, rauliContext, voiceEnabled, voiceSynthesis, activePermissions]);
 
   // Manejar envío de texto
   const handleTextSubmit = useCallback((e) => {
