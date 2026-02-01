@@ -47,7 +47,7 @@ def check():
         return 1
 
     url_railway = _load_railway_url()
-    urls_to_check = [("Vercel (frontend)", URL_VERCEL)]
+    urls_to_check = [("Vercel (frontend)", URL_VERCEL), ("Vercel /api/version", URL_VERCEL.rstrip("/") + "/api/version")]
     api_url = url_railway if url_railway else URL_RENDER
     api_label = "API (Railway)" if url_railway else "API (Render)"
     urls_to_check.append((api_label, api_url))
@@ -59,7 +59,16 @@ def check():
         try:
             r = httpx.get(url, follow_redirects=True, timeout=timeouts.get(url, 20))
             ok = r.status_code == 200
-            status = f"OK {r.status_code}" if ok else f"HTTP {r.status_code}"
+            if ok and "/api/version" in url:
+                try:
+                    d = r.json()
+                    ok = isinstance(d.get("version"), str)
+                    status = f"OK v{d.get('version', '?')}" if ok else "No es JSON de version"
+                except Exception:
+                    ok = False
+                    status = "Respuesta no es JSON (¿index.html?)"
+            else:
+                status = f"OK {r.status_code}" if ok else f"HTTP {r.status_code}"
             results.append((name, url, status, ok))
         except Exception as e:
             results.append((name, url, str(e)[:60], False))
