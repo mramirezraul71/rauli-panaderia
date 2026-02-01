@@ -63,6 +63,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // /api/version: SIEMPRE red, nunca caché — para que "Buscar actualización" detecte la versión nueva
+  if (url.pathname === '/api/version') {
+    event.respondWith(fetch(request));
+    return;
+  }
+  
   // API requests - Network first, fallback to cache
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirstStrategy(request));
@@ -72,12 +78,6 @@ self.addEventListener('fetch', (event) => {
   // Navegación / documento: network first para que móvil reciba siempre la versión nueva
   if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('index.html')) {
     event.respondWith(networkFirstStrategy(request));
-    return;
-  }
-  
-  // version.json: SIEMPRE red, nunca caché — para que "Buscar actualización" detecte la versión nueva
-  if (url.pathname === '/version.json' || url.pathname.includes('version.json')) {
-    event.respondWith(fetch(request));
     return;
   }
   

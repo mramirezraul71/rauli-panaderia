@@ -43,11 +43,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // version.json: nunca cachear — para que "Buscar actualización" detecte la versión nueva
-        navigateFallbackDenylist: [/^\/version\.json$/],
+        navigateFallbackDenylist: [/^\/api\/version$/],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname === '/version.json' || url.pathname.includes('version.json'),
+            urlPattern: ({ url }) => url.pathname === '/api/version',
             handler: 'NetworkOnly'
           },
           {

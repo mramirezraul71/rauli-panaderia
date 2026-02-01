@@ -2,7 +2,7 @@
  * Genera public/version.json desde src/config/version.js para que el servidor sirva la versión actual.
  * Se ejecuta antes de "vite build".
  */
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
@@ -19,6 +19,12 @@ const payload = {
   version,
   build: new Date().toISOString(),
 };
+const json = JSON.stringify(payload, null, 0);
 
-writeFileSync(outPath, JSON.stringify(payload, null, 0), "utf-8");
+writeFileSync(outPath, json, "utf-8");
+const apiDir = join(root, "api");
+try {
+  mkdirSync(apiDir, { recursive: true });
+  writeFileSync(join(apiDir, "version.json"), json, "utf-8");
+} catch (_) {}
 console.log("[write-version] version.json ->", version);

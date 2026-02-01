@@ -56,7 +56,7 @@ export function runUpdateNow() {
 }
 
 async function fetchServerVersion() {
-  const res = await fetch(`/version.json?t=${Date.now()}`, {
+  const res = await fetch(`/api/version?t=${Date.now()}`, {
     cache: "no-store",
     headers: { Pragma: "no-cache" },
   });
