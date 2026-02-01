@@ -77,8 +77,8 @@ def main() -> int:
     # 1) Deploy inicial (push incluye keep-alive workflow)
     print("--- 1/2 Deploy inicial (Build + Push + Vercel + Railway) ---\n")
     r = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "deploy_y_notificar.py")],
-        cwd=str(ROOT), timeout=400
+        [sys.executable, str(ROOT / "scripts" / "ejecutar_pasos_completos.py")],
+        cwd=str(ROOT), timeout=450
     )
     if r.returncode != 0:
         print("\n  Deploy fallo. Revisa credenciales y logs.")
