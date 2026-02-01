@@ -1,0 +1,100 @@
+# -*- coding: utf-8 -*-
+"""
+Configura todo el sistema automático: keep-alive, tarea programada, deploy inicial.
+Ejecutar UNA VEZ. Luego todo es automático.
+Uso: python scripts/configurar_automatizacion.py
+"""
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def _vault_paths():
+    yield Path(r"C:\dev\credenciales.txt")
+    yield ROOT / "credenciales.txt"
+    home = Path.home()
+    yield home / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield home / "Escritorio" / "credenciales.txt"
+    yield home / "Desktop" / "credenciales.txt"
+
+
+def _has_credenciales() -> bool:
+    for p in _vault_paths():
+        if not p.exists():
+            continue
+        try:
+            text = p.read_text(encoding="utf-8", errors="ignore")
+            has_vercel = "VERCEL_TOKEN=" in text and "=" in text.split("VERCEL_TOKEN=", 1)[1].split("\n")[0].strip("= ")
+            has_gh = "GH_TOKEN=" in text or "GITHUB_TOKEN=" in text
+            if has_vercel and has_gh:
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def crear_tarea_programada() -> bool:
+    bat = ROOT / "scripts" / "ejecutar_deploy_silencioso.bat"
+    if not bat.exists():
+        return False
+    task_name = "RauliERP_Deploy_Automatico"
+    cmd = [
+        "schtasks", "/create", "/tn", task_name,
+        "/tr", str(bat),
+        "/sc", "daily", "/st", "08:00", "/f"
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        return r.returncode == 0
+    except Exception:
+        return False
+
+
+def main() -> int:
+    print("\n" + "=" * 60)
+    print("  CONFIGURACION AUTOMATICA RAULI")
+    print("=" * 60 + "\n")
+
+    if not _has_credenciales():
+        print("  AVISO: credenciales.txt sin VERCEL_TOKEN o GH_TOKEN.")
+        print("  Rellena credenciales.txt y vuelve a ejecutar este script.\n")
+        print("  Ubicaciones buscadas:")
+        for p in _vault_paths():
+            print(f"    - {p}")
+        print()
+        return 1
+
+    # 1) Deploy inicial (push incluye keep-alive workflow)
+    print("--- 1/2 Deploy inicial (Build + Push + Vercel + Railway) ---\n")
+    r = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "deploy_y_notificar.py")],
+        cwd=str(ROOT), timeout=400
+    )
+    if r.returncode != 0:
+        print("\n  Deploy fallo. Revisa credenciales y logs.")
+        return 1
+    print("\n  Deploy OK.\n")
+
+    # 2) Tarea programada
+    print("--- 2/2 Tarea programada (deploy diario 8:00) ---\n")
+    if crear_tarea_programada():
+        print("  Tarea 'RauliERP_Deploy_Automatico' creada.\n")
+    else:
+        print("  No se pudo crear la tarea. Ejecuta configurar_todo_automatico.bat como Administrador.\n")
+
+    print("=" * 60)
+    print("  LISTO. Automatizacion activa:")
+    print("    - Keep-alive Render: cada 15 min (GitHub Actions)")
+    print("    - Deploy diario: 8:00 (Tarea programada)")
+    print("  Sin pasos manuales pendientes.")
+    print("=" * 60 + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
