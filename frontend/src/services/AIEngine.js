@@ -300,14 +300,14 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
     const tryGemini = async () => {
       if (!geminiEnabled || !geminiKey) return null;
       
-      // Modelos actuales (enero 2026) - gemini-pro y 1.5 pueden dar 404
+      // Orden: más estables y rápidos primero
       const models = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.5-flash-lite",
         "gemini-1.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.5-flash",
+        "gemini-pro",
         "gemini-1.5-pro",
-        "gemini-pro"
+        "gemini-2.5-flash-lite"
       ];
       
       for (const modelId of models) {
@@ -438,7 +438,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
       };
       try {
         console.log("DeepSeek intentando...");
-        const response = await fetch(`${deepseekBaseUrl}/chat/completions`, {
+        const response = await fetchWithTimeout(`${deepseekBaseUrl}/chat/completions`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
