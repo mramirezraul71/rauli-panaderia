@@ -48,6 +48,16 @@ Eso hace: (1) build frontend, (2) git add/commit/push a `maestro`, (3) deploy Ve
 
 **Credenciales (credenciales.txt):** `VERCEL_TOKEN` obligatorio. `GH_TOKEN` (token de GitHub) para push automático sin pedir contraseña. `OMNI_BOT_TELEGRAM_TOKEN` + `OMNI_BOT_TELEGRAM_CHAT_ID` para notificaciones.
 
+### Limpieza de caché (automática)
+
+En cada deploy se limpia caché en **todos los sitios**:
+
+| Sitio | Acción |
+|-------|--------|
+| **Build local** | `scripts/limpiar_cache.py` + `npm run clean` (dist, Vite) |
+| **Vercel** | `npm run clean` antes de build; CDN se purga en cada deploy |
+| **Cliente (Actualizar ahora)** | Cache API, Service Worker, sessionStorage, recarga forzada |
+
 ---
 
 ## Cómo implementarlo en un proyecto nuevo
