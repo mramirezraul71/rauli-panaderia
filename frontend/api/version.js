@@ -9,8 +9,8 @@ module.exports = (req, res) => {
   res.setHeader("Cache-Control", "no-store, max-age=0");
   res.setHeader("Content-Type", "application/json");
   const paths = [
-    join(__dirname, "version.json"),
-    join(process.cwd(), "api", "version.json"),
+    join(__dirname, "..", "public", "version.json"),
+    join(process.cwd(), "public", "version.json"),
   ];
   for (const p of paths) {
     if (existsSync(p)) {
