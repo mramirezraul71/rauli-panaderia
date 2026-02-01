@@ -486,7 +486,7 @@ function extractBasicActions(text, navigate) {
   } else if (/contabilidad|contable|cuentas|asientos/i.test(lowerText)) {
     actions.push({ execute: () => navigate("/accounting"), description: "Ir a contabilidad" });
   } else if (/compras|proveedores|adquisiciones/i.test(lowerText)) {
-    actions.push({ execute: () => navigate("/purchases"), description: "Ir a compras" });
+    actions.push({ execute: () => navigate("/compras"), description: "Ir a compras" });
   } else if (/reportes?|informes?|estadísticas/i.test(lowerText)) {
     actions.push({ execute: () => navigate("/reports"), description: "Ir a reportes" });
   } else if (/configuración|config|ajustes|settings/i.test(lowerText)) {
