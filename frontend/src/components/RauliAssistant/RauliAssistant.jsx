@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   HiOutlineMicrophone, 
   HiOutlinePaperAirplane, 
@@ -84,16 +84,6 @@ const formatBytes = (bytes) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
-
-const ASSISTANT_MODES = [
-  "Operaciones",
-  "Caja",
-  "Inventario",
-  "Produccion",
-  "Compras",
-  "Marketing",
-  "Gerencia"
-];
 
 const MODE_TO_ROUTE = {
   Operaciones: "/",
@@ -1428,50 +1418,17 @@ export default function RauliAssistant() {
         </motion.button>
       </div>
 
-      {/* Modos de trabajo: Link nativo para navegación confiable (evita bloqueos de onClick) */}
-      <div className="px-4 sm:px-6 py-3 bg-slate-900/40 border-b border-white/10">
-        <div className="flex flex-wrap gap-2">
-          {ASSISTANT_MODES.map((mode) => {
-            const route = MODE_TO_ROUTE[mode] || "/";
-            const isActive = assistantMode === mode;
-            return (
-              <Link
-                key={mode}
-                to={route}
-                onClick={() => {
-                  setAssistantMode(mode);
-                  setTimeout(() => {
-                    const outlet = document.querySelector("[data-outlet-content]");
-                    if (outlet) outlet.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                  }, 150);
-                }}
-                className={`inline-flex items-center justify-center min-h-[44px] px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer select-none [touch-action:manipulation] border no-underline ${
-                  isActive
-                    ? "bg-violet-600 text-white shadow-md shadow-violet-500/30 border-violet-500/50"
-                    : "bg-white/10 text-slate-300 border-transparent hover:bg-white/15 hover:border-white/20"
-                }`}
-              >
-                {mode}
-              </Link>
-            );
-          })}
+      {/* Navegación: usar menú lateral (Operaciones, Caja, Inventario, etc.) */}
+      {locationEnabled && (
+        <div className="px-4 py-2 text-[11px] text-slate-400 border-b border-white/10">
+          {locationStatus || "Ubicacion activa"}
+          {locationData?.lat && (
+            <span className="ml-2">
+              {locationData.lat}, {locationData.lng} ±{locationData.accuracy}m
+            </span>
+          )}
         </div>
-        {locationEnabled && (
-          <div className="mt-2 text-[11px] text-slate-400">
-            {locationStatus || "Ubicacion activa"}
-            {locationData?.lat && (
-              <span className="ml-2">
-                {locationData.lat}, {locationData.lng} ±{locationData.accuracy}m
-              </span>
-            )}
-            {locationHistory.length > 0 && (
-              <span className="ml-2">
-                Historial: {locationHistory.length}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Mensajes */}
       <div className="relative flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
