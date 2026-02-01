@@ -18,15 +18,17 @@ Con esto se evita el problema de “no veo los cambios en móvil” por caché.
 
 ## Ejecutar toda la tarea (build + push + deploy + Telegram)
 
-Para **actualizar la app de punta a punta** (construir, subir a GitHub, desplegar en Vercel/Railway y notificar por Telegram), ejecuta **una sola vez** desde la raíz del proyecto:
+Para **actualizar la app de punta a punta** (construir, subir a GitHub, desplegar en Vercel/Railway y notificar por Telegram), ejecuta desde la raíz del proyecto:
 
 ```batch
-TAREA_ACTUALIZAR_APP.bat
+ACTUALIZAR_AUTO.bat
 ```
 
-O: `scripts\DEPLOY_Y_NOTIFICAR.bat`
+O: `scripts\DEPLOY_Y_NOTIFICAR.bat` o `TAREA_ACTUALIZAR_APP.bat`
 
-Eso hace: (1) build frontend, (2) git add/commit/push a `maestro`, (3) deploy Vercel + Railway (si hay tokens en Bóveda), (4) mensaje a Telegram. La app en PC y móvil detectará la nueva versión y mostrará "Actualizar ahora". **Bóveda:** `C:\dev\credenciales.txt`. Para push: `GH_TOKEN`. Para Telegram: `TELEGRAM_TOKEN` + `TELEGRAM_CHAT_ID` o `OPERATOR_TELEGRAM`.
+Eso hace: (1) build frontend, (2) git add/commit/push a `maestro`, (3) deploy Vercel + Railway, (4) mensaje a Telegram. La app detectará la nueva versión y mostrará "Actualizar ahora".
+
+**Credenciales (credenciales.txt):** `VERCEL_TOKEN` obligatorio. `GH_TOKEN` (token de GitHub) para push automático sin pedir contraseña. `OMNI_BOT_TELEGRAM_TOKEN` + `OMNI_BOT_TELEGRAM_CHAT_ID` para notificaciones.
 
 ---
 
