@@ -1,0 +1,10 @@
+# Nixpacks: Railway usa esto para el build.
+# better-sqlite3 requiere compilación nativa (node-gyp).
+[phases.setup]
+nixPkgs = ["nodejs_20", "python3", "make", "gcc"]
+
+[phases.install]
+cmds = ["npm ci || npm install"]
+
+[start]
+cmd = "npm start"

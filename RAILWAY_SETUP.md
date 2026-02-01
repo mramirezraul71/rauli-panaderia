@@ -4,6 +4,16 @@ Railway permite desplegar el backend con un token y disparar deploys desde scrip
 
 ---
 
+## Build failed: qué revisar
+
+1. **Root Directory** en el servicio debe ser exactamente `backend`.
+2. **Build Command**: `npm install` (o vacío; nixpacks lo maneja).
+3. **Start Command**: `npm start`.
+4. El repo incluye `backend/nixpacks.toml` para compilar `better-sqlite3` (requiere python, make, gcc).
+5. En Railway: **View build logs** para ver el error exacto.
+
+---
+
 ## 1. Configuración única en Railway
 
 1. Entra en [railway.com](https://railway.com) e inicia sesión (GitHub).
