@@ -1,4 +1,4 @@
-export const APP_VERSION = "1.0.9";
+export const APP_VERSION = "1.0.7";
 
 /** Nota visible y provisional: intervalo/fecha de las mejoras implementadas (cambiar al desplegar). */
 export const LAST_IMPROVEMENT_NOTE = "Mejoras: 1 feb 2026";
