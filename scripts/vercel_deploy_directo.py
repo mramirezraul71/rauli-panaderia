@@ -60,19 +60,6 @@ def main() -> int:
         print("ERROR: VERCEL_TOKEN no encontrado.")
         return 1
 
-    # 1) Build frontend
-    print("--- 1/3 Build frontend ---")
-    r = subprocess.run(["npm", "run", "build"], cwd=str(FRONTEND), shell=True, timeout=300)
-    if r.returncode != 0:
-        print("ERROR: Build falló.")
-        return 1
-    if not DIST.exists():
-        print("ERROR: dist no generado.")
-        return 1
-    print("  Build OK.")
-
-    # 2) Deploy con Vercel CLI (prebuilt = subir dist, sin Git)
-    print("\n--- 2/3 Deploy directo (Vercel CLI) ---")
     env = os.environ.copy()
     env["VERCEL_TOKEN"] = token
     org = _load_key("VERCEL_ORG_ID") or _load_key("VERCEL_TEAM_ID")
@@ -82,7 +69,8 @@ def main() -> int:
     if proj:
         env["VERCEL_PROJECT_ID"] = proj
 
-    # vercel build genera .vercel/output; luego deploy --prebuilt lo sube
+    # 1) vercel build (genera .vercel/output; usa config de vercel.json)
+    print("--- 1/3 Vercel build ---")
     rb = subprocess.run(
         ["npx", "vercel", "build", "--prod", "--yes", "--token", token],
         cwd=str(FRONTEND),
@@ -91,7 +79,23 @@ def main() -> int:
         env=env,
     )
     if rb.returncode != 0:
-        return 1
+        print("ERROR: vercel build falló. Probando npm run build + deploy...")
+        r = subprocess.run(["npm", "run", "build"], cwd=str(FRONTEND), shell=True, timeout=300)
+        if r.returncode != 0:
+            return 1
+        # Crear .vercel/output/static copiando dist (formato Build Output API)
+        out_static = FRONTEND / ".vercel" / "output" / "static"
+        out_static.mkdir(parents=True, exist_ok=True)
+        import shutil
+        if (FRONTEND / "dist").exists():
+            for f in (FRONTEND / "dist").iterdir():
+                shutil.copy2(f, out_static / f.name) if f.is_file() else shutil.copytree(f, out_static / f.name, dirs_exist_ok=True)
+        config = {"version": 3, "routes": [{"handle": "filesystem"}, {"src": "/(.*)", "dest": "/index.html"}]}
+        (FRONTEND / ".vercel" / "output" / "config.json").write_text(json.dumps(config), encoding="utf-8")
+    print("  Build OK.")
+
+    # 2) Deploy con Vercel CLI
+    print("\n--- 2/3 Deploy directo (Vercel CLI) ---")
     r = subprocess.run(
         ["npx", "vercel", "deploy", "--prebuilt", "--prod", "--yes", "--token", token],
         cwd=str(FRONTEND),
