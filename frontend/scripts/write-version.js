@@ -20,11 +20,7 @@ const payload = { version, build };
 const json = JSON.stringify(payload, null, 0);
 
 writeFileSync(outPath, json, "utf-8");
-const apiDir = join(root, "api");
-try {
-  mkdirSync(apiDir, { recursive: true });
-  writeFileSync(join(apiDir, "version.json"), json, "utf-8");
-} catch (_) {}
+// No escribir api/version.json: conflicto con api/version.js en deploy Vercel
 
 const indexPath = join(root, "index.html");
 let indexHtml = readFileSync(indexPath, "utf-8");
