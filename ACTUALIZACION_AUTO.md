@@ -16,6 +16,16 @@ Con esto se evita el problema de “no veo los cambios en móvil” por caché.
 
 ---
 
+## Alternativa a Vercel: Render
+
+Si Vercel da problemas de actualización, usa **Render** para el frontend:
+
+- **URL frontend**: https://rauli-panaderia-app.onrender.com
+- **Flujo**: Push a `main` → Render despliega en 2–3 min (sin caché problemática)
+- Ver `DEPLOY_RENDER.md` para el primer despliegue.
+
+---
+
 ## Flujo: cada arreglo → actualización
 
 **Script de enlace** (ejecutar tras cada arreglo en la app):
