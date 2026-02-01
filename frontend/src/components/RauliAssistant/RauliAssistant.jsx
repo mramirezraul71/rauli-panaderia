@@ -2069,7 +2069,7 @@ export default function RauliAssistant() {
             <motion.button
               key={prompt.label}
               type="button"
-              onClick={() => handleQuickPrompt(prompt.text)}
+              onClick={() => handleQuickPrompt({ ...prompt, route: null })}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               className="px-3 py-1.5 rounded-full text-xs text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 transition"
