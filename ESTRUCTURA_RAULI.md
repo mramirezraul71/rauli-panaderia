@@ -46,7 +46,7 @@ Documento de referencia para mantener intacta la arquitectura del proyecto.
 | **Credenciales Telegram** | `robot/omni_telegram.env` (OMNI_BOT_TELEGRAM_TOKEN, OMNI_BOT_TELEGRAM_CHAT_ID) o **Bóveda** |
 | **Voz en PC** | `_voice_say()` con `pyttsx3` en robot_verificar_deploy y omni_gestor_proyectos |
 
-- **Bóveda:** `telegram_robot.py`, `activar_telegram.py`, `omni_gestor_proyectos.py` y `robot_verificar_deploy.py` cargan token/chat desde: `robot/omni_telegram.env`, raíz `omni_telegram.env`, `C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt`, `C:\dev\credenciales.txt`, Escritorio/Desktop.
+- **Bóveda:** Se busca **primero** `C:\dev\credenciales.txt`, luego Escritorio/OneDrive, luego `robot/omni_telegram.env`. Claves aceptadas: **token** = `TELEGRAM_TOKEN` o `OMNI_BOT_TELEGRAM_TOKEN`; **chat_id** = `TELEGRAM_CHAT_ID`, `OMNI_BOT_TELEGRAM_CHAT_ID` o `OPERATOR_TELEGRAM`. Se ignoran valores `TU_BOT_TOKEN` / `TU_CHAT_ID`.
 - **Ejecución bot:** `robot/run_bot_siempre.bat` o `run_bot_siempre.ps1`.
 
 ---

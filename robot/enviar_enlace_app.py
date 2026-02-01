@@ -27,8 +27,11 @@ MSG_EMAIL_BODY = f"Descarga o abre la app {APP_NAME} en el navegador (tambien pu
 
 
 def _vault_paths():
-    yield os.environ.get("RAULI_VAULT", "")
+    """C:\\dev\\credenciales.txt primero (Bóveda típica)."""
     yield Path(r"C:\dev\credenciales.txt")
+    v = os.environ.get("RAULI_VAULT", "")
+    if v:
+        yield Path(v)
     yield BASE.parent / "credenciales.txt"
     yield BASE / "credenciales.txt"
     home = Path.home()
@@ -38,20 +41,9 @@ def _vault_paths():
 
 
 def load_telegram():
-    token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "")
-    chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "")
-    if ENV.exists():
-        for line in ENV.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if "=" in line and not line.startswith("#"):
-                k, _, v = line.partition("=")
-                v = v.strip().strip("'\"").strip()
-                if k.strip() == "OMNI_BOT_TELEGRAM_TOKEN" and v:
-                    token = v
-                elif k.strip() == "OMNI_BOT_TELEGRAM_CHAT_ID" and v:
-                    chat = v
-    if token and chat:
-        return token, chat
+    token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "") or os.environ.get("TELEGRAM_TOKEN", "")
+    chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "") or os.environ.get("TELEGRAM_CHAT_ID", "")
+    # Bóveda primero (C:\dev\credenciales.txt con TELEGRAM_TOKEN, OPERATOR_TELEGRAM, etc.)
     for v in _vault_paths():
         p = Path(v) if isinstance(v, str) else v
         if not p or not getattr(p, "exists", lambda: False) or not p.exists():
@@ -62,14 +54,26 @@ def load_telegram():
                 if "=" in line and not line.startswith("#"):
                     k, _, val = line.partition("=")
                     k, val = k.strip().upper(), val.strip().strip("'\"").strip()
-                    if k == "OMNI_BOT_TELEGRAM_TOKEN" and val:
+                    if not val or "TU_" in val:
+                        continue
+                    if k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
                         token = token or val
-                    elif k == "OMNI_BOT_TELEGRAM_CHAT_ID" and val:
+                    elif k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "OPERATOR_TELEGRAM"):
                         chat = chat or val
             if token and chat:
                 return token, chat
         except Exception:
             pass
+    if ENV.exists():
+        for line in ENV.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if "=" in line and not line.startswith("#"):
+                k, _, v = line.partition("=")
+                v = v.strip().strip("'\"").strip()
+                if k.strip() == "OMNI_BOT_TELEGRAM_TOKEN" and v:
+                    token = token or v
+                elif k.strip() == "OMNI_BOT_TELEGRAM_CHAT_ID" and v:
+                    chat = chat or v
     return token, chat
 
 
