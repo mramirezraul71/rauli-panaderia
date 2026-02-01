@@ -56,7 +56,7 @@ git add .
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 git commit -m "Auto deploy Rauli-Bot: $timestamp"
 if ($LASTEXITCODE -eq 0) {
-    git push origin main
+    git push origin maestro
     if ($LASTEXITCODE -eq 0) {
         Notificar-Voz "Deploy exitoso"
         Notificar-Telegram "Deploy exitoso a GitHub"
