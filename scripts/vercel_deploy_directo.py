@@ -86,15 +86,14 @@ def main() -> int:
         # Crear .vercel/output/static copiando dist (formato Build Output API)
         out_static = FRONTEND / ".vercel" / "output" / "static"
         out_static.mkdir(parents=True, exist_ok=True)
-        import shutil as sh
+        import shutil
         if (FRONTEND / "dist").exists():
-            import shutil as sh
             for f in (FRONTEND / "dist").iterdir():
                 dst = out_static / f.name
                 if f.is_file():
-                    sh.copy2(f, dst)
+                    shutil.copy2(f, dst)
                 else:
-                    sh.copytree(f, dst, dirs_exist_ok=True)
+                    shutil.copytree(f, dst, dirs_exist_ok=True)
         config = {"version": 3, "routes": [{"handle": "filesystem"}, {"src": "/(.*)", "dest": "/index.html"}]}
         (FRONTEND / ".vercel" / "output" / "config.json").write_text(json.dumps(config), encoding="utf-8")
     print("  Build OK.")
