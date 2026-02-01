@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { APP_VERSION } from '../config/version';
 import { HiOutlineHome, HiOutlineShoppingCart, HiOutlineDocumentText, HiOutlineCube, HiOutlineUsers, HiOutlineCreditCard, HiOutlineCash, HiOutlineReceiptTax, HiOutlineExclamation, HiOutlineChartBar, HiOutlineCog, HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
 
 const MENU_SECTIONS = [
@@ -102,7 +103,7 @@ export default function MainLayout({ bootReport }) {
           <Outlet />
         </main>
         <footer className="h-12 bg-slate-900 border-t border-slate-800 flex items-center justify-center">
-          <p className="text-xs text-slate-500">GENESIS v1.0.1 Enterprise</p>
+          <p className="text-xs text-slate-500">GENESIS v{APP_VERSION} Enterprise</p>
         </footer>
       </div>
     </div>

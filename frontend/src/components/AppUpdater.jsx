@@ -89,6 +89,12 @@ export default function AppUpdater() {
   }, []);
 
   useEffect(() => {
+    const handler = () => checkForUpdate(true);
+    window.addEventListener("app-check-update-request", handler);
+    return () => window.removeEventListener("app-check-update-request", handler);
+  }, []);
+
+  useEffect(() => {
     if (updateAvailable && !notifiedRef.current) {
       notifiedRef.current = true;
       toast("Hay una actualización disponible", {
@@ -109,7 +115,7 @@ export default function AppUpdater() {
           ? "bg-amber-500/10 text-amber-400"
           : "bg-emerald-500/10 text-emerald-400"
       }`}>
-        {updateAvailable ? "Actualización disponible" : isChecking ? "Buscando actualización..." : "Sin actualizaciones"}
+        {updateAvailable ? `Actualización disponible (v${serverVersion})` : isChecking ? "Buscando actualización..." : "Sin actualizaciones"}
       </div>
       {lastCheckedAt && (
         <div className="mb-2 text-[11px] text-slate-400">
