@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/write-version.js && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js,.jsx --max-warnings 0",
+    "postinstall": "node -e \"try{require('eslint')}catch(e){console.log('Opcional: npm i -D eslint eslint-plugin-react')\""
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
