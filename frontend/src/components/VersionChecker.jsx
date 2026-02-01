@@ -44,18 +44,27 @@ export function runUpdateNow() {
     if (!("caches" in window)) return Promise.resolve();
     return caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).catch(() => {});
   };
-  const clearSessionStorage = () => {
-    try { sessionStorage.clear(); } catch (_) {}
-  };
   const doHardReload = () => {
-    const { origin, pathname, search } = window.location;
-    const url = `${origin}${pathname}${search || ""}${search ? "&" : "?"}_=${Date.now()}`;
-    window.location.replace(url);
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (_) {}
+    const base = window.location.origin + window.location.pathname;
+    const url = base + (base.includes("?") ? "&" : "?") + "_=" + Date.now();
+    try {
+      window.location.href = url;
+    } catch {
+      window.location.replace(url);
+    }
   };
-  clearSessionStorage();
+  try {
+    sessionStorage.clear();
+    localStorage.clear();
+  } catch (_) {}
   clearCaches()
     .then(unregisterSW)
-    .then(() => setTimeout(doHardReload, 150))
+    .then(() => new Promise((r) => setTimeout(r, 400)))
+    .then(doHardReload)
     .catch(doHardReload);
 }
 
