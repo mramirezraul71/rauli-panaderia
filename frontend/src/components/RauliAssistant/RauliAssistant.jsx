@@ -1274,6 +1274,14 @@ export default function RauliAssistant() {
           </select>
           <button
             type="button"
+            onClick={() => setShowRolesModal(true)}
+            className="px-2 py-1 text-xs rounded-lg bg-violet-500/20 text-violet-200 hover:bg-violet-500/30"
+            title="Editar nombres de roles y añadir nuevos"
+          >
+            Editar roles
+          </button>
+          <button
+            type="button"
             onClick={handleAddProfile}
             className="px-2 py-1 text-xs rounded-lg bg-white/10 text-slate-200 hover:bg-white/20"
           >
