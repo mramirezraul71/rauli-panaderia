@@ -1872,6 +1872,102 @@ export default function RauliAssistant() {
         )}
       </AnimatePresence>
 
+      {/* Modal Gestionar roles (editar nombre/subtítulo y añadir nuevos) */}
+      <AnimatePresence>
+        {showRolesModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={() => { setShowRolesModal(false); setEditingProfileId(null); setEditDraft({ name: "", role: "" }); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900/95 rounded-3xl p-6 shadow-2xl border border-white/10 max-w-md w-full mx-4"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-white font-semibold">Gestionar roles</h3>
+                <button
+                  type="button"
+                  className="text-slate-400 hover:text-white transition"
+                  onClick={() => { setShowRolesModal(false); setEditingProfileId(null); setEditDraft({ name: "", role: "" }); }}
+                >
+                  <HiOutlineX className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mb-4">Edita el nombre y el subtítulo de cada rol. Los cambios se guardan automáticamente. Puedes añadir nuevos roles para próximas incorporaciones.</p>
+              <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+                {profiles.map((profile) => (
+                  <div key={profile.id} className="border border-white/10 rounded-xl p-3">
+                    {editingProfileId === profile.id ? (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={editDraft.name}
+                          onChange={(e) => setEditDraft((d) => ({ ...d, name: e.target.value }))}
+                          placeholder="Nombre (ej: Dueño, Cajero)"
+                          className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500"
+                        />
+                        <input
+                          type="text"
+                          value={editDraft.role}
+                          onChange={(e) => setEditDraft((d) => ({ ...d, role: e.target.value }))}
+                          placeholder="Subtítulo (ej: Admin, Caja)"
+                          className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleSaveEditProfile}
+                            className="px-3 py-1.5 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white"
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setEditingProfileId(null); setEditDraft({ name: "", role: "" }); }}
+                            className="px-3 py-1.5 text-xs rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-white font-medium">{profile.name}</span>
+                        <span className="text-xs text-slate-400">·</span>
+                        <span className="text-sm text-slate-300">{profile.role}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditProfile(profile)}
+                          className="p-1.5 rounded-lg bg-white/10 text-slate-400 hover:text-white hover:bg-white/20"
+                          title="Editar nombre y rol"
+                        >
+                          <HiOutlinePencil className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={handleAddRoleInModal}
+                  className="w-full px-4 py-2 text-sm rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium"
+                >
+                  + Añadir rol (próximas incorporaciones)
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Confirmación de voz */}
       <AnimatePresence>
         {voiceConfirmOpen && (
