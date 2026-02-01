@@ -514,7 +514,7 @@ function Layout() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
-        <header data-tour="navbar" className="h-20 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50 flex items-center justify-between px-6 sticky top-0 z-30">
+        <header data-tour="navbar" className="h-14 sm:h-16 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
               onClick={() => {
@@ -570,14 +570,11 @@ function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden min-w-0 safe-area-padding flex flex-col min-h-0">
-          <div className="main-content-mobile flex flex-col flex-1 min-h-0 gap-4 sm:gap-6">
+        <main className="flex-1 p-2 sm:p-3 overflow-auto overflow-x-hidden min-w-0 safe-area-padding flex flex-col min-h-0">
+          <div className="main-content-mobile flex flex-col flex-1 min-h-0 gap-2">
             {location.pathname !== "/auth" && (
-              <div className="rounded-2xl sm:rounded-3xl border-2 sm:border border-slate-700/80 sm:border-slate-800/60 bg-slate-900/40 backdrop-blur-sm overflow-hidden flex-1 min-h-[60vh] flex flex-col">
-                <div className="px-4 sm:px-5 py-3 border-b-2 sm:border-b border-slate-700/80 sm:border-slate-800/60 text-xs text-slate-400 flex-shrink-0">
-                  Asistente RAULI siempre activo
-                </div>
-                <div className="flex-1 min-h-[400px] overflow-auto">
+              <div className="rounded-xl sm:rounded-2xl border border-slate-700/60 sm:border-slate-800/60 bg-slate-900/40 backdrop-blur-sm overflow-hidden flex-1 min-h-[65vh] flex flex-col">
+                <div className="flex-1 min-h-[380px] overflow-auto flex flex-col">
                   <Suspense fallback={
                     <div className="h-full flex items-center justify-center bg-slate-800/30">
                       <div className="flex flex-col items-center gap-3">
