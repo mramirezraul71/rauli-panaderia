@@ -111,7 +111,7 @@ export function useVoiceInput({ lang = "es-ES", continuous = true, interimResult
               console.log("useVoiceInput: ✅ Mensaje enviado, micrófono PERMANECE activo");
               console.log("useVoiceInput: Estado actual - isListening:", recognitionRef.current?.shouldRestart);
             }
-          }, 800);
+          }, SILENCE_MS);
         }
       }
     };
