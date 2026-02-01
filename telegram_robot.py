@@ -9,32 +9,59 @@ from pathlib import Path
 from typing import Optional
 
 BASE = Path(__file__).resolve().parent
-ENV_FILE = BASE / "omni_telegram.env"
+
+def _env_candidates():
+    """Rutas donde buscar token y chat_id: robot/, raíz, Bóveda."""
+    yield BASE / "robot" / "omni_telegram.env"
+    yield BASE / "omni_telegram.env"
+    yield Path(r"C:\Users\Raul\OneDrive\RAUL - Personal\Escritorio\credenciales.txt")
+    yield Path.home() / "OneDrive" / "RAUL - Personal" / "Escritorio" / "credenciales.txt"
+    yield Path.home() / "Escritorio" / "credenciales.txt"
+    yield Path.home() / "Desktop" / "credenciales.txt"
+    yield Path(r"C:\dev\credenciales.txt")
 
 _TOKEN: Optional[str] = None
 _CHAT_ID: Optional[str] = None
 
 
-def _load_config() -> tuple[str, str]:
-    """Carga token y chat_id desde omni_telegram.env o variables de entorno."""
-    global _TOKEN, _CHAT_ID
-    if _TOKEN is not None:
-        return _TOKEN or "", _CHAT_ID or ""
+def _parse_env_file(path: Path) -> tuple[str, str]:
     token, chat = "", ""
-    if ENV_FILE.exists():
-        for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
+    if not path.exists():
+        return token, chat
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if "=" in line and not line.startswith("#"):
                 k, _, v = line.partition("=")
                 v = v.strip().strip("'\"")
-                if k.strip() == "OMNI_BOT_TELEGRAM_TOKEN" and v:
+                k = k.strip()
+                if v and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
                     token = v
-                elif k.strip() == "OMNI_BOT_TELEGRAM_CHAT_ID" and v:
+                elif v and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID"):
                     chat = v
+    except Exception:
+        pass
+    return token, chat
+
+
+def _load_config() -> tuple[str, str]:
+    """Carga token y chat_id desde robot/omni_telegram.env, raíz o Bóveda."""
+    global _TOKEN, _CHAT_ID
+    if _TOKEN is not None:
+        return _TOKEN or "", _CHAT_ID or ""
+    token, chat = "", ""
+    for path in _env_candidates():
+        t, c = _parse_env_file(path)
+        if t:
+            token = t
+        if c:
+            chat = c
+        if token and chat:
+            break
     if not token:
-        token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "")
+        token = os.environ.get("OMNI_BOT_TELEGRAM_TOKEN", "") or os.environ.get("TELEGRAM_TOKEN", "")
     if not chat:
-        chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "")
+        chat = os.environ.get("OMNI_BOT_TELEGRAM_CHAT_ID", "") or os.environ.get("TELEGRAM_CHAT_ID", "")
     _TOKEN, _CHAT_ID = token, chat
     return token, chat
 

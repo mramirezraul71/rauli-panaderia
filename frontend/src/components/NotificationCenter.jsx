@@ -140,6 +140,13 @@ export default function NotificationCenter() {
             />
             Sonido al recibir notificaciones (PC)
           </label>
+          <button
+            type="button"
+            onClick={() => playNotificationSound()}
+            className="mb-3 w-full py-1.5 px-2 text-xs rounded bg-slate-700 text-slate-300 hover:bg-slate-600"
+          >
+            Probar sonido de seguimiento
+          </button>
           <div className="space-y-2 max-h-80 overflow-auto">
             {visibleNotifications.length === 0 && (
               <div className="text-xs text-slate-500">Sin notificaciones.</div>
