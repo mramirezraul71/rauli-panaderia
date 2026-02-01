@@ -588,7 +588,7 @@ function Layout() {
                 </div>
               </div>
             )}
-            <div className="min-w-0 w-full flex-shrink-0">
+            <div className="min-w-0 w-full flex-shrink-0" data-outlet-content>
               <Outlet />
             </div>
           </div>

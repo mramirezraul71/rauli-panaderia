@@ -1111,10 +1111,18 @@ export default function RauliAssistant() {
     }
   }, [cameraVision, faceMode, profiles, activeProfileId, handleProfileChange, faceCaptureStage, faceFirstVector]);
 
-  const handleQuickPrompt = useCallback((promptOrText) => {
+  const handleQuickPrompt = useCallback((promptOrText, e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
     const text = typeof promptOrText === "string" ? promptOrText : promptOrText?.text;
     const route = typeof promptOrText === "object" ? promptOrText?.route : null;
-    if (route) navigate(route);
+    if (route) {
+      navigate(route);
+      setTimeout(() => {
+        const outlet = document.querySelector("[data-outlet-content]");
+        if (outlet) outlet.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+    }
     if (text && handleSendMessageRef.current) {
       handleSendMessageRef.current(text);
     }
@@ -1412,28 +1420,39 @@ export default function RauliAssistant() {
       {/* Modos de trabajo (botones con área táctil mínima para móvil) */}
       <div className="px-4 sm:px-6 py-3 bg-slate-900/40 border-b border-white/10">
         <div className="flex flex-wrap gap-2">
-          {ASSISTANT_MODES.map((mode) => (
-            <motion.button
-              key={mode}
-              type="button"
-              role="button"
-              aria-pressed={assistantMode === mode}
-              onClick={() => {
-                setAssistantMode(mode);
-                const route = MODE_TO_ROUTE[mode];
-                if (route) navigate(route);
-              }}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className={`min-h-[44px] px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer [touch-action:manipulation] border ${
-                assistantMode === mode
-                  ? "bg-violet-600 text-white shadow-md shadow-violet-500/30 border-violet-500/50"
-                  : "bg-white/10 text-slate-300 border-transparent hover:bg-white/15 hover:border-white/20"
-              }`}
-            >
-              {mode}
-            </motion.button>
-          ))}
+          {ASSISTANT_MODES.map((mode) => {
+            const route = MODE_TO_ROUTE[mode];
+            const handleModeClick = (e) => {
+              e?.preventDefault?.();
+              e?.stopPropagation?.();
+              setAssistantMode(mode);
+              if (route) {
+                navigate(route);
+                setTimeout(() => {
+                  const outlet = document.querySelector("[data-outlet-content]");
+                  if (outlet) outlet.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }, 100);
+              }
+            };
+            return (
+              <motion.button
+                key={mode}
+                type="button"
+                role="button"
+                aria-pressed={assistantMode === mode}
+                onClick={handleModeClick}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className={`min-h-[44px] px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer select-none [touch-action:manipulation] border ${
+                  assistantMode === mode
+                    ? "bg-violet-600 text-white shadow-md shadow-violet-500/30 border-violet-500/50"
+                    : "bg-white/10 text-slate-300 border-transparent hover:bg-white/15 hover:border-white/20"
+                }`}
+              >
+                {mode}
+              </motion.button>
+            );
+          })}
         </div>
         {locationEnabled && (
           <div className="mt-2 text-[11px] text-slate-400">
@@ -2074,7 +2093,7 @@ export default function RauliAssistant() {
             <motion.button
               key={prompt.label}
               type="button"
-              onClick={() => handleQuickPrompt(prompt)}
+              onClick={(e) => handleQuickPrompt(prompt, e)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               className="px-3 py-1.5 rounded-full text-xs text-slate-200 bg-white/10 hover:bg-white/15 transition"
@@ -2086,7 +2105,7 @@ export default function RauliAssistant() {
             <motion.button
               key={prompt.label}
               type="button"
-              onClick={() => handleQuickPrompt({ ...prompt, route: null })}
+              onClick={(e) => handleQuickPrompt({ ...prompt, route: null }, e)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               className="px-3 py-1.5 rounded-full text-xs text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 transition"
