@@ -31,20 +31,24 @@ export function requestCheckForUpdate() {
 }
 
 export function runUpdateNow() {
-  const doReload = () => window.location.reload();
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistration().then((reg) => {
+  const doReload = () => window.location.reload(true);
+  const unregisterSW = () => {
+    if (!("serviceWorker" in navigator)) return Promise.resolve();
+    return navigator.serviceWorker.getRegistration().then((reg) => {
       if (reg?.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
       return navigator.serviceWorker.getRegistrations();
     }).then((regs) => {
-      if (regs) regs.forEach((r) => r.unregister());
+      if (regs && regs.length) return Promise.all(regs.map((r) => r.unregister()));
     }).catch(() => {});
-  }
-  if ("caches" in window) {
-    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).then(doReload).catch(doReload);
-  } else {
-    setTimeout(doReload, 300);
-  }
+  };
+  const clearCaches = () => {
+    if (!("caches" in window)) return Promise.resolve();
+    return caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).catch(() => {});
+  };
+  unregisterSW()
+    .then(clearCaches)
+    .then(() => { doReload(); })
+    .catch(() => { doReload(); });
 }
 
 async function fetchServerVersion() {
