@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { 
   HiOutlineMicrophone, 
   HiOutlinePaperAirplane, 
@@ -509,8 +509,13 @@ function extractBasicActions(text, navigate) {
  * - Capacidad de ejecutar acciones en el ERP
  * - Interfaz tipo Copilot/ChatGPT
  */
+const ROUTE_TO_MODE = Object.fromEntries(
+  Object.entries(MODE_TO_ROUTE).map(([k, v]) => [v, k])
+);
+
 export default function RauliAssistant() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isOnline, pendingCount, lastSyncAt } = useRauli();
 
   // Estados
@@ -646,6 +651,12 @@ export default function RauliAssistant() {
     if (typeof window === "undefined") return;
     localStorage.setItem(getProfileStorageKey(activeProfileId, "mode"), assistantMode);
   }, [assistantMode]);
+
+  // Sincronizar modo con la ruta actual (p.ej. si se navega desde el sidebar)
+  useEffect(() => {
+    const mode = ROUTE_TO_MODE[location.pathname];
+    if (mode && mode !== assistantMode) setAssistantMode(mode);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1417,40 +1428,31 @@ export default function RauliAssistant() {
         </motion.button>
       </div>
 
-      {/* Modos de trabajo (botones con área táctil mínima para móvil) */}
+      {/* Modos de trabajo: Link nativo para navegación confiable (evita bloqueos de onClick) */}
       <div className="px-4 sm:px-6 py-3 bg-slate-900/40 border-b border-white/10">
         <div className="flex flex-wrap gap-2">
           {ASSISTANT_MODES.map((mode) => {
-            const route = MODE_TO_ROUTE[mode];
-            const handleModeClick = (e) => {
-              e?.preventDefault?.();
-              e?.stopPropagation?.();
-              setAssistantMode(mode);
-              if (route) {
-                navigate(route);
-                setTimeout(() => {
-                  const outlet = document.querySelector("[data-outlet-content]");
-                  if (outlet) outlet.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                }, 100);
-              }
-            };
+            const route = MODE_TO_ROUTE[mode] || "/";
+            const isActive = assistantMode === mode;
             return (
-              <motion.button
+              <Link
                 key={mode}
-                type="button"
-                role="button"
-                aria-pressed={assistantMode === mode}
-                onClick={handleModeClick}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                className={`min-h-[44px] px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer select-none [touch-action:manipulation] border ${
-                  assistantMode === mode
+                to={route}
+                onClick={() => {
+                  setAssistantMode(mode);
+                  setTimeout(() => {
+                    const outlet = document.querySelector("[data-outlet-content]");
+                    if (outlet) outlet.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                  }, 150);
+                }}
+                className={`inline-flex items-center justify-center min-h-[44px] px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer select-none [touch-action:manipulation] border no-underline ${
+                  isActive
                     ? "bg-violet-600 text-white shadow-md shadow-violet-500/30 border-violet-500/50"
                     : "bg-white/10 text-slate-300 border-transparent hover:bg-white/15 hover:border-white/20"
                 }`}
               >
                 {mode}
-              </motion.button>
+              </Link>
             );
           })}
         </div>
