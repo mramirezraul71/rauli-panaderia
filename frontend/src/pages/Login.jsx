@@ -149,6 +149,51 @@ export default function Login() {
                   />
                 </div>
               </div>
+              <p className="text-xs text-slate-500 mt-1">Estos datos se usan para tu alta en Recursos Humanos.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Departamento
+                  </label>
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="Ventas">Ventas</option>
+                    <option value="Producción">Producción</option>
+                    <option value="Inventario">Inventario</option>
+                    <option value="Caja">Caja</option>
+                    <option value="Administración">Administración</option>
+                    <option value="Gerencia">Gerencia</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Ciclo de nómina
+                  </label>
+                  <select
+                    value={payrollCycle}
+                    onChange={(e) => setPayrollCycle(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="semanal">Semanal</option>
+                    <option value="quincenal">Quincenal</option>
+                    <option value="mensual">Mensual</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Fecha de alta
+                </label>
+                <input
+                  type="date"
+                  value={hireDate}
+                  onChange={(e) => setHireDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
             </>
           )}
           <div>
