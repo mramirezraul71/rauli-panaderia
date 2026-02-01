@@ -205,38 +205,20 @@ def main():
             return 0
         except Exception as e:
             print(f"Deploy Hook falló: {e}")
-    if repo_id:
-        # Probar maestro; si falla, main/master (rama por defecto de muchos repos)
-        for branch in [deploy_branch, "main", "master"]:
+    branches_to_try = [deploy_branch, "main", "master"] if repo_id else [None]
+    for ref in branches_to_try:
+        if repo_id:
             payload = {
                 "name": project_name,
                 "project": project_name,
                 "target": "production",
-                "gitSource": {"type": "github", "ref": branch, "repoId": repo_id},
+                "gitSource": {"type": "github", "ref": ref, "repoId": repo_id},
             }
-    else:
-        payload = {
-            "name": project_name,
-            "project": project_name,
-            "target": "production",
-        }
-        branch = None
-
-    for attempt in ([payload] if not isinstance(branch, list) else [{"branch": b, **{k: v for k, v in payload.items() if k != "gitSource"}} for b in [deploy_branch, "main", "master"]]):
-        p = payload.copy() if branch is None else {
-            "name": project_name,
-            "project": project_name,
-            "target": "production",
-            "gitSource": {"type": "github", "ref": attempt.get("branch", deploy_branch), "repoId": repo_id},
-        } if "branch" in attempt else payload
-        if "branch" in attempt:
-            p = {"name": project_name, "project": project_name, "target": "production",
-                 "gitSource": {"type": "github", "ref": attempt["branch"], "repoId": repo_id}}
         else:
-            p = payload
+            payload = {"name": project_name, "project": project_name, "target": "production"}
         req = urllib.request.Request(
             f"{base}/v13/deployments",
-            data=json.dumps(p).encode(),
+            data=json.dumps(payload).encode(),
             headers=headers,
             method="POST",
         )
@@ -246,21 +228,20 @@ def main():
             url = dep.get("url") or dep.get("alias", [])
             if isinstance(url, list):
                 url = url[0] if url else "—"
-            print(f"OK Deploy disparado: {url}")
+            print(f"OK Deploy disparado (rama {ref or 'n/a'}): {url}")
             print("  Espera 2 min y comprueba: https://rauli-panaderia-app.vercel.app")
             return 0
         except urllib.error.HTTPError as e:
             body = e.read().decode() if e.fp else ""
-            err = body[:300]
             if "incorrect_git_source" in body or "branch" in body.lower():
+                print(f"  Rama {ref} no encontrada, probando siguiente...")
                 continue
-            print(f"POST deployment error {e.code}: {err}")
+            print(f"POST deployment error {e.code}: {body[:400]}")
             return 1
 
-    print("ERROR: No se pudo desplegar. Comprueba en Vercel Dashboard:")
-    print("  https://vercel.com/dashboard → Proyecto rauli-panaderia-app → Settings")
-    print("  - Git: que esté conectado a mramirezraul71/rauli-panaderia")
-    print("  - Production Branch: maestro o main")
+    print("ERROR: No se pudo desplegar desde ninguna rama.")
+    print("  Vercel Dashboard → rauli-panaderia-app → Settings → Git")
+    print("  Conectar a mramirezraul71/rauli-panaderia, Production Branch: maestro")
     return 1
 
 if __name__ == "__main__":
