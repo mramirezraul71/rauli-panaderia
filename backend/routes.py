@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
+import json
+from pathlib import Path
 
 router = APIRouter()
 
@@ -64,3 +66,17 @@ async def create_order(order: Order):
     order_data = order.model_dump() if hasattr(order, "model_dump") else order.dict()
     fake_orders.append(order_data)
     return {"message": "Orden creada", "order": order_data}
+
+# Ruta para obtener la versión actual (para actualizaciones móviles)
+@router.get("/version", tags=["Sistema"])
+async def get_version():
+    """Devuelve la versión actual del backend para el sistema de actualizaciones."""
+    version_file = Path(__file__).parent / "version.json"
+    if version_file.exists():
+        try:
+            with open(version_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    # Fallback si no existe el archivo
+    return {"version": "1.0.0", "build": "unknown", "code": "0"}
