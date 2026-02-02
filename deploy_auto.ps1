@@ -82,6 +82,11 @@ if (-not $rama) { $rama = "main" }
 git push origin $rama
 
 if ($LASTEXITCODE -eq 0) {
+    # Disparar Render deploy hook si esta configurado (para que Render redespliegue)
+    $hookResult = python "$PSScriptRoot\scripts\render_deploy_hook.py" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  $hookResult" -ForegroundColor Gray
+    }
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
     Write-Host "       ACTUALIZACION ENVIADA A LA NUBE" -ForegroundColor Green
