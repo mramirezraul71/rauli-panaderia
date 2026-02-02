@@ -1,6 +1,6 @@
 """
 RAULI-ERP Backend - FastAPI
-Puerto dinámico: Render asigna PORT. Local: 8000 por defecto.
+Puerto dinámico: Render asigna PORT. Local: 10000 por defecto.
 """
 import os
 from fastapi import FastAPI
@@ -37,6 +37,6 @@ async def health_check():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 10000))
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=port)
