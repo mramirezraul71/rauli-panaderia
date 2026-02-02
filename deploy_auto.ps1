@@ -1,5 +1,5 @@
 # ============================================
-# deploy_auto.ps1 - Despliegue Automático Rauli ERP
+# deploy_auto.ps1 - Despliegue Automatico Rauli ERP
 # ============================================
 # Uso: .\deploy_auto.ps1
 # O desde CMD: powershell -ExecutionPolicy Bypass -File deploy_auto.ps1
@@ -8,17 +8,17 @@ Set-Location $PSScriptRoot
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  RAULI ERP - Despliegue Automático" -ForegroundColor Cyan
+Write-Host "  RAULI ERP - Despliegue Automatico" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # 1. Preguntar por el mensaje de commit
-$mensaje = Read-Host "¿Qué arreglaste? (Enter = 'Actualización automática')"
+$mensaje = Read-Host "Que arreglaste? (Enter = Actualizacion automatica)"
 if ([string]::IsNullOrWhiteSpace($mensaje)) {
-    $mensaje = "Actualización automática"
+    $mensaje = "Actualizacion automatica"
 }
 
-# 2. Generar huella de versión
+# 2. Generar huella de version
 $fechaHora = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
 $versionCode = Get-Date -Format "yyyyMMddHHmmss"
 $versionSem = Get-Date -Format "yyyy.MM.dd"
@@ -48,8 +48,7 @@ if ($LASTEXITCODE -ne 0) {
 
 git commit -m "[$mensaje]"
 if ($LASTEXITCODE -ne 0) {
-    # Puede fallar si no hay cambios
-    Write-Host "Nota: No hubo cambios que commitear (o ya estaban commiteados)" -ForegroundColor Gray
+    Write-Host "Nota: No hubo cambios que commitear" -ForegroundColor Gray
 } else {
     Write-Host "Commit realizado." -ForegroundColor Green
 }
@@ -62,12 +61,12 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
     Write-Host "" 
-    Write-Host "       ACTUALIZACIÓN ENVIADA A LA NUBE" -ForegroundColor Green
+    Write-Host "       ACTUALIZACION ENVIADA A LA NUBE" -ForegroundColor Green
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
 } else {
     Write-Host ""
-    Write-Host "ERROR: git push fallo. Revisa tu conexion y rama remota." -ForegroundColor Red
+    Write-Host "ERROR: git push fallo. Revisa conexion y rama remota." -ForegroundColor Red
     exit 1
 }
