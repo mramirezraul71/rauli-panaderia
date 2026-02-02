@@ -2,28 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { APP_VERSION } from "../config/version";
 import { runUpdateNow } from "./VersionChecker";
-
-function parseVersion(v) {
-  if (!v || typeof v !== "string") return [0, 0, 0];
-  const parts = v.trim().replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
-  return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
-}
-function isNewer(serverV, clientV) {
-  const s = parseVersion(serverV);
-  const c = parseVersion(clientV);
-  for (let i = 0; i < 3; i++) {
-    if (s[i] > c[i]) return true;
-    if (s[i] < c[i]) return false;
-  }
-  return false;
-}
-async function fetchServerVersion() {
-  const res = await fetch(`/?t=${Date.now()}`, { cache: "no-store", headers: { Pragma: "no-cache" } });
-  if (!res.ok) return null;
-  const html = await res.text();
-  const m = html.match(/window\.__APP_VERSION__\s*=\s*["']([^"']+)["']/);
-  return m ? m[1] : null;
-}
+import { fetchServerVersion, isNewer } from "../services/versionService";
 
 export default function AppUpdater() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
