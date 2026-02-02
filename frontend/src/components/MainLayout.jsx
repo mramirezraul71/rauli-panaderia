@@ -34,12 +34,12 @@ function Sidebar({ isOpen, onClose }) {
       <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-slate-900 border-r border-slate-800 transform transition-transform duration-300 lg:translate-x-0 lg:static ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <span className="text-xl"></span>
+            <div className="w-10 h-10 bg-gradient-to-br from-[#d4814b] to-[#c47142] rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-xl font-bold text-white">R</span>
             </div>
             <div>
-              <h1 className="font-bold text-white tracking-wide">GENESIS</h1>
-              <p className="text-xs text-slate-500">v3.0 Enterprise</p>
+              <h1 className="font-bold text-white tracking-wide">RAULI</h1>
+              <p className="text-xs text-[#d4814b]">Panadería & Dulcería</p>
             </div>
           </div>
           <button onClick={onClose} className="lg:hidden p-2 text-slate-400 hover:text-white">
@@ -56,7 +56,7 @@ function Sidebar({ isOpen, onClose }) {
                   const isActive = location.pathname === item.path;
                   return (
                     <li key={item.path}>
-                      <NavLink to={item.path} onClick={onClose} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive ? 'bg-violet-600/20 text-violet-400 border-l-2 border-violet-500' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+                      <NavLink to={item.path} onClick={onClose} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive ? 'bg-[#d4814b]/20 text-[#d4814b] border-l-2 border-[#d4814b]' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
                         <Icon className="w-5 h-5" />
                         <span className="text-sm font-medium">{item.name}</span>
                       </NavLink>
@@ -104,7 +104,7 @@ export default function MainLayout({ bootReport }) {
           <Outlet />
         </main>
         <footer className="h-12 bg-slate-900 border-t border-slate-800 flex items-center justify-center">
-          <p className="text-xs text-slate-500">GENESIS v{APP_VERSION} Enterprise</p>
+          <p className="text-xs text-slate-500">RAULI ERP v{APP_VERSION} • Panadería & Dulcería</p>
         </footer>
       </div>
     </div>

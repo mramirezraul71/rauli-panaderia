@@ -77,11 +77,11 @@ export default function Dashboard() {
 
   const quickActions = [
     { icon: ShoppingCart, label: 'POS', route: '/pos', color: 'from-emerald-500 to-emerald-600' },
-    { icon: Package, label: 'Inventario', route: '/inventory', color: 'from-blue-500 to-blue-600' },
-    { icon: ChefHat, label: 'Produccion', route: '/produccion', color: 'from-amber-500 to-amber-600' },
-    { icon: Users, label: 'Empleados', route: '/employees', color: 'from-purple-500 to-purple-600' },
-    { icon: BarChart3, label: 'Reportes', route: '/reports', color: 'from-pink-500 to-pink-600' },
-    { icon: Settings, label: 'Ajustes', route: '/settings', color: 'from-slate-500 to-slate-600' },
+    { icon: Package, label: 'Inventario', route: '/inventory', color: 'from-[#1e3a5f] to-[#2a4a7f]' },
+    { icon: ChefHat, label: 'Produccion', route: '/produccion', color: 'from-[#d4814b] to-[#c47142]' },
+    { icon: Users, label: 'Empleados', route: '/employees', color: 'from-[#1e3a5f] to-[#2a4a7f]' },
+    { icon: BarChart3, label: 'Reportes', route: '/reports', color: 'from-[#d4814b] to-[#c47142]' },
+    { icon: Settings, label: 'Ajustes', route: '/settings', color: 'from-slate-600 to-slate-700' },
   ];
 
   const statCards = [
