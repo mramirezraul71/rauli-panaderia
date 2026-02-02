@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
-"""Comprueba que la app en producción tenga __APP_VERSION__ en el HTML."""
-import re
+"""
+DEPRECADO: Usar scripts/verificar_version_api.py (cadena automatizada vía API).
+Fallback si la API no está disponible.
+"""
+import json
+import sys
 import urllib.request
 
-URL = "https://rauli-panaderia-app.vercel.app/?t=1"
+# Intentar API primero (canónico)
+API_URL = "https://rauli-panaderia-1.onrender.com/api/version"
 try:
-    with urllib.request.urlopen(URL, timeout=15) as r:
-        html = r.read().decode()
+    req = urllib.request.Request(API_URL, headers={"Cache-Control": "no-cache"})
+    with urllib.request.urlopen(req, timeout=15) as r:
+        data = json.loads(r.read().decode())
+        print("OK version vía API:", data.get("version", "?"))
+        sys.exit(0)
 except Exception as e:
-    print("Error:", e)
-    exit(1)
-m = re.search(r'window\.__APP_VERSION__\s*=\s*["\']([^"\']+)["\']', html)
-if m:
-    print("OK version en HTML:", m.group(1))
-else:
-    print("NO: __APP_VERSION__ no encontrado (deploy puede estar en curso o cache)")
+    print("API no disponible ({})".format(e), file=sys.stderr)
+    print("Usa: python scripts/verificar_version_api.py")
+    sys.exit(1)
