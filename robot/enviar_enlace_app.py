@@ -56,9 +56,9 @@ def load_telegram():
                     k, val = k.strip().upper(), val.strip().strip("'\"").strip()
                     if not val or "TU_" in val:
                         continue
-                    if k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
+                    if k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN", "TELEGRAM_BOT_TOKEN"):
                         token = token or val
-                    elif k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "OPERATOR_TELEGRAM"):
+                    elif k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "TELEGRAM_ADMIN_CHAT_ID", "OPERATOR_TELEGRAM", "ALLOWED_USERS"):
                         chat = chat or val
             if token and chat:
                 return token, chat

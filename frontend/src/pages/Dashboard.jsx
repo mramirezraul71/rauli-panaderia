@@ -1,8 +1,190 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  ShoppingCart, 
+  Package, 
+  Users, 
+  TrendingUp, 
+  DollarSign,
+  ChefHat,
+  BarChart3,
+  Settings,
+  RefreshCw,
+  Wifi,
+  WifiOff
+} from 'lucide-react';
+
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [stats, setStats] = useState({
+    ventasHoy: 0,
+    productosActivos: 0,
+    ordenesProduccion: 0,
+    clientesRegistrados: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    setLoading(true);
+    try {
+      // Intentar cargar desde el backend
+      const [productsRes, ordersRes] = await Promise.allSettled([
+        fetch('https://rauli-panaderia-1.onrender.com/api/products'),
+        fetch('https://rauli-panaderia-1.onrender.com/api/production/production-orders')
+      ]);
+      
+      const products = productsRes.status === 'fulfilled' && productsRes.value.ok 
+        ? await productsRes.value.json() 
+        : [];
+      const orders = ordersRes.status === 'fulfilled' && ordersRes.value.ok 
+        ? await ordersRes.value.json() 
+        : [];
+
+      setStats({
+        ventasHoy: Math.floor(Math.random() * 50) + 10, // Simular ventas
+        productosActivos: Array.isArray(products) ? products.length : 0,
+        ordenesProduccion: Array.isArray(orders) ? orders.length : 0,
+        clientesRegistrados: 12 // Placeholder
+      });
+    } catch (error) {
+      console.warn('Error cargando stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const quickActions = [
+    { icon: ShoppingCart, label: 'POS', route: '/pos', color: 'from-emerald-500 to-emerald-600' },
+    { icon: Package, label: 'Inventario', route: '/inventory', color: 'from-blue-500 to-blue-600' },
+    { icon: ChefHat, label: 'Produccion', route: '/produccion', color: 'from-amber-500 to-amber-600' },
+    { icon: Users, label: 'Empleados', route: '/employees', color: 'from-purple-500 to-purple-600' },
+    { icon: BarChart3, label: 'Reportes', route: '/reports', color: 'from-pink-500 to-pink-600' },
+    { icon: Settings, label: 'Ajustes', route: '/settings', color: 'from-slate-500 to-slate-600' },
+  ];
+
+  const statCards = [
+    { label: 'Ventas Hoy', value: stats.ventasHoy, icon: DollarSign, color: 'text-emerald-400' },
+    { label: 'Productos', value: stats.productosActivos, icon: Package, color: 'text-blue-400' },
+    { label: 'Ordenes', value: stats.ordenesProduccion, icon: ChefHat, color: 'text-amber-400' },
+    { label: 'Clientes', value: stats.clientesRegistrados, icon: Users, color: 'text-purple-400' },
+  ];
+
+  const greeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return 'Buenos dias';
+    if (hour < 18) return 'Buenas tardes';
+    return 'Buenas noches';
+  };
+
+  const formatDate = () => {
+    return currentTime.toLocaleDateString('es-MX', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long' 
+    });
+  };
+
   return (
-    <div className="w-full min-h-0 flex-1" aria-label="Pantalla principal para el asistente RAULI">
-      <div className="px-2 py-1.5 rounded border border-slate-700/50 bg-slate-900/20 flex items-center justify-center">
-        <p className="text-slate-500 text-[11px]">RAULI · Menú: Operaciones, Caja, Inventario, Control de Acceso</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-3 pb-20">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-xl font-bold text-white">{greeting()}</h1>
+          <p className="text-xs text-slate-400 capitalize">{formatDate()}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={loadStats}
+            className="p-2 rounded-full bg-slate-800/50 text-slate-400 hover:text-white transition-colors"
+            disabled={loading}
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <div className={`p-2 rounded-full ${isOnline ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+            {isOnline ? <Wifi size={18} /> : <WifiOff size={18} />}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Grid - 2x2 en movil */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {statCards.map((stat, idx) => (
+          <div 
+            key={idx}
+            className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 border border-slate-700/50"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <stat.icon size={16} className={stat.color} />
+              <TrendingUp size={12} className="text-emerald-400" />
+            </div>
+            <p className="text-xl font-bold text-white">
+              {loading ? '-' : stat.value}
+            </p>
+            <p className="text-[10px] text-slate-400 truncate">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions - 3x2 grid */}
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold text-slate-300 mb-2">Acceso Rapido</h2>
+        <div className="grid grid-cols-3 gap-2">
+          {quickActions.map((action, idx) => (
+            <button
+              key={idx}
+              onClick={() => navigate(action.route)}
+              className={`bg-gradient-to-br ${action.color} rounded-xl p-3 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform shadow-lg`}
+            >
+              <action.icon size={22} className="text-white" />
+              <span className="text-[10px] font-medium text-white/90">{action.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Status Banner */}
+      <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+          <p className="text-xs text-slate-400">
+            {isOnline 
+              ? 'Conectado a RAULI Cloud' 
+              : 'Modo offline - Los cambios se sincronizaran'
+            }
+          </p>
+        </div>
+        <p className="text-[10px] text-slate-500 mt-1">
+          Backend: rauli-panaderia-1.onrender.com
+        </p>
+      </div>
+
+      {/* RAULI Assistant hint */}
+      <div className="mt-4 text-center">
+        <p className="text-[10px] text-slate-600">
+          Toca el icono de RAULI para asistencia por voz
+        </p>
       </div>
     </div>
   );
