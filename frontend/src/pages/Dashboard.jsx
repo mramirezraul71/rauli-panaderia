@@ -107,12 +107,12 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-3 sm:p-4 md:p-6">
+    <div className="w-full max-w-7xl mx-auto p-3 sm:p-4 md:p-6 min-w-0 overflow-x-hidden box-border">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">{greeting()}</h1>
-          <p className="text-xs sm:text-sm text-slate-400 capitalize">{formatDate()}</p>
+      <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 min-w-0">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white truncate">{greeting()}</h1>
+          <p className="text-xs sm:text-sm text-slate-400 capitalize truncate">{formatDate()}</p>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button 
@@ -130,11 +130,11 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid - 2x2 en móvil, 4 columnas en desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4 min-w-0">
         {statCards.map((stat, idx) => (
           <div 
             key={idx}
-            className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-700/50 hover:border-[#d4814b]/30 transition-colors"
+            className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-700/50 hover:border-[#d4814b]/30 transition-colors min-w-0 overflow-hidden"
           >
             <div className="flex items-center justify-between mb-1.5 sm:mb-2">
               <stat.icon size={18} className={stat.color} />
