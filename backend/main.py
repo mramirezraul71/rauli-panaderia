@@ -5,7 +5,7 @@ Puerto dinámico: Render asigna PORT. Local: 10000 por defecto.
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import router
+from backend.routes import router
 
 app = FastAPI(
     title="Rauli ERP Backend",
