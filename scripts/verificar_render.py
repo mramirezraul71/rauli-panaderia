@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Verifica estado de servicios en Render."""
+"""Verifica estado de servicios en Render (API como fuente de verdad)."""
+import json
 import sys
+import urllib.request
+
+API_BASE = "https://rauli-panaderia-1.onrender.com"
 
 def main():
-    try:
-        import httpx
-    except ImportError:
-        print("pip install httpx")
-        return 1
-
     urls = [
-        ("Backend (rauli-panaderia)", "https://rauli-panaderia.onrender.com"),
-        ("Backend /api/health", "https://rauli-panaderia.onrender.com/api/health"),
-        ("Frontend (rauli-panaderia-app)", "https://rauli-panaderia-app.onrender.com"),
+        ("Backend /api/health", f"{API_BASE}/api/health"),
+        ("Backend /api/version (cadena automatizada)", f"{API_BASE}/api/version"),
     ]
 
     print("\n=== VERIFICACION RENDER ===\n")
