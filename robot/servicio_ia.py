@@ -28,12 +28,12 @@ VAULT_PATHS = [
 ]
 
 # Modelos Gemini en orden de prioridad (fallback automático)
-# Nombres correctos para API v1beta
 GEMINI_MODELS = [
-    "models/gemini-1.5-flash-latest",
-    "models/gemini-1.5-flash",
-    "models/gemini-1.5-pro-latest",
-    "models/gemini-pro",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro-latest",
+    "gemini-1.0-pro-latest",
+    "gemini-pro",
 ]
 
 
