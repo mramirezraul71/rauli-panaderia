@@ -107,42 +107,43 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-3 pb-20">
+    <div className="w-full max-w-7xl mx-auto p-3 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div>
-          <h1 className="text-xl font-bold text-white">{greeting()}</h1>
-          <p className="text-xs text-slate-400 capitalize">{formatDate()}</p>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">{greeting()}</h1>
+          <p className="text-xs sm:text-sm text-slate-400 capitalize">{formatDate()}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button 
             onClick={loadStats}
-            className="p-2 rounded-full bg-slate-800/50 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 sm:p-2 rounded-full bg-slate-800/50 text-slate-400 hover:text-white transition-colors touch-manipulation"
             disabled={loading}
+            aria-label="Actualizar datos"
           >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
-          <div className={`p-2 rounded-full ${isOnline ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-            {isOnline ? <Wifi size={18} /> : <WifiOff size={18} />}
+          <div className={`p-1.5 sm:p-2 rounded-full ${isOnline ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+            {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
           </div>
         </div>
       </div>
 
-      {/* Stats Grid - 2x2 en movil */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      {/* Stats Grid - 2x2 en móvil, 4 columnas en desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
         {statCards.map((stat, idx) => (
           <div 
             key={idx}
-            className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 border border-slate-700/50"
+            className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-700/50 hover:border-[#d4814b]/30 transition-colors"
           >
-            <div className="flex items-center justify-between mb-1">
-              <stat.icon size={16} className={stat.color} />
-              <TrendingUp size={12} className="text-emerald-400" />
+            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+              <stat.icon size={18} className={stat.color} />
+              <TrendingUp size={14} className="text-emerald-400" />
             </div>
-            <p className="text-xl font-bold text-white">
+            <p className="text-xl sm:text-2xl font-bold text-white">
               {loading ? '-' : stat.value}
             </p>
-            <p className="text-[10px] text-slate-400 truncate">{stat.label}</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 truncate">{stat.label}</p>
           </div>
         ))}
       </div>
