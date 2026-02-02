@@ -36,7 +36,7 @@ PROYECTOS: dict[str, dict[str, Any]] = {
         "repo": "rauli-panaderia",
         "plataforma": ["vercel", "render"],
         "vercel_project": "rauli-panaderia-app",
-        "render_service": "rauli-panaderia",
+        "render_service": "rauli-panaderia-1",
     },
     "trading": {
         "repo": "grok-trading-bot",

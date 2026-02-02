@@ -11,6 +11,10 @@ VERCEL_TOKEN=
 # Para push a GitHub sin pedir credenciales (Settings → Developer settings → Personal access tokens)
 GH_TOKEN=ghp_xxxxxxxxxxxx
 
+# Render (disparar deploy tras git push) - deploy_auto.ps1
+# Obtener: Render Dashboard -> Servicio rauli-panaderia-1 -> Settings -> Deploy Hook
+# RENDER_DEPLOY_HOOK=https://api.render.com/deploy/srv-xxx?key=xxx
+
 # Railway (scripts/railway_deploy.py)
 # RAILWAY_TOKEN=
 # RAILWAY_PUBLIC_URL=https://tu-servicio.up.railway.app

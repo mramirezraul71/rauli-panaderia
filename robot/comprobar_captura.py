@@ -8,7 +8,7 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent
 EVIDENCIA_DIR = BASE / "evidencia"
 CAPTURA = EVIDENCIA_DIR / "captura_comprobacion.png"
-URL = os.environ.get("CAPTURA_URL", "https://rauli-panaderia.onrender.com")
+URL = os.environ.get("CAPTURA_URL", "https://rauli-panaderia-app.vercel.app")
 
 
 def _load_telegram():

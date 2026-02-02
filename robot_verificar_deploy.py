@@ -157,15 +157,15 @@ async def _run(headless=True):
     results = []
     capturas = []
 
-    # Vercel
-    print("[1] Comprobando Vercel...")
-    p_vercel = EVIDENCIA / "vercel_frontend.png"
-    ok_vercel = await _captura_url(URL_VERCEL, p_vercel, headless=headless)
+    # Vercel (captura en vista móvil para Telegram)
+    print("[1] Comprobando Vercel (vista móvil)...")
+    p_vercel = EVIDENCIA / "vercel_frontend_movil.png"
+    ok_vercel = await _captura_url(URL_VERCEL, p_vercel, headless=headless, mobile=True)
     status_vercel, body_vercel = await _check_url_httpx(URL_VERCEL)
     # Solo considerar 404 cuando el HTTP status es 404 (evitar falso positivo si el body contiene "404")
     vercel_fail = status_vercel == 404 or (status_vercel != 200 and status_vercel != 0)
     if p_vercel.exists():
-        capturas.append((p_vercel, "Vercel frontend"))
+        capturas.append((p_vercel, "Vercel frontend (móvil)"))
         results.append(f"Vercel: {'404/Error' if vercel_fail else ('OK' if status_vercel == 200 else f'HTTP {status_vercel}')}")
     else:
         results.append(f"Vercel: {'404/Error' if vercel_fail else ('OK' if status_vercel == 200 else f'HTTP {status_vercel}')}")
