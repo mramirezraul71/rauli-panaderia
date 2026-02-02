@@ -86,7 +86,7 @@ def _get_groq_key() -> str:
     return ""
 
 
-# --- INTENTO 1: Gemini ---
+# --- INTENTO 1: Gemini con fallback automático ---
 def _llamar_gemini(mensaje: str) -> str:
     key = _get_gemini_key()
     if not key:
@@ -95,12 +95,30 @@ def _llamar_gemini(mensaje: str) -> str:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FutureWarning)
         import google.generativeai as genai
+    
     genai.configure(api_key=key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    r = model.generate_content(mensaje)
-    if not r or not r.text:
-        raise RuntimeError("Gemini devolvió respuesta vacía.")
-    return r.text.strip()
+    
+    # Intentar con cada modelo en orden de prioridad
+    last_error = None
+    for model_name in GEMINI_MODELS:
+        try:
+            model = genai.GenerativeModel(model_name)
+            r = model.generate_content(mensaje)
+            if r and r.text:
+                return r.text.strip()
+        except Exception as e:
+            err_str = str(e)
+            last_error = e
+            # Si es error de cuota, intentar siguiente modelo
+            if "429" in err_str or "quota" in err_str.lower():
+                continue
+            # Si es otro error, también intentar siguiente
+            continue
+    
+    # Si todos fallaron
+    if last_error:
+        raise last_error
+    raise RuntimeError("Gemini devolvió respuesta vacía en todos los modelos.")
 
 
 # --- FALLO 1: Groq ---
