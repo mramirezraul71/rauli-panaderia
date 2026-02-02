@@ -40,10 +40,10 @@ except ImportError:
                         k, _, v = line.partition("=")
                         v = v.strip().strip("'\"")
                         k = k.strip()
-                        if v and "TU_" not in v and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
-                            _token = v
-                        if v and "TU_" not in v and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "OPERATOR_TELEGRAM"):
-                            _chat = v
+                        if v and "TU_" not in v and k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN", "TELEGRAM_BOT_TOKEN"):
+                            _token = _token or v
+                        if v and "TU_" not in v and k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "TELEGRAM_ADMIN_CHAT_ID", "OPERATOR_TELEGRAM", "ALLOWED_USERS"):
+                            _chat = _chat or v
             except Exception:
                 pass
             if _token and _chat:
