@@ -31,17 +31,17 @@ const ProductionModule = () => {
     setLoading(true);
     try {
       // Cargar recetas
-      const recipesRes = await fetch('http://localhost:3001/api/production/recipes');
+      const recipesRes = await fetch('https://rauli-panaderia-1.onrender.com/api/production/recipes');
       const recipesData = await recipesRes.json();
       setRecipes(recipesData);
 
       // Cargar productos (inventario)
-      const productsRes = await fetch('http://localhost:3001/api/products');
+      const productsRes = await fetch('https://rauli-panaderia-1.onrender.com/api/products');
       const productsData = await productsRes.json();
       setProducts(productsData);
 
       // Cargar órdenes de producción
-      const ordersRes = await fetch('http://localhost:5000/api/production/production-orders');
+      const ordersRes = await fetch('https://rauli-panaderia-1.onrender.com/api/production/production-orders');
       const ordersData = await ordersRes.json();
       setProductionOrders(ordersData);
 
@@ -65,8 +65,8 @@ const ProductionModule = () => {
   const handleSaveRecipe = async (recipeData) => {
     try {
       const url = selectedRecipe
-        ? `http://localhost:3001/api/production/recipes/${selectedRecipe.id}`
-        : 'http://localhost:3001/api/production/recipes';
+        ? `https://rauli-panaderia-1.onrender.com/api/production/recipes/${selectedRecipe.id}`
+        : 'https://rauli-panaderia-1.onrender.com/api/production/recipes';
 
       const method = selectedRecipe ? 'PUT' : 'POST';
 
@@ -92,7 +92,7 @@ const ProductionModule = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/production/recipes/${recipeId}`,
+        `https://rauli-panaderia-1.onrender.com/api/production/recipes/${recipeId}`,
         { method: 'DELETE' }
       );
 
@@ -137,7 +137,7 @@ const ProductionModule = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/production/production-orders', {
+      const response = await fetch('https://rauli-panaderia-1.onrender.com/api/production/production-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
