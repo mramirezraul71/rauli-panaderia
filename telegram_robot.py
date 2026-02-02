@@ -36,10 +36,10 @@ def _parse_env_file(path: Path) -> tuple[str, str]:
                 k = k.strip()
                 if not v or v in ("TU_BOT_TOKEN", "TU_CHAT_ID"):
                     continue
-                if k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN"):
-                    token = v
-                elif k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "OPERATOR_TELEGRAM"):
-                    chat = v
+                if k in ("OMNI_BOT_TELEGRAM_TOKEN", "TELEGRAM_TOKEN", "TELEGRAM_BOT_TOKEN"):
+                    token = token or v
+                elif k in ("OMNI_BOT_TELEGRAM_CHAT_ID", "TELEGRAM_CHAT_ID", "TELEGRAM_ADMIN_CHAT_ID", "OPERATOR_TELEGRAM", "ALLOWED_USERS"):
+                    chat = chat or v
     except Exception:
         pass
     return token, chat
