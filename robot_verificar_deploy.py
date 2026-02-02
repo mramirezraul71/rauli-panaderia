@@ -17,7 +17,7 @@ EVIDENCIA = BASE / "evidencia"
 MISION_LOG = BASE / "mision_log.txt"
 
 URL_VERCEL = "https://rauli-panaderia-app.vercel.app"
-URL_RENDER = "https://rauli-panaderia.onrender.com/api/health"
+URL_RENDER = "https://rauli-panaderia-1.onrender.com/api/health"
 
 
 def _env_candidates():
@@ -117,7 +117,8 @@ async def _check_url_httpx(url):
         return 0, str(e)[:200]
 
 
-async def _captura_url(url, path, timeout=15000, headless=True):
+async def _captura_url(url, path, timeout=15000, headless=True, mobile=False):
+    """Captura URL. Si mobile=True, usa viewport móvil (375x812) para ver cómo se ve en teléfono."""
     try:
         from playwright.async_api import async_playwright
     except ImportError:
@@ -127,7 +128,18 @@ async def _captura_url(url, path, timeout=15000, headless=True):
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=headless)
-            page = await browser.new_page()
+            context_opts = {}
+            if mobile:
+                context_opts["viewport"] = {"width": 375, "height": 812}
+                context_opts["user_agent"] = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15"
+            context = await browser.new_context(**context_opts) if context_opts else browser
+            page = await (context.new_page() if hasattr(context, 'new_page') else browser.new_page(context_options=context_opts))
+            if hasattr(context, 'new_page'):
+                page = await context.new_page()
+            else:
+                page = await browser.new_page()
+            if mobile:
+                await page.set_viewport_size({"width": 375, "height": 812})
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout)
             await asyncio.sleep(2)
             await page.screenshot(path=str(path), full_page=True)
