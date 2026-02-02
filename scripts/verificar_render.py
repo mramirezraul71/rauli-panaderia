@@ -19,7 +19,7 @@ def main():
     ok_count = 0
     for name, url in urls:
         try:
-            r = httpx.get(url, follow_redirects=True, timeout=90)
+            r = httpx.get(url, follow_redirects=True, timeout=30)
             status = f"HTTP {r.status_code}"
             if r.status_code == 200:
                 ok_count += 1
