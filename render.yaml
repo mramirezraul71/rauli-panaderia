@@ -30,7 +30,7 @@ services:
       paths: [frontend/**]
     envVars:
       - key: VITE_API_BASE
-        value: https://rauli-panaderia.onrender.com/api
+        value: https://rauli-panaderia-1.onrender.com/api
     headers:
       - path: /*
         name: Cache-Control
