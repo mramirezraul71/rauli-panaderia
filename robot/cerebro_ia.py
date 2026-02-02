@@ -38,11 +38,12 @@ def _vault_paths():
 KEY_NAMES = ("GEMINI_API_KEY", "GEMINI_KEY", "AI_API_KEY")
 
 # Lista de modelos en orden de prioridad (del más nuevo al más antiguo)
+# Nombres correctos para API v1beta
 FALLBACK_MODELS = [
-    "gemini-2.0-flash-exp",
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-8b",
-    "gemini-pro",
+    "models/gemini-1.5-flash-latest",
+    "models/gemini-1.5-flash",
+    "models/gemini-1.5-pro-latest",
+    "models/gemini-pro",
 ]
 
 
