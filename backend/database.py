@@ -8,12 +8,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+DATABASE_URL = SQLALCHEMY_DATABASE_URL
 
 if DATABASE_URL:
-    # Render/producción: PostgreSQL
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # Render/producción: PostgreSQL (ya convertido arriba)
     engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 else:
     # Local: SQLite
