@@ -27,6 +27,14 @@ VAULT_PATHS = [
     lambda: str(Path.home() / "Desktop" / "credenciales.txt"),
 ]
 
+# Modelos Gemini en orden de prioridad (fallback automático)
+GEMINI_MODELS = [
+    "gemini-2.0-flash-exp",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-pro",
+]
+
 
 def _cargar_boveda() -> None:
     for get_path in VAULT_PATHS:
