@@ -128,18 +128,9 @@ async def _captura_url(url, path, timeout=15000, headless=True, mobile=False):
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=headless)
-            context_opts = {}
-            if mobile:
-                context_opts["viewport"] = {"width": 375, "height": 812}
-                context_opts["user_agent"] = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15"
-            context = await browser.new_context(**context_opts) if context_opts else browser
-            page = await (context.new_page() if hasattr(context, 'new_page') else browser.new_page(context_options=context_opts))
-            if hasattr(context, 'new_page'):
-                page = await context.new_page()
-            else:
-                page = await browser.new_page()
-            if mobile:
-                await page.set_viewport_size({"width": 375, "height": 812})
+            ctx_opts = {"viewport": {"width": 375, "height": 812}} if mobile else {}
+            context = await browser.new_context(**ctx_opts)
+            page = await context.new_page()
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout)
             await asyncio.sleep(2)
             await page.screenshot(path=str(path), full_page=True)
