@@ -20,10 +20,11 @@ if ([string]::IsNullOrWhiteSpace($mensaje)) {
 
 # 2. Generar huella de versión
 $fechaHora = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
-$versionCode = Get-Date -Format "yyyyMMdd.HHmmss"
+$versionCode = Get-Date -Format "yyyyMMddHHmmss"
+$versionSem = Get-Date -Format "yyyy.MM.dd"
 
 $versionJson = @{
-    version = "1.0.$versionCode"
+    version = $versionSem
     build   = $fechaHora
     code    = $versionCode
 } | ConvertTo-Json
@@ -53,12 +54,9 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Commit realizado." -ForegroundColor Green
 }
 
-git push origin main
-if ($LASTEXITCODE -ne 0) {
-    # Intentar con 'maestro' si main no existe
-    Write-Host "Intentando con rama 'maestro'..." -ForegroundColor Yellow
-    git push origin maestro
-}
+$rama = git rev-parse --abbrev-ref HEAD 2>$null
+if (-not $rama) { $rama = "main" }
+git push origin $rama
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
