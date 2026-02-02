@@ -59,7 +59,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   
   // Solo manejar requests de nuestro origen
-  if (!url.origin.includes(self.location.origin) && !url.origin.includes('localhost:3001')) {
+  if (!url.origin.includes(self.location.origin) && !url.origin.includes('localhost:3001') && !url.origin.includes('rauli-panaderia-1.onrender.com')) {
     return;
   }
   

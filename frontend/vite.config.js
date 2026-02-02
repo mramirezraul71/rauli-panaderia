@@ -86,7 +86,7 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'https://rauli-panaderia-1.onrender.com',
         changeOrigin: true
       }
     }
