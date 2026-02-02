@@ -1,6 +1,6 @@
 """
 RAULI-ERP: Conexión a base de datos.
-PARCHE: Render usa postgres:// pero SQLAlchemy pide postgresql://
+PARCHE Render: postgres:// -> postgresql:// | Local: sqlite:///./panaderia.db
 """
 import os
 from sqlalchemy import create_engine
