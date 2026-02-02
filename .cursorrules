@@ -1,5 +1,12 @@
 @Codebase Actúa como Arquitecto de Software Senior y Lead Designer.
 
+## PROTOCOLO BÓVEDA (Credenciales)
+- **Fuente:** PROHIBIDO pedir `.env` locales. Cargar claves SOLO desde:
+  - **Principal:** `C:\dev\credenciales.txt`
+  - **Alternativas:** `credenciales.txt` en raíz del repo, Escritorio, OneDrive
+- **Claves típicas:** `VERCEL_TOKEN`, `GH_TOKEN`, `OMNI_BOT_TELEGRAM_TOKEN`, `OMNI_BOT_TELEGRAM_CHAT_ID`, `GEMINI_API_KEY`
+- **Formato:** `CLAVE=valor` (una por línea, sin espacios alrededor del `=`)
+
 ## ENLACE ARREGLOS → ACTUALIZACIÓN
 Tras cada arreglo o mejora en la app, el asistente DEBE recordar o sugerir ejecutar:
 ```batch
