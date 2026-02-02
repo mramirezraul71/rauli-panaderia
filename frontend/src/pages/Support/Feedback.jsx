@@ -245,7 +245,7 @@ FORMATO DE RESPUESTA (JSON):
       {/* Header */}
       <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm p-6 border border-slate-700/50 rounded-2xl">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-gradient-to-br from-[#d4814b] to-[#c47142] rounded-xl flex items-center justify-center shadow-lg">
             <AlertCircle size={24} className="text-white" />
           </div>
           <div className="flex-1">
@@ -279,7 +279,7 @@ FORMATO DE RESPUESTA (JSON):
                   onClick={() => setType(item.value)}
                   className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     type === item.value 
-                      ? "bg-violet-500/20 text-violet-300 border-2 border-violet-500/50" 
+                      ? "bg-[#d4814b]/20 text-[#d4814b] border-2 border-[#d4814b]/50" 
                       : "bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:bg-slate-800"
                   }`}
                 >
@@ -309,7 +309,7 @@ FORMATO DE RESPUESTA (JSON):
         <button
           type="submit"
           disabled={sending || analyzing || !message.trim()}
-          className="w-full px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="w-full px-6 py-3 bg-gradient-to-r from-[#d4814b] to-[#c47142] text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:from-[#c47142] hover:to-[#b46139] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
         >
           {analyzing ? (
             <>
