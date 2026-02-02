@@ -10,6 +10,9 @@ import cors from 'cors';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pkg = require('./package.json');
 
 // Importar rutas
 import authRoutes from './routes/auth.js';
