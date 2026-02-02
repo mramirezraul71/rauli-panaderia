@@ -148,7 +148,7 @@ def main() -> int:
         else:
             print("  AVISO: git push fallo.\n  Añade GH_TOKEN en credenciales.txt (GitHub -> Settings -> Developer settings -> Tokens)\n")
     else:
-        print("--- 3/5 Git omitido (--no-git) ---\n")
+        print("--- 3/6 Git omitido (--no-git) ---\n")
 
     # 4) Deploy Vercel + Railway
     print("--- 4/6 Deploy Vercel + Railway ---\n")
