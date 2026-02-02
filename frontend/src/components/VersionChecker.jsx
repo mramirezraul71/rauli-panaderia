@@ -69,14 +69,34 @@ export function runUpdateNow() {
 }
 
 async function fetchServerVersion() {
-  const res = await fetch(`/?t=${Date.now()}`, {
-    cache: "no-store",
-    headers: { Pragma: "no-cache" },
-  });
-  if (!res.ok) return null;
-  const html = await res.text();
-  const m = html.match(/window\.__APP_VERSION__\s*=\s*["']([^"']+)["']/);
-  return m ? m[1] : null;
+  // Intentar primero desde el backend API
+  try {
+    const apiBase = import.meta.env.VITE_API_BASE || "https://rauli-panaderia-1.onrender.com/api";
+    const res = await fetch(`${apiBase}/version?t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { Pragma: "no-cache" },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.version || null;
+    }
+  } catch (e) {
+    console.warn("No se pudo obtener versión desde API, usando fallback HTML", e);
+  }
+  
+  // Fallback: leer desde el HTML
+  try {
+    const res = await fetch(`/?t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { Pragma: "no-cache" },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const m = html.match(/window\.__APP_VERSION__\s*=\s*["']([^"']+)["']/);
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Intervalo de comprobación automática en segundo plano (ms). Si hay versión nueva, se añade a la bandeja de notificaciones. */
