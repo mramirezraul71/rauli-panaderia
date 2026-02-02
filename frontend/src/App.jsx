@@ -253,6 +253,7 @@ const MENU = [
 const AUTONOMO_ALLOWED_PATHS = new Set([
   "/dashboard",
   "/pos",
+  "#check-update",
   "/products",
   "/sales",
   "/customers",
