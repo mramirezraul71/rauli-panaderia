@@ -1,7 +1,11 @@
 /**
  * Servicio compartido para detección de actualizaciones (web y móvil).
- * API primero, fallback a HTML para máxima compatibilidad.
+ * Usa SOLO la API para mantener la cadena automatizada.
  */
+
+const API_BASE = (import.meta.env.VITE_API_BASE || "https://rauli-panaderia-1.onrender.com/api").replace(/\/+$/, "");
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 5000;
 
 export function parseVersion(v) {
   if (!v || typeof v !== "string") return [0, 0, 0];
@@ -19,32 +23,26 @@ export function isNewer(serverV, clientV) {
   return false;
 }
 
-/** Obtiene la versión del servidor: API primero, fallback a HTML. */
+/** Obtiene la versión del servidor SOLO vía API (cadena automatizada). */
 export async function fetchServerVersion() {
-  const apiBase = (import.meta.env.VITE_API_BASE || "https://rauli-panaderia-1.onrender.com/api").replace(/\/+$/, "");
-  try {
-    const res = await fetch(`${apiBase}/version?t=${Date.now()}`, {
-      cache: "no-store",
-      headers: { Pragma: "no-cache" },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return data.version || null;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(`${API_BASE}/version?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { Pragma: "no-cache" },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const v = data.version || null;
+        if (v) return v;
+      }
+    } catch (e) {
+      if (attempt < MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+      } else {
+        console.warn("[versionService] API no disponible tras", MAX_RETRIES, "intentos:", e.message);
+      }
     }
-  } catch (e) {
-    console.warn("[versionService] API no disponible, usando fallback HTML:", e.message);
   }
-
-  try {
-    const res = await fetch(`${window.location.origin}/?t=${Date.now()}`, {
-      cache: "no-store",
-      headers: { Pragma: "no-cache" },
-    });
-    if (!res.ok) return null;
-    const html = await res.text();
-    const m = html.match(/window\.__APP_VERSION__\s*=\s*["']([^"']+)["']/);
-    return m ? m[1] : null;
-  } catch {
-    return null;
-  }
+  return null;
 }
