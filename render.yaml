@@ -11,6 +11,8 @@ services:
       paths: [backend/**]
     healthCheckPath: /api/health
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_BASE_URL
