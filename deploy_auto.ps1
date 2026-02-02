@@ -23,6 +23,7 @@ $fechaHora = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
 $versionCode = Get-Date -Format "yyyyMMddHHmmss"
 $versionSem = Get-Date -Format "yyyy.MM.dd"
 
+# Backend version.json
 $versionJson = @{
     version = $versionSem
     build   = $fechaHora
@@ -32,9 +33,32 @@ $versionJson = @{
 $backendVersionPath = "backend\version.json"
 $versionJson | Set-Content -Path $backendVersionPath -Encoding UTF8 -NoNewline
 
+# Frontend version.js
+$frontendVersionPath = "frontend\src\config\version.js"
+$frontendVersionContent = @"
+export const APP_VERSION = "$versionSem";
+
+/** Nota visible y provisional: intervalo/fecha de las mejoras implementadas (cambiar al desplegar). */
+export const LAST_IMPROVEMENT_NOTE = "Mejoras: $(Get-Date -Format 'd MMM yyyy')";
+"@
+$frontendVersionContent | Set-Content -Path $frontendVersionPath -Encoding UTF8
+
+# Frontend index.html - actualizar script de version
+$indexPath = "frontend\index.html"
+if (Test-Path $indexPath) {
+    $indexContent = Get-Content -Path $indexPath -Raw -Encoding UTF8
+    $indexContent = $indexContent -replace 'window\.__APP_VERSION__="[^"]*"', "window.__APP_VERSION__=`"$versionSem`""
+    $indexContent = $indexContent -replace 'window\.__APP_BUILD__="[^"]*"', "window.__APP_BUILD__=`"$fechaHora`""
+    $indexContent | Set-Content -Path $indexPath -Encoding UTF8 -NoNewline
+}
+
 Write-Host ""
 Write-Host "  Huella generada: $versionCode" -ForegroundColor Gray
-Write-Host "  Guardado en: $backendVersionPath" -ForegroundColor Gray
+Write-Host "  Version: $versionSem" -ForegroundColor Gray
+Write-Host "  Actualizado:" -ForegroundColor Gray
+Write-Host "    - $backendVersionPath" -ForegroundColor Gray
+Write-Host "    - $frontendVersionPath" -ForegroundColor Gray
+Write-Host "    - $indexPath" -ForegroundColor Gray
 Write-Host ""
 
 # 3. Ejecutar cadena Git
