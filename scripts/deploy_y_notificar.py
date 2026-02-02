@@ -175,7 +175,26 @@ def main() -> int:
     print("\n  Esperando 60 s...\n")
     time.sleep(60)
 
-    # 5) Notificar (Telegram)
+    # 5) Verificar API (cadena automatizada)
+    print("--- 5/6 Verificar version via API ---\n")
+    api_url = os.environ.get("API_VERSION_URL", "https://rauli-panaderia-1.onrender.com/api/version")
+    for attempt in range(12):  # 12 * 5s = 60s max
+        try:
+            req = urllib.request.Request(api_url, headers={"Cache-Control": "no-cache"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                data = json.loads(r.read().decode())
+                api_ver = data.get("version", "")
+                if api_ver == version:
+                    print("  API OK: version {} desplegada.\n".format(api_ver))
+                    break
+                print("  API version {} (esperada {}), reintentando...".format(api_ver or "?", version))
+        except Exception as e:
+            print("  API no disponible (intento {}/12): {}".format(attempt + 1, e))
+        time.sleep(5)
+    else:
+        print("  AVISO: API no confirmo version en 60s. Render puede estar en cold start.\n")
+
+    # 6) Notificar (Telegram)
     if not args.no_notify:
         print("--- 5/5 Notificar nueva actualizacion ---\n")
         msg = (
