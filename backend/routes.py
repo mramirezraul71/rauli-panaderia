@@ -71,6 +71,8 @@ async def create_order(order: Order):
 @router.get("/version", tags=["Sistema"])
 async def get_version():
     """Devuelve la versión actual del backend para el sistema de actualizaciones."""
+    from datetime import datetime
+    
     # Intentar múltiples ubicaciones
     possible_paths = [
         Path(__file__).parent / "version.json",  # backend/version.json
@@ -83,17 +85,15 @@ async def get_version():
             try:
                 with open(version_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    # Agregar info de debug
-                    data["_loaded_from"] = str(version_file)
                     return data
             except Exception as e:
                 continue
     
-    # Fallback si no existe el archivo
+    # Fallback: generar versión basada en fecha actual
+    now = datetime.utcnow()
     return {
-        "version": "1.0.0", 
-        "build": "unknown", 
-        "code": "0",
-        "_error": "version.json not found",
-        "_searched_paths": [str(p) for p in possible_paths]
+        "version": now.strftime("%Y.%m.%d"),
+        "build": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "code": now.strftime("%Y%m%d%H%M%S"),
+        "_source": "generated_fallback"
     }

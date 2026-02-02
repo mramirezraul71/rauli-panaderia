@@ -5,7 +5,7 @@ services:
   - type: web
     name: rauli-panaderia
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && cp backend/version.json backend/version.json 2>/dev/null || echo '{"version":"1.0.0","build":"unknown","code":"0"}' > backend/version.json
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     buildFilter:
       paths: [backend/**]
