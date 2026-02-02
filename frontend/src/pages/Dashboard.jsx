@@ -148,43 +148,44 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Quick Actions - 3x2 grid */}
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold text-slate-300 mb-2">Acceso Rapido</h2>
-        <div className="grid grid-cols-3 gap-2">
+      {/* Quick Actions - 3 columnas móvil, 6 columnas desktop */}
+      <div className="mb-3 sm:mb-4">
+        <h2 className="text-sm sm:text-base font-semibold text-slate-300 mb-2 sm:mb-3">Acceso Rápido</h2>
+        <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
           {quickActions.map((action, idx) => (
             <button
               key={idx}
               onClick={() => navigate(action.route)}
-              className={`bg-gradient-to-br ${action.color} rounded-xl p-3 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform shadow-lg`}
+              className={`bg-gradient-to-br ${action.color} rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-1 sm:gap-2 active:scale-95 hover:scale-105 transition-transform shadow-lg touch-manipulation min-h-[80px] sm:min-h-[100px]`}
+              aria-label={action.label}
             >
-              <action.icon size={22} className="text-white" />
-              <span className="text-[10px] font-medium text-white/90">{action.label}</span>
+              <action.icon size={24} className="text-white" />
+              <span className="text-[10px] sm:text-xs font-medium text-white/90 text-center leading-tight">{action.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Status Banner */}
-      <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30">
+      <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-700/30">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-          <p className="text-xs text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-400">
             {isOnline 
               ? 'Conectado a RAULI Cloud' 
-              : 'Modo offline - Los cambios se sincronizaran'
+              : 'Modo offline - Los cambios se sincronizarán'
             }
           </p>
         </div>
-        <p className="text-[10px] text-slate-500 mt-1">
+        <p className="text-[10px] sm:text-xs text-slate-500 mt-1">
           Backend: rauli-panaderia-1.onrender.com
         </p>
       </div>
 
-      {/* RAULI Assistant hint */}
-      <div className="mt-4 text-center">
+      {/* RAULI Assistant hint - solo móvil */}
+      <div className="mt-3 sm:mt-4 text-center lg:hidden">
         <p className="text-[10px] text-slate-600">
-          Toca el icono de RAULI para asistencia por voz
+          Toca el menú para acceder a más opciones
         </p>
       </div>
     </div>
