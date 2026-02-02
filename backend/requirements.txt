@@ -1,4 +1,3 @@
-# Fix Render Force Rewrite
 fastapi
 uvicorn
 sqlalchemy
