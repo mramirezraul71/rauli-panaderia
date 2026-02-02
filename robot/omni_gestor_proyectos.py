@@ -3,7 +3,7 @@
 omni_gestor_proyectos.py — Gestor por voz (Telegram). Incorporado en rauli-panaderia.
 
 - /ping, /start → ATLAS RAULI :: BOT OK
-- /captura → captura rauli-panaderia.onrender.com y envía imagen por Telegram
+- /captura → captura rauli-panaderia-app.vercel.app y envía imagen por Telegram
 - Voz: «Despliega la panadería», «Actualiza todo» → despliegues Vercel/Render
 
 Requisitos: .\\setup_entorno.ps1, ffmpeg, ollama deepseek-r1:14b, omni_telegram.env
@@ -29,7 +29,7 @@ LOG_FILE = BASE / "omni_gestor.log"
 AUDIO_DIR = BASE / "audio_temp"
 EVIDENCIA_DIR = BASE / "evidencia"
 CAPTURA_COMPROBACION = EVIDENCIA_DIR / "captura_comprobacion.png"
-CAPTURA_URL = os.environ.get("CAPTURA_URL", "https://rauli-panaderia.onrender.com")
+CAPTURA_URL = os.environ.get("CAPTURA_URL", "https://rauli-panaderia-app.vercel.app")
 
 PROYECTOS: dict[str, dict[str, Any]] = {
     "panadería": {
