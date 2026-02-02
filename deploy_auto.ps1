@@ -84,10 +84,19 @@ git push origin $rama
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
-    Write-Host "" 
     Write-Host "       ACTUALIZACION ENVIADA A LA NUBE" -ForegroundColor Green
-    Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Verificando API (Render puede tardar 1-2 min en redesplegar)..." -ForegroundColor Yellow
+    $verifyResult = python "$PSScriptRoot\scripts\verificar_version_api.py" $versionSem --max-wait 120 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host $verifyResult -ForegroundColor Green
+        Write-Host "Cadena automatizada OK: API responde v$versionSem" -ForegroundColor Green
+    } else {
+        Write-Host $verifyResult -ForegroundColor Gray
+        Write-Host "Nota: Si Render aun redesplegando, espera 2 min y verifica manualmente:" -ForegroundColor Gray
+        Write-Host "  python scripts\verificar_version_api.py $versionSem" -ForegroundColor Gray
+    }
     Write-Host ""
 } else {
     Write-Host ""
