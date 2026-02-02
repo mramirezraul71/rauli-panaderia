@@ -71,12 +71,29 @@ async def create_order(order: Order):
 @router.get("/version", tags=["Sistema"])
 async def get_version():
     """Devuelve la versión actual del backend para el sistema de actualizaciones."""
-    version_file = Path(__file__).parent / "version.json"
-    if version_file.exists():
-        try:
-            with open(version_file, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
+    # Intentar múltiples ubicaciones
+    possible_paths = [
+        Path(__file__).parent / "version.json",  # backend/version.json
+        Path(__file__).parent.parent / "backend" / "version.json",  # ./backend/version.json desde raíz
+        Path.cwd() / "backend" / "version.json",  # Desde directorio de trabajo
+    ]
+    
+    for version_file in possible_paths:
+        if version_file.exists():
+            try:
+                with open(version_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    # Agregar info de debug
+                    data["_loaded_from"] = str(version_file)
+                    return data
+            except Exception as e:
+                continue
+    
     # Fallback si no existe el archivo
-    return {"version": "1.0.0", "build": "unknown", "code": "0"}
+    return {
+        "version": "1.0.0", 
+        "build": "unknown", 
+        "code": "0",
+        "_error": "version.json not found",
+        "_searched_paths": [str(p) for p in possible_paths]
+    }
