@@ -243,6 +243,7 @@ const MENU = [
   { sectionKey: "menu.section.system", items: [
     { path: "/control-acceso", name: "Centro de Control de Acceso", icon: HiOutlineLockClosed, roles: ["admin", "gerente", "cajero", "inventario"] },
     { path: "/settings", name: "Configuración", icon: HiOutlineCog, roles: ["admin", "gerente", "cajero", "inventario"] },
+    { path: "#check-update", name: "Buscar actualización", icon: HiOutlineRefresh, roles: ["admin", "gerente", "cajero", "inventario"] },
     { path: "/config-productos", name: "Config. Productos", icon: HiOutlineCog, roles: ["admin", "gerente", "cajero", "inventario"] },
     { path: "/support", name: "Soporte", icon: HiOutlineBell, roles: ["admin", "gerente", "cajero", "inventario"] },
     { path: "/control-tower", name: "Control Tower", icon: HiOutlineShieldCheck, roles: ["SUPER_ADMIN", "admin", "gerente", "cajero", "inventario"] },
@@ -462,8 +463,11 @@ function Layout() {
                     <li key={`${item.path}${item.tab ? `-${item.tab}` : ""}`}>
                       <button
                         onClick={() => {
-                          console.log('Click en botón:', item.name, 'Navegando a:', to);
                           setSidebarOpen(false);
+                          if (item.path === "#check-update") {
+                            window.dispatchEvent(new CustomEvent("app-check-update-request"));
+                            return;
+                          }
                           navigate(to);
                         }}
                         data-tour={item.path === "/settings" ? "sidebar-settings" : undefined}
