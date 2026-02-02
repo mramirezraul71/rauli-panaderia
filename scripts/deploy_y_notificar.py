@@ -101,7 +101,7 @@ def main() -> int:
     subprocess.run([sys.executable, str(ROOT / "scripts" / "limpiar_cache.py")], cwd=str(ROOT), timeout=10, check=False)
 
     # 2) Build frontend (genera version.json y dist)
-    print("--- 2/5 Build frontend ---\n")
+    print("--- 2/6 Build frontend ---\n")
     r = subprocess.run(
         ["npm", "run", "build"],
         cwd=str(FRONTEND),
@@ -115,7 +115,7 @@ def main() -> int:
 
     if not args.no_git:
         # 3) Git add, commit, push
-        print("--- 3/5 Git add/commit/push ---\n")
+        print("--- 3/6 Git add/commit/push ---\n")
         subprocess.run(["git", "add", "-A"], cwd=str(ROOT), timeout=10, check=False)
         r = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=str(ROOT), timeout=5)
         if r.returncode != 0:
@@ -151,7 +151,7 @@ def main() -> int:
         print("--- 3/5 Git omitido (--no-git) ---\n")
 
     # 4) Deploy Vercel + Railway
-    print("--- 4/5 Deploy Vercel + Railway ---\n")
+    print("--- 4/6 Deploy Vercel + Railway ---\n")
     rv = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "vercel_config_deploy.py")],
         cwd=str(ROOT),
@@ -196,7 +196,7 @@ def main() -> int:
 
     # 6) Notificar (Telegram)
     if not args.no_notify:
-        print("--- 5/5 Notificar nueva actualizacion ---\n")
+        print("--- 6/6 Notificar nueva actualizacion ---\n")
         msg = (
             "RAULI v{} desplegada.\n\n"
             "Abre la app (PC o movil): {}\n\n"
