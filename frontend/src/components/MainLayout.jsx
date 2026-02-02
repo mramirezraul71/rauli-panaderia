@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { APP_VERSION } from '../config/version';
-import { HiOutlineHome, HiOutlineShoppingCart, HiOutlineDocumentText, HiOutlineCube, HiOutlineUsers, HiOutlineCreditCard, HiOutlineCash, HiOutlineReceiptTax, HiOutlineExclamation, HiOutlineChartBar, HiOutlineCog, HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
+import { HiOutlineHome, HiOutlineShoppingCart, HiOutlineDocumentText, HiOutlineCube, HiOutlineUsers, HiOutlineCreditCard, HiOutlineCash, HiOutlineReceiptTax, HiOutlineExclamation, HiOutlineChartBar, HiOutlineCog, HiOutlineMenu, HiOutlineX, HiOutlineAnnotation } from 'react-icons/hi';
 
 const MENU_SECTIONS = [
   { title: 'Principal', items: [
@@ -22,6 +22,7 @@ const MENU_SECTIONS = [
   ]},
   { title: 'Sistema', items: [
     { path: '/settings', name: 'Configuracion', icon: HiOutlineCog },
+    { path: '/feedback', name: 'Feedback & Soporte', icon: HiOutlineAnnotation },
   ]}
 ];
 

@@ -116,6 +116,10 @@ export const SupportService = {
   listTickets() {
     return readJSON(STORAGE_KEYS.tickets, []);
   },
+  getTickets(userId) {
+    const tickets = readJSON(STORAGE_KEYS.tickets, []);
+    return userId ? tickets.filter(t => t.user_id === userId) : tickets;
+  },
   updateTicket(id, data) {
     const tickets = readJSON(STORAGE_KEYS.tickets, []);
     const idx = tickets.findIndex((t) => t.id === id);

@@ -756,6 +756,7 @@ export default function App() {
           <Route path="gerencia" element={<Suspense fallback={<Loader />}><Gerencia /></Suspense>} />
           <Route path="quality" element={<Suspense fallback={<Loader />}><Quality /></Suspense>} />
           <Route path="support" element={<Suspense fallback={<Loader />}><Feedback /></Suspense>} />
+          <Route path="feedback" element={<Suspense fallback={<Loader />}><Feedback /></Suspense>} />
           <Route path="expenses" element={<Suspense fallback={<Loader />}><Expenses /></Suspense>} />
           <Route path="employees" element={<Suspense fallback={<Loader />}><Employees /></Suspense>} />
           <Route path="accounting" element={<Suspense fallback={<Loader />}><Accounting /></Suspense>} />
