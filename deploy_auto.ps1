@@ -42,7 +42,7 @@ Write-Host "Ejecutando Git..." -ForegroundColor Yellow
 
 git add .
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: git add falló" -ForegroundColor Red
+    Write-Host "ERROR: git add fallo" -ForegroundColor Red
     exit 1
 }
 
@@ -68,6 +68,6 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
 } else {
     Write-Host ""
-    Write-Host "ERROR: git push falló. Revisa tu conexión y rama remota." -ForegroundColor Red
+    Write-Host "ERROR: git push fallo. Revisa tu conexion y rama remota." -ForegroundColor Red
     exit 1
 }
