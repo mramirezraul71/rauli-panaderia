@@ -7,6 +7,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -69,6 +70,25 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: pkg.version || '1.0.0',
     name: 'GENESIS API'
+  });
+});
+
+// Endpoint de versión para sistema de actualizaciones (móvil y web)
+app.get('/api/version', (req, res) => {
+  try {
+    const versionPath = join(__dirname, 'version.json');
+    if (fs.existsSync(versionPath)) {
+      const data = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+      return res.json(data);
+    }
+  } catch (e) {
+    console.warn('[version] No version.json:', e.message);
+  }
+  const now = new Date();
+  res.json({
+    version: now.toISOString().slice(0, 10).replace(/-/g, '.'),
+    build: now.toISOString(),
+    code: now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14),
   });
 });
 
