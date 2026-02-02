@@ -12,31 +12,29 @@ def main():
         ("Backend /api/version (cadena automatizada)", f"{API_BASE}/api/version"),
     ]
 
-    print("\n=== VERIFICACION RENDER ===\n")
+    print("\n=== VERIFICACION RENDER (API) ===\n")
     ok_count = 0
     for name, url in urls:
         try:
-            r = httpx.get(url, follow_redirects=True, timeout=30)
-            status = f"HTTP {r.status_code}"
-            if r.status_code == 200:
+            req = urllib.request.Request(url, headers={"Cache-Control": "no-cache"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                data = json.loads(r.read().decode())
                 ok_count += 1
-                if "/api/health" in url:
-                    try:
-                        d = r.json()
-                        status = f"OK - {d.get('status', d.get('service', '?'))}"
-                    except Exception:
-                        pass
+                if "/api/version" in url:
+                    status = f"OK - version {data.get('version', '?')}"
+                else:
+                    status = f"OK - {data.get('status', data.get('name', '?'))}"
+                print(f"  [{name}]")
+                print(f"    URL: {url}")
+                print(f"    -> {status}\n")
+        except urllib.error.HTTPError as e:
             print(f"  [{name}]")
             print(f"    URL: {url}")
-            print(f"    -> {status}\n")
-        except httpx.TimeoutException:
-            print(f"  [{name}]")
-            print(f"    URL: {url}")
-            print(f"    -> TIMEOUT (cold start o servicio detenido)\n")
+            print(f"    -> HTTP {e.code}\n")
         except Exception as e:
             print(f"  [{name}]")
             print(f"    URL: {url}")
-            print(f"    -> ERROR: {e}\n")
+            print(f"    -> ERROR: {e} (cold start?)\n")
 
     print("=" * 50)
     if ok_count == len(urls):
