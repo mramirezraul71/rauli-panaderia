@@ -387,6 +387,27 @@ async def _handle_voice(update: Any, context: Any) -> None:
             "No detecté ningún proyecto. Prueba: «Despliega la panadería», «Actualiza todo»."
         )
         return
+    if "android" in proyectos:
+        await u.message.reply_text("📱 Generando AAB Android…")
+        _voice_say("Generando AAB para Internal testing.")
+        try:
+            script = BASE.parent / "scripts" / "actualizar_app_android.py"
+            r = __import__("subprocess").run(
+                [sys.executable, str(script)],
+                cwd=str(BASE.parent),
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
+            ok = r.returncode == 0
+            msg = (r.stdout or "").strip() or (r.stderr or "").strip() or str(r.returncode)
+            await u.message.reply_text(f"{'✅' if ok else '❌'} Android: {'Éxito' if ok else 'Error'}\n{msg[:500]}")
+            _voice_say("AAB generado." if ok else "Error al generar AAB.")
+        except Exception as e:
+            await u.message.reply_text(f"❌ Android: Error — {str(e)[:300]}")
+            _voice_say("Error al actualizar la app Android.")
+        return
+
     await u.message.reply_text(f"🚀 Desplegando: {', '.join(proyectos)}. Te aviso al terminar.")
     resultados_proyecto: dict[str, str] = {}
     for clave in proyectos:
