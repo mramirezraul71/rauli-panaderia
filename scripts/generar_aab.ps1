@@ -1,11 +1,18 @@
 # Genera el AAB para Internal testing / Play Store
-# Requiere: Android Studio (JAVA_HOME, Android SDK), keystore configurado
+# Funciona para cualquier usuario: busca JAVA_HOME y Android SDK automáticamente
+# Requiere: Android Studio o JDK, keystore configurado (scripts/crear_keystore_android.ps1)
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $frontend = Join-Path $root "frontend"
 $android = Join-Path $frontend "android"
 
 Write-Host "=== Generar AAB RauliERP-Panaderia ===" -ForegroundColor Cyan
+
+# JAVA_HOME: usar si existe, si no Android Studio
+if (-not $env:JAVA_HOME -or -not (Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe"))) {
+    $jbr = "C:\Program Files\Android\Android Studio\jbr"
+    if (Test-Path $jbr) { $env:JAVA_HOME = $jbr }
+}
 
 # 1. Build web
 Write-Host "`n[1/4] Build web..." -ForegroundColor Yellow
@@ -22,10 +29,11 @@ Pop-Location
 
 # 3. Build AAB
 Write-Host "[3/4] Build AAB..." -ForegroundColor Yellow
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 $localProps = Join-Path $android "local.properties"
 if (-not (Test-Path $localProps)) {
-    $sdk = "$env:LOCALAPPDATA\Android\Sdk"
+    $sdk = $env:ANDROID_HOME
+    if (-not $sdk) { $sdk = "$env:LOCALAPPDATA\Android\Sdk" }
+    if (-not (Test-Path $sdk)) { $sdk = "$env:USERPROFILE\AppData\Local\Android\Sdk" }
     if (Test-Path $sdk) {
         "sdk.dir=$($sdk.Replace('\','\\'))" | Set-Content $localProps
     }
