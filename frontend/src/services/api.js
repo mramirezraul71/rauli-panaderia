@@ -131,7 +131,7 @@ const api = new ApiClient();
 export async function checkBackendAvailable() {
   if (!navigator.onLine) return false;
   try {
-    const base = (import.meta.env.VITE_API_BASE || '/api').replace(/\/+$/, '');
+    const base = (import.meta.env.VITE_API_BASE || 'https://rauli-panaderia-1.onrender.com/api').replace(/\/+$/, '');
     const url = base.startsWith('http') ? `${base.replace(/\/api$/, '')}/api/health` : '/api/health';
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 5000);
