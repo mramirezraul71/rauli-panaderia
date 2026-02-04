@@ -22,3 +22,10 @@ GH_TOKEN=ghp_xxxxxxxxxxxx
 # Telegram (notificación de nueva versión)
 # OMNI_BOT_TELEGRAM_TOKEN=
 # OMNI_BOT_TELEGRAM_CHAT_ID=
+
+# Android (actualizar app / Internal testing) - scripts/generar_aab.ps1, robot
+ANDROID_KEYSTORE_PASSWORD=rauli2026
+ANDROID_KEY_ALIAS=rauli
+ANDROID_KEY_PASSWORD=rauli2026
+# Ruta al keystore (copia en Escritorio o en frontend/)
+ANDROID_KEYSTORE_PATH=C:/Users/r6957/OneDrive/Desktop/rauli-upload.keystore
