@@ -26,7 +26,9 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 $localProps = Join-Path $android "local.properties"
 if (-not (Test-Path $localProps)) {
     $sdk = "$env:LOCALAPPDATA\Android\Sdk"
-    "sdk.dir=$($sdk -replace '\\','\\')" | Set-Content $localProps
+    if (Test-Path $sdk) {
+        "sdk.dir=$($sdk.Replace('\','\\'))" | Set-Content $localProps
+    }
 }
 Push-Location $android
 & .\gradlew.bat bundleRelease 2>&1 | Out-Null
