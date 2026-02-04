@@ -28,6 +28,7 @@ frontend/android/rauli-upload.keystore
 frontend/android/keystore.properties
 credenciales_android_add.txt
 *.aab
+testers_play.csv
 
 # Robot ATLAS
 robot/omni_telegram.env

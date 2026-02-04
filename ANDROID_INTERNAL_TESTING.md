@@ -13,10 +13,26 @@
 
 ---
 
-## Regenerar AAB
+## Flujo automático (recomendado)
+
+1. **Añade correos** en `config/android_testers.txt` (uno por línea)
+2. **Ejecuta:**
+   ```powershell
+   .\scripts\publicar_internal_testing.ps1
+   ```
+3. Sube en Play Console: AAB, mapping.txt y testers_play.csv
+
+---
+
+## Regenerar solo AAB
 
 ```powershell
 .\scripts\generar_aab.ps1
+```
+
+Para solo generar CSV de testers:
+```powershell
+.\scripts\generar_testers_csv.ps1
 ```
 
 O desde Python (usa credenciales de bóveda):
