@@ -43,10 +43,17 @@ Push-Location $android
 if ($LASTEXITCODE -ne 0) { Pop-Location; exit 1 }
 Pop-Location
 
-# 4. Copiar a raíz
+# 4. Copiar AAB y mapping.txt a raíz
 $version = (Get-Content (Join-Path $frontend "src\config\version.js") -Raw) -replace '.*APP_VERSION\s*=\s*"([^"]+)".*','$1'
 $src = Join-Path $android "app\build\outputs\bundle\release\app-release.aab"
 $dst = Join-Path $root "RauliERP-Panaderia-$version-release.aab"
 Copy-Item $src $dst -Force
-Write-Host "[4/4] AAB copiado: $dst" -ForegroundColor Green
+$mapping = Join-Path $android "app\build\outputs\mapping\release\mapping.txt"
+if (Test-Path $mapping) {
+    Copy-Item $mapping (Join-Path $root "mapping-$version.txt") -Force
+    Write-Host "[4/5] AAB y mapping.txt copiados." -ForegroundColor Green
+    Write-Host "  Sube mapping-$version.txt en Play Console (detalles de version -> Desofuscacion)" -ForegroundColor Gray
+} else {
+    Write-Host "[4/4] AAB copiado: $dst" -ForegroundColor Green
+}
 Write-Host "`nListo para subir a Play Console -> Internal testing" -ForegroundColor Green
