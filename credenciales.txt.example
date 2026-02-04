@@ -23,9 +23,11 @@ GH_TOKEN=ghp_xxxxxxxxxxxx
 # OMNI_BOT_TELEGRAM_TOKEN=
 # OMNI_BOT_TELEGRAM_CHAT_ID=
 
-# Android (actualizar app / Internal testing) - scripts/generar_aab.ps1, robot
+# Android (actualizar app / Internal testing)
+# scripts/crear_keystore_android.ps1 genera credenciales_android_add.txt con rutas reales
 ANDROID_KEYSTORE_PASSWORD=rauli2026
 ANDROID_KEY_ALIAS=rauli
 ANDROID_KEY_PASSWORD=rauli2026
-# Ruta al keystore (copia en Escritorio o en frontend/)
-ANDROID_KEYSTORE_PATH=C:/Users/r6957/OneDrive/Desktop/rauli-upload.keystore
+# Ruta al keystore (Escritorio o frontend/). Usa / en lugar de \
+# Ej: C:/Users/TU_USUARIO/Desktop/rauli-upload.keystore
+ANDROID_KEYSTORE_PATH=
