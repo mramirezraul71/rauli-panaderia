@@ -25,7 +25,7 @@ android {
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             release {
-                storeFile rootProject.file(keystoreProperties['storeFile'] ?: '../rauli-upload.keystore')
+                storeFile rootProject.file(keystoreProperties['storeFile'] ?: 'rauli-upload.keystore')
                 storePassword keystoreProperties['storePassword']
                 keyAlias keystoreProperties['keyAlias']
                 keyPassword keystoreProperties['keyPassword']
