@@ -224,10 +224,16 @@ def _oga_a_wav(oga_path: Path) -> Path | None:
         return None
 
 
+ANDROID_KEYWORDS = ("android", "aab", "actualizar app", "generar aab", "app android", "play store")
+
+
 def _parsear_comando(texto: str) -> list[str]:
     t = (texto or "").lower().strip()
     if not t:
         return []
+    for kw in ANDROID_KEYWORDS:
+        if kw in t:
+            return ["android"]
     for kw in TODO_KEYWORDS:
         if kw in t:
             return list(PROYECTOS.keys())
