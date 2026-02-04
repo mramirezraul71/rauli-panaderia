@@ -47,6 +47,14 @@ O por voz al robot Telegram: «Actualizar app Android», «Generar AAB»
 
 ---
 
+## Archivo de desofuscación (mapping.txt)
+
+El build genera `mapping-{version}.txt` automáticamente. Para quitar la advertencia en Play Console:
+1. Sube el AAB nuevo
+2. En la versión → **Detalles de la versión** → **Archivo de desofuscación** → sube `mapping-2026.02.02.txt`
+
+---
+
 ## Keystore
 
 - **Ubicaciones:** `frontend/rauli-upload.keystore`, `android/rauli-upload.keystore`, Escritorio
