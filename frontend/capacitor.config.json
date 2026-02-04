@@ -1,5 +1,8 @@
 {
   "appId": "com.raulipanaderia.app",
   "appName": "Rauli Panadería",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
 }
