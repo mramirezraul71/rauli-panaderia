@@ -22,6 +22,12 @@ backend/database/*.db-wal
 # Setup una sola vez (marcador local)
 scripts/.setup-una-vez-done
 
+# Android release (credenciales)
+frontend/rauli-upload.keystore
+frontend/android/rauli-upload.keystore
+frontend/android/keystore.properties
+*.aab
+
 # Robot ATLAS
 robot/omni_telegram.env
 robot/packages/
