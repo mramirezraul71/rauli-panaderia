@@ -26,6 +26,7 @@ scripts/.setup-una-vez-done
 frontend/rauli-upload.keystore
 frontend/android/rauli-upload.keystore
 frontend/android/keystore.properties
+credenciales_android_add.txt
 *.aab
 
 # Robot ATLAS
