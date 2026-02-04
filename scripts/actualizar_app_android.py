@@ -53,7 +53,7 @@ def main() -> int:
     # Asegurar keystore.properties desde bóveda
     store_pass = _load_from_vault(("ANDROID_KEYSTORE_PASSWORD",))
     key_pass = _load_from_vault(("ANDROID_KEY_PASSWORD",))
-    key_alias = _load_from_vault(("ANDROID_KEY_ALIAS", "ANDROID_KEY_ALIAS"))
+    key_alias = _load_from_vault(("ANDROID_KEY_ALIAS",))
     keystore_path = _load_from_vault(("ANDROID_KEYSTORE_PATH",))
 
     android_dir = ROOT / "frontend" / "android"
