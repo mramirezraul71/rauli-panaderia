@@ -12,8 +12,10 @@ if (Test-Path $keystore) {
 }
 
 Write-Host "Creando keystore para Rauli Panaderia..." -ForegroundColor Cyan
+$keytool = "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe"
+if (-not (Test-Path $keytool)) { $keytool = "keytool" }
 $pass = "rauli2026"
-keytool -genkey -v -keystore $keystore -alias rauli -keyalg RSA -keysize 2048 -validity 10000 `
+& $keytool -genkey -v -keystore $keystore -alias rauli -keyalg RSA -keysize 2048 -validity 10000 `
     -storepass $pass -keypass $pass `
     -dname "CN=Rauli Panaderia, OU=Dev, O=Rauli, L=Local, S=Local, C=MX"
 
