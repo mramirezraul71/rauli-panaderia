@@ -1,0 +1,6 @@
+# Añade correos de testers aquí (uno por línea)
+# Los correos con # se ignoran
+# Ejecuta: .\scripts\generar_testers_csv.ps1
+# Luego sube testers_play.csv en Play Console
+
+lisetmoralesl83@gmail.com
