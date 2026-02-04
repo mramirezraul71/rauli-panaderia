@@ -3,7 +3,7 @@
  * Cliente HTTP para comunicación con el backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE || 'https://rauli-panaderia-1.onrender.com/api';
 
 // Estado de autenticación
 let authToken = localStorage.getItem('token');
