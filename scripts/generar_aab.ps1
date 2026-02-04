@@ -14,9 +14,10 @@ if (-not $env:JAVA_HOME -or -not (Test-Path (Join-Path $env:JAVA_HOME "bin\java.
     if (Test-Path $jbr) { $env:JAVA_HOME = $jbr }
 }
 
-# 1. Build web
+# 1. Build web (usa .env.production para API)
 Write-Host "`n[1/4] Build web..." -ForegroundColor Yellow
 Push-Location $frontend
+$env:NODE_ENV = "production"
 npm run build 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) { Pop-Location; exit 1 }
 Pop-Location
