@@ -2,9 +2,9 @@
 
 ## Uso
 
-```bash
-node deploy_network.js
-```
+**Un clic:** `DEPLOY_NETWORK.bat`  
+**Terminal:** `node deploy_network.js`  
+**Robot (voz):** «Desplegar proxy», «Deploy network», «Configurar API»
 
 ## Requisitos
 

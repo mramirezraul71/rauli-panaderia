@@ -184,7 +184,6 @@ async function main() {
     log('Configurando fallback directo...', 'info');
     try {
       writeApiEverywhere(DIRECT_API, '');
-      updateFrontendEnv(BACKEND_URL);
       log('api_robot.txt y .env configurados con API directa', 'ok');
     } catch (e) {
       process.exit(1);
