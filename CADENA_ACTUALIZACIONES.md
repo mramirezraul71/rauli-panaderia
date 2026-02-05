@@ -13,9 +13,14 @@
 | `backend/main.py` | version FastAPI |
 | `frontend/android/app/build.gradle` | versionCode, versionName (Play Store) |
 
-## Actualizar toda la cadena
+## Actualizar toda la cadena (incluye Google Play)
 
-### Opción 1: Fecha de hoy
+### Opción 1: Todo (bump + push + AAB Android)
+```bash
+python scripts/actualizar_cadena.py --todo
+```
+
+### Opción 2: Fecha de hoy
 ```bash
 python scripts/bump_version.py --today
 ```
@@ -32,10 +37,14 @@ ACTUALIZAR_CADENA.bat
 
 ### Opción 4: Script Python con opciones
 ```bash
+python scripts/actualizar_cadena.py --todo              # bump + push + AAB Google Play
 python scripts/actualizar_cadena.py --push              # bump + git push
+python scripts/actualizar_cadena.py --android           # bump + generar AAB
 python scripts/actualizar_cadena.py --deploy-network    # bump + deploy proxy
-python scripts/actualizar_cadena.py --push --deploy-network
 ```
+
+### Robot (voz): «Actualizar todo»
+Ejecuta bump + push + AAB. Luego sube el AAB a Play Console manualmente.
 
 ## Flujo de despliegue
 
