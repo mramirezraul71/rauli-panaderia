@@ -19,7 +19,7 @@ function loadCloudflareToken() {
   const home = os.homedir();
   const paths = [
     path.join(ROOT, 'credenciales.txt'),
-    path.join('C:', 'dev', 'credenciales.txt'),
+    'C:\\dev\\credenciales.txt',
     path.join(home, 'credenciales.txt'),
     path.join(home, 'Desktop', 'credenciales.txt'),
     path.join(home, 'Escritorio', 'credenciales.txt'),
@@ -27,12 +27,12 @@ function loadCloudflareToken() {
   for (const p of paths) {
     try {
       if (fs.existsSync(p)) {
-        const content = fs.readFileSync(p, 'utf8');
+        const content = fs.readFileSync(p, 'utf8').replace(/\r/g, '');
         for (const line of content.split('\n')) {
-          const m = line.match(/^CLOUDFLARE_API_TOKEN\s*=\s*(.+)$/);
+          const m = line.match(/^CLOUDFLARE_API_TOKEN\s*=\s*(.+)$/i);
           if (m) {
             const t = m[1].trim().replace(/^["']|["']$/g, '');
-            if (t) return t;
+            if (t && t.length > 10) return t;
           }
         }
       }
