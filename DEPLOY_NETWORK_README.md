@@ -22,6 +22,7 @@ node deploy_network.js
 3. **Despliega** el worker en Cloudflare (`puente-rauli`)
 4. **Obtiene** la URL del worker (por ejemplo `https://puente-rauli.xxx.workers.dev`)
 5. **Actualiza** `frontend/.env` con `VITE_API_BASE` y `VITE_API_URL`
+6. **Guarda** copia en `api_copia.txt` (formato para respaldo)
 
 ## Resultado
 

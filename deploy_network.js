@@ -154,8 +154,17 @@ async function main() {
     log(`Proxy desplegado: ${workerUrl}`, 'ok');
     updateFrontendEnv(workerUrl);
     ensureApiConfig();
+    const apiBase = `${workerUrl}/api`;
+    const copyPath = path.join(ROOT, 'api_copia.txt');
+    const copyContent = `# Copia API - Rauli Panadería (${new Date().toISOString().slice(0, 10)})
+CLOUDFLARE_WORKER_URL=${workerUrl}
+VITE_API_BASE=${apiBase}
+`;
+    fs.writeFileSync(copyPath, copyContent);
+    log(`Copia guardada en api_copia.txt`, 'ok');
     console.log('\n=== ¡Listo! ===');
     console.log(`Proxy: ${workerUrl}`);
+    console.log(`API:   ${apiBase}`);
     console.log('Frontend configurado. Ejecuta: cd frontend && npm run dev\n');
   } catch (err) {
     log(err.message, 'err');

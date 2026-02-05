@@ -8,6 +8,7 @@ dev-dist/
 .env.*
 !.env.example
 credenciales.txt
+api_copia.txt
 .vercel-token
 *.log
 .DS_Store
