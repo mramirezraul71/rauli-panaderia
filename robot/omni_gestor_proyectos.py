@@ -225,12 +225,16 @@ def _oga_a_wav(oga_path: Path) -> Path | None:
 
 
 ANDROID_KEYWORDS = ("android", "aab", "actualizar app", "generar aab", "app android", "play store")
+NETWORK_KEYWORDS = ("deploy network", "desplegar proxy", "proxy cloudflare", "api robot", "configurar api")
 
 
 def _parsear_comando(texto: str) -> list[str]:
     t = (texto or "").lower().strip()
     if not t:
         return []
+    for kw in NETWORK_KEYWORDS:
+        if kw in t:
+            return ["network"]
     for kw in ANDROID_KEYWORDS:
         if kw in t:
             return ["android"]

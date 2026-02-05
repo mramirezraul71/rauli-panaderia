@@ -174,7 +174,6 @@ async function main() {
       log(`Cloudflare falló: ${deployErr.message}`, 'warn');
       log('Usando API directa (Render) como fallback', 'info');
       writeApiEverywhere(DIRECT_API, '');
-      updateFrontendEnv(BACKEND_URL);
       log(`api_robot.txt y .env configurados con ${DIRECT_API}`, 'ok');
       console.log('\n=== Fallback aplicado ===');
       console.log(`API: ${DIRECT_API}`);
