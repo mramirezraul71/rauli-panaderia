@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, 
@@ -51,8 +52,8 @@ export default function Dashboard() {
     try {
       // Intentar cargar desde el backend
       const [productsRes, ordersRes] = await Promise.allSettled([
-        fetch('https://rauli-panaderia-1.onrender.com/api/products'),
-        fetch('https://rauli-panaderia-1.onrender.com/api/production/production-orders')
+        fetch(`${API_BASE}/products`),
+        fetch(`${API_BASE}/production/production-orders`)
       ]);
       
       const products = productsRes.status === 'fulfilled' && productsRes.value.ok 
@@ -177,8 +178,8 @@ export default function Dashboard() {
             }
           </p>
         </div>
-        <p className="text-[10px] sm:text-xs text-slate-500 mt-1 truncate" title="rauli-panaderia-1.onrender.com">
-          Backend: rauli-panaderia-1.onrender.com
+        <p className="text-[10px] sm:text-xs text-slate-500 mt-1 truncate" title={API_BASE.replace(/^https?:\/\//, '').replace(/\/api.*$/, '')}>
+          Backend: {API_BASE.replace(/^https?:\/\//, '').replace(/\/api.*$/, '')}
         </p>
       </div>
 
