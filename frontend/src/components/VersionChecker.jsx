@@ -67,13 +67,6 @@ export default function VersionChecker() {
   const notifiedRef = useRef(false);
 
   useEffect(() => {
-    try {
-      const last = sessionStorage.getItem(DISMISS_KEY);
-      if (last === serverVersion) setDismissed(true);
-    } catch (_) {}
-  }, [serverVersion]);
-
-  useEffect(() => {
     let cancelled = false;
     const check = async () => {
       try {
