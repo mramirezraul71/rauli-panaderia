@@ -226,12 +226,16 @@ def _oga_a_wav(oga_path: Path) -> Path | None:
 
 ANDROID_KEYWORDS = ("android", "aab", "actualizar app", "generar aab", "app android", "play store")
 NETWORK_KEYWORDS = ("deploy network", "desplegar proxy", "proxy cloudflare", "api robot", "configurar api")
+TODO_UPDATE_KEYWORDS = ("actualizar todo", "actualizar cadena", "update all", "bump y push")
 
 
 def _parsear_comando(texto: str) -> list[str]:
     t = (texto or "").lower().strip()
     if not t:
         return []
+    for kw in TODO_UPDATE_KEYWORDS:
+        if kw in t:
+            return ["todo_update"]
     for kw in NETWORK_KEYWORDS:
         if kw in t:
             return ["network"]
@@ -391,6 +395,26 @@ async def _handle_voice(update: Any, context: Any) -> None:
             "No detecté ningún proyecto. Prueba: «Despliega la panadería», «Actualiza todo»."
         )
         return
+    if "todo_update" in proyectos:
+        await u.message.reply_text("🔄 Actualizando todo: versión + web + Google Play…")
+        _voice_say("Actualizando cadena completa con Google Play.")
+        try:
+            r = __import__("subprocess").run(
+                [sys.executable, str(BASE.parent / "scripts" / "actualizar_cadena.py"), "--todo"],
+                cwd=str(BASE.parent),
+                capture_output=True,
+                text=True,
+                timeout=400,
+            )
+            ok = r.returncode == 0
+            msg = (r.stdout or "").strip() or (r.stderr or "").strip() or str(r.returncode)
+            await u.message.reply_text(f"{'✅' if ok else '⚠️'} Actualización: {'Éxito' if ok else 'Revisar'}\n{msg[:600]}")
+            _voice_say("Cadena actualizada. Sube el AAB a Play Console." if ok else "Revisa los errores.")
+        except Exception as e:
+            await u.message.reply_text(f"❌ Error — {str(e)[:300]}")
+            _voice_say("Error al actualizar todo.")
+        return
+
     if "network" in proyectos:
         await u.message.reply_text("🌐 Desplegando proxy Cloudflare + configurando api_robot.txt…")
         _voice_say("Desplegando red y configurando API.")
