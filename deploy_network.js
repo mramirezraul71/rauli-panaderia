@@ -144,34 +144,52 @@ export default API_BASE;
   }
 }
 
+// Escribir URL en archivos (api_robot.txt, .env, api_copia.txt)
+function writeApiEverywhere(apiBase, workerUrl) {
+  updateFrontendEnv(workerUrl || apiBase.replace(/\/api$/, ''));
+  ensureApiConfig();
+  fs.writeFileSync(path.join(ROOT, 'api_copia.txt'),
+    `# Copia API - Rauli Panadería (${new Date().toISOString().slice(0, 10)})\nCLOUDFLARE_WORKER_URL=${workerUrl || apiBase.replace(/\/api$/, '')}\nVITE_API_BASE=${apiBase}\n`);
+  fs.writeFileSync(path.join(ROOT, 'api_robot.txt'), `${apiBase}\n`);
+  log(`api_robot.txt actualizado (robot)`, 'ok');
+}
+
 // Main
 async function main() {
   console.log('\n=== deploy_network.js - Rauli Panadería ===\n');
+  const DIRECT_API = `${BACKEND_URL}/api`;
   try {
-    const wranglerCmd = ensureWrangler();
+    ensureWrangler();
     generateWorker();
-    const workerUrl = await deployAndCaptureUrl(wranglerCmd);
-    log(`Proxy desplegado: ${workerUrl}`, 'ok');
-    updateFrontendEnv(workerUrl);
-    ensureApiConfig();
-    const apiBase = `${workerUrl}/api`;
-    const copyPath = path.join(ROOT, 'api_copia.txt');
-    const copyContent = `# Copia API - Rauli Panadería (${new Date().toISOString().slice(0, 10)})
-CLOUDFLARE_WORKER_URL=${workerUrl}
-VITE_API_BASE=${apiBase}
-`;
-    fs.writeFileSync(copyPath, copyContent);
-    log(`Copia guardada en api_copia.txt`, 'ok');
-    const robotPath = path.join(ROOT, 'api_robot.txt');
-    fs.writeFileSync(robotPath, `# Robot lee la API de aquí\n${apiBase}\n`);
-    log(`api_robot.txt actualizado (robot)`, 'ok');
-    console.log('\n=== ¡Listo! ===');
-    console.log(`Proxy: ${workerUrl}`);
-    console.log(`API:   ${apiBase}`);
-    console.log('Frontend configurado. Ejecuta: cd frontend && npm run dev\n');
+    let workerUrl;
+    try {
+      workerUrl = await deployAndCaptureUrl('npx wrangler');
+      log(`Proxy desplegado: ${workerUrl}`, 'ok');
+      const apiBase = `${workerUrl}/api`;
+      writeApiEverywhere(apiBase, workerUrl);
+      console.log('\n=== ¡Listo! ===');
+      console.log(`Proxy: ${workerUrl}`);
+      console.log(`API:   ${apiBase}`);
+    } catch (deployErr) {
+      log(`Cloudflare falló: ${deployErr.message}`, 'warn');
+      log('Usando API directa (Render) como fallback', 'info');
+      writeApiEverywhere(DIRECT_API, '');
+      updateFrontendEnv(BACKEND_URL);
+      log(`api_robot.txt y .env configurados con ${DIRECT_API}`, 'ok');
+      console.log('\n=== Fallback aplicado ===');
+      console.log(`API: ${DIRECT_API}`);
+    }
+    console.log('Robot puede leer: from robot.load_api import get_api_base\n');
   } catch (err) {
     log(err.message, 'err');
-    process.exit(1);
+    log('Configurando fallback directo...', 'info');
+    try {
+      writeApiEverywhere(DIRECT_API, '');
+      updateFrontendEnv(BACKEND_URL);
+      log('api_robot.txt y .env configurados con API directa', 'ok');
+    } catch (e) {
+      process.exit(1);
+    }
   }
 }
 
