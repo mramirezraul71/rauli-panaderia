@@ -17,18 +17,16 @@ function log(msg, type = 'info') {
   console.log(`${prefix} ${msg}`);
 }
 
-// 1. Verificar/instalar wrangler
+// 1. Verificar wrangler (npx lo descarga si no está)
 function ensureWrangler() {
-  log('Verificando wrangler...');
+  log('Usando npx wrangler...');
   try {
-    execSync('npx wrangler --version', { stdio: 'pipe' });
-    log('wrangler disponible (npx)', 'ok');
-    return 'npx wrangler';
+    execSync('npx wrangler --version', { stdio: 'pipe', cwd: ROOT });
+    log('wrangler disponible', 'ok');
   } catch {
-    log('Instalando wrangler temporalmente...');
-    execSync('npm install wrangler --save-dev', { cwd: ROOT, stdio: 'inherit' });
-    return 'npx wrangler';
+    log('npx descargará wrangler al desplegar', 'info');
   }
+  return 'npx wrangler';
 }
 
 // 2. Crear carpeta infrastructure y archivos
@@ -112,26 +110,25 @@ function deployAndCaptureUrl(wranglerCmd) {
 function updateFrontendEnv(workerUrl) {
   const apiBase = `${workerUrl}/api`;
   const envPath = path.join(FRONTEND, '.env');
-  let content = '';
-  if (fs.existsSync(envPath)) {
-    content = fs.readFileSync(envPath, 'utf8');
+  let content = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+  const keys = ['VITE_API_BASE', 'VITE_API_URL'];
+  for (const key of keys) {
+    if (new RegExp(`^${key}=`, 'm').test(content)) {
+      content = content.replace(new RegExp(`^${key}=.*$`, 'm'), `${key}=${apiBase}`);
+    } else {
+      content = (content.trimEnd() + (content ? '\n' : '') + `${key}=${apiBase}`).trimEnd() + '\n';
+    }
   }
-  const line = `VITE_API_BASE=${apiBase}\n`;
-  if (/VITE_API_BASE=/.test(content)) {
-    content = content.replace(/VITE_API_BASE=.*/g, `VITE_API_BASE=${apiBase}`);
-  } else {
-    content = content.trim() + (content ? '\n' : '') + line;
-  }
-  if (!content.endsWith('\n')) content += '\n';
-  fs.writeFileSync(envPath, content);
+  fs.writeFileSync(envPath, content.trimEnd() + '\n');
   log(`.env actualizado: VITE_API_BASE=${apiBase}`, 'ok');
   return apiBase;
 }
 
-// 5. Crear/actualizar src/config/api.js centralizado
+// 5. src/config/api.js ya existe (creado manualmente), usa VITE_API_BASE del .env
 function ensureApiConfig() {
   const configPath = path.join(FRONTEND, 'src', 'config', 'api.js');
-  const content = `/**
+  if (!fs.existsSync(configPath)) {
+    const content = `/**
  * Configuración centralizada de la API
  * Usa VITE_API_BASE (o VITE_API_URL) desde .env
  */
@@ -140,87 +137,10 @@ const API_BASE = (import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL 
 export { API_BASE };
 export default API_BASE;
 `;
-  fs.writeFileSync(configPath, content);
-  log('src/config/api.js creado/actualizado', 'ok');
-}
-
-// 6. Reemplazar URLs quemadas en src/
-function refactorHardcodedUrls() {
-  const srcDir = path.join(FRONTEND, 'src');
-  const files = [];
-  function walk(dir) {
-    if (!fs.existsSync(dir)) return;
-    for (const name of fs.readdirSync(dir)) {
-      const full = path.join(dir, name);
-      const stat = fs.statSync(full);
-      if (stat.isDirectory()) walk(full);
-      else if (/\.(js|jsx|ts|tsx)$/.test(name)) files.push(full);
-    }
-  }
-  walk(srcDir);
-
-  const patterns = [
-    ['https://rauli-panaderia-1.onrender.com', "import { API_BASE } from '../config/api'"],
-    ['http://localhost:3001', "import { API_BASE } from '../config/api'"],
-  ];
-
-  for (const file of files) {
-    let text = fs.readFileSync(file, 'utf8');
-    let changed = false;
-    const rel = path.relative(srcDir, path.dirname(file)).replace(/\\/g, '/');
-    const importPath = rel ? Array(rel.split('/').length).fill('..').join('/') + '/config/api' : './config/api';
-
-    if (/https:\/\/rauli-panaderia-1\.onrender\.com/.test(text) && !/from ['\"].*config\/api['\"]/.test(text)) {
-      const needsImport = !/API_BASE|from.*api/.test(text);
-      if (needsImport) {
-        const importLine = `import { API_BASE } from '${importPath}';\n`;
-        if (!text.includes("from '") && !text.includes('from "')) {
-          const firstImport = text.match(/^import\s/m);
-          if (firstImport) {
-            text = text.replace(/^/, importLine);
-          } else {
-            text = importLine + text;
-          }
-        } else {
-          const lastImport = text.match(/import[^;]+;/g);
-          if (lastImport) {
-            const idx = text.lastIndexOf(lastImport[lastImport.length - 1]) + lastImport[lastImport.length - 1].length;
-            text = text.slice(0, idx) + '\n' + importLine.trim() + '\n' + text.slice(idx);
-          }
-        }
-      }
-      text = text.replace(/['"]https:\/\/rauli-panaderia-1\.onrender\.com\/api/g, '`${API_BASE}');
-      text = text.replace(/\/api\/[^'"`)\s]+['"]/g, (m) => m.replace(/^\/api/, '').replace(/['"]$/, '`'));
-      text = text.replace(/\$\{API_BASE\}([^`]*?)`/g, '`${API_BASE}$1`');
-      changed = true;
-    }
-    if (changed) fs.writeFileSync(file, text);
-  }
-  log('Refactorización de URLs completada', 'ok');
-}
-
-// Refactor más preciso para los archivos con URLs quemadas
-function refactorUrls() {
-  const apiImport = "import { API_BASE } from '../config/api'";
-  const filesToFix = [
-    { file: path.join(FRONTEND, 'src', 'pages', 'Dashboard.jsx'), importPath: '../config/api' },
-    { file: path.join(FRONTEND, 'src', 'components', 'Production', 'ProductionModule.jsx'), importPath: '../../config/api' },
-  ];
-
-  for (const { file, importPath } of filesToFix) {
-    if (!fs.existsSync(file)) continue;
-    let text = fs.readFileSync(file, 'utf8');
-    if (!text.includes('rauli-panaderia-1.onrender.com')) continue;
-
-    if (!text.includes('API_BASE')) {
-      const insert = `import { API_BASE } from '${importPath}';\n`;
-      const firstLine = text.indexOf('\n');
-      text = text.slice(0, firstLine + 1) + insert + text.slice(firstLine + 1);
-    }
-    text = text.replace(/['"]https:\/\/rauli-panaderia-1\.onrender\.com\/api\/[^'"`]+['"]/g, '`${API_BASE}/$&`.replace(/\`\\$\\{API_BASE\\}\/([\'"])([^\'"]+)([\'"])\`/, \'`${API_BASE}/\' + \'$2\'.replace(/^api\\//,\'\') + \'`\')');
-    text = text.replace(/fetch\(['"]https:\/\/rauli-panaderia-1\.onrender\.com\/api\/([^'"`]+)['"]\)/g, 'fetch(`${API_BASE}/$1`)');
-    text = text.replace(/['"]https:\/\/rauli-panaderia-1\.onrender\.com\/api\/([^'"`]+)['"]/g, '`${API_BASE}/$1`');
-    fs.writeFileSync(file, text);
+    fs.writeFileSync(configPath, content);
+    log('src/config/api.js creado', 'ok');
+  } else {
+    log('src/config/api.js ya existe', 'ok');
   }
 }
 
@@ -234,7 +154,6 @@ async function main() {
     log(`Proxy desplegado: ${workerUrl}`, 'ok');
     updateFrontendEnv(workerUrl);
     ensureApiConfig();
-    refactorUrls();
     console.log('\n=== ¡Listo! ===');
     console.log(`Proxy: ${workerUrl}`);
     console.log('Frontend configurado. Ejecuta: cd frontend && npm run dev\n');
