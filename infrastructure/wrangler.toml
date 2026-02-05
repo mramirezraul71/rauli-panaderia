@@ -1,0 +1,4 @@
+# Configuración mínima - Cloudflare Worker puente-rauli
+name = "puente-rauli"
+main = "worker.js"
+compatibility_date = "2026-02-02"
