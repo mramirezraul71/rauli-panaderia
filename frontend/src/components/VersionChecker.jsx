@@ -56,12 +56,22 @@ export function runUpdateNow() {
 /** Intervalo de comprobación automática en segundo plano (ms). Si hay versión nueva, se añade a la bandeja de notificaciones. */
 const PERIODIC_CHECK_MS = 10 * 60 * 1000; // 10 minutos
 
+const DISMISS_KEY = "app-update-dismissed-version";
+
 export default function VersionChecker() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [serverVersion, setServerVersion] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const notifiedRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const last = sessionStorage.getItem(DISMISS_KEY);
+      if (last === serverVersion) setDismissed(true);
+    } catch (_) {}
+  }, [serverVersion]);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +80,8 @@ export default function VersionChecker() {
         const v = await fetchServerVersion();
         if (cancelled) return;
         if (v && isNewer(v, APP_VERSION)) {
+          const dismissedVer = sessionStorage.getItem(DISMISS_KEY);
+          if (dismissedVer === v) return;
           setServerVersion(v);
           setUpdateAvailable(true);
         }
