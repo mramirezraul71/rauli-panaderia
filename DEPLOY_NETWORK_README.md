@@ -22,7 +22,16 @@ node deploy_network.js
 3. **Despliega** el worker en Cloudflare (`puente-rauli`)
 4. **Obtiene** la URL del worker (por ejemplo `https://puente-rauli.xxx.workers.dev`)
 5. **Actualiza** `frontend/.env` con `VITE_API_BASE` y `VITE_API_URL`
-6. **Guarda** copia en `api_copia.txt` (formato para respaldo)
+6. **Guarda** copia en `api_copia.txt` y `api_robot.txt` (robot usa api_robot.txt)
+
+## api_robot.txt — Uso manual
+
+Para accesos futuros con el robot sin volver a desplegar:
+
+1. Copiar `api_robot.txt.example` a `api_robot.txt`
+2. Pegar **solo** la URL de la API (ej: `https://puente-rauli.xxx.workers.dev/api`)
+
+El robot la lee con `from robot.load_api import get_api_base`.
 
 ## Resultado
 
