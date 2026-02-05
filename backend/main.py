@@ -10,7 +10,7 @@ from backend.routes import router
 app = FastAPI(
     title="Rauli ERP Backend",
     description="Backend para el sistema de panadería Rauli con sistema de actualizaciones",
-    version="2026.02.02",
+    version="2026.02.05",
 )
 
 # CORS
