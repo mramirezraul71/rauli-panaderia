@@ -54,11 +54,11 @@ def main() -> int:
         html = re.sub(r'window\.__APP_BUILD__\s*=\s*["\'][^"\']*["\']', f'window.__APP_BUILD__="{build}"', html)
         INDEX_HTML.write_text(html, encoding="utf-8")
 
-    # 4) Android build.gradle
+    # 4) Android build.gradle (versionCode debe aumentar en cada subida)
     gradle = ROOT / "frontend" / "android" / "app" / "build.gradle"
     if gradle.exists():
         gtext = gradle.read_text(encoding="utf-8")
-        version_code = now.strftime("%Y%m%d") + "01"
+        version_code = int(new_ver.replace(".", ""))
         gtext = re.sub(r'versionCode\s+\d+', f'versionCode {version_code}', gtext)
         gtext = re.sub(r'versionName\s+["\'][^"\']*["\']', f'versionName "{new_ver}"', gtext)
         gradle.write_text(gtext, encoding="utf-8")
