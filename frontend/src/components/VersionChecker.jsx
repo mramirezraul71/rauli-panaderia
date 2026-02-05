@@ -187,7 +187,15 @@ export default function VersionChecker() {
     );
   }
 
-  if (!updateAvailable) return null;
+  if (!updateAvailable || dismissed) return null;
+
+  const handleDismiss = () => {
+    try {
+      sessionStorage.setItem(DISMISS_KEY, serverVersion || "");
+    } catch (_) {}
+    setDismissed(true);
+    setUpdateAvailable(false);
+  };
 
   return (
     <div className="fixed left-0 right-0 top-20 z-[50] px-4 py-2 bg-violet-600/95 border-b border-violet-500/50 shadow-lg">
@@ -197,13 +205,22 @@ export default function VersionChecker() {
           <span className="font-semibold">Nueva actualización disponible</span>
           <span className="text-violet-200 text-sm">(v{serverVersion})</span>
         </div>
-        <button
-          onClick={handleUpdateNow}
-          disabled={updating}
-          className="px-4 py-2 bg-white text-violet-700 font-semibold rounded-lg hover:bg-violet-100 disabled:opacity-70 transition-colors text-sm"
-        >
-          {updating ? "Actualizando…" : "Actualizar ahora"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="px-3 py-2 text-violet-200 hover:text-white hover:bg-violet-500/30 rounded-lg transition-colors text-sm"
+          >
+            Omitir
+          </button>
+          <button
+            onClick={handleUpdateNow}
+            disabled={updating}
+            className="px-4 py-2 bg-white text-violet-700 font-semibold rounded-lg hover:bg-violet-100 disabled:opacity-70 transition-colors text-sm"
+          >
+            {updating ? "Actualizando…" : "Actualizar ahora"}
+          </button>
+        </div>
       </div>
     </div>
   );
