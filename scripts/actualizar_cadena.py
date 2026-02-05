@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Actualiza toda la cadena de versiones y opcionalmente despliega.
-Uso: python scripts/actualizar_cadena.py [--push] [--deploy-network]
+Uso: python scripts/actualizar_cadena.py [--push] [--deploy-network] [--android]
+     python scripts/actualizar_cadena.py --todo   # bump + push + android (actualizar todo)
 """
 from __future__ import annotations
 
@@ -17,7 +18,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Actualizar cadena de versiones")
     parser.add_argument("--push", action="store_true", help="git add, commit, push")
     parser.add_argument("--deploy-network", action="store_true", help="Ejecutar deploy_network.js")
+    parser.add_argument("--android", action="store_true", help="Generar AAB para Google Play")
+    parser.add_argument("--todo", action="store_true", help="Actualizar todo: bump + push + android")
     args = parser.parse_args()
+
+    if args.todo:
+        args.push = True
+        args.android = True
 
     # 1. Bump version (hoy)
     r = subprocess.run(
@@ -39,7 +46,22 @@ def main() -> int:
             cwd=str(ROOT),
         )
 
-    # 3. Git push (opcional)
+    # 3. Android AAB (Google Play)
+    if args.android:
+        print("Generando AAB para Google Play...")
+        r2 = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "actualizar_app_android.py")],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        if r2.returncode != 0:
+            print("Warning Android:", r2.stderr or r2.stdout or "Error", file=sys.stderr)
+        else:
+            print("AAB generado. Sube a Play Console (Internal testing).")
+
+    # 4. Git push (opcional)
     if args.push:
         subprocess.run(["git", "add", "-A"], cwd=str(ROOT), check=True)
         subprocess.run(
