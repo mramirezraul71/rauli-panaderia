@@ -22,6 +22,9 @@ backend/database/*.db-wal
 # Setup una sola vez (marcador local)
 scripts/.setup-una-vez-done
 
+# Producción (no subir a repo)
+frontend/.env.production
+
 # Android release (credenciales)
 frontend/rauli-upload.keystore
 frontend/android/rauli-upload.keystore
