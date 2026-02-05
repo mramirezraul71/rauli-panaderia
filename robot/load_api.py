@@ -35,7 +35,7 @@ def get_api_base() -> str:
         for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
             line = line.strip()
             if line and not line.startswith("#") and (line.startswith("http://") or line.startswith("https://")):
-                return line.rstrip("/") + ("/api" if not line.endswith("/api") else "").replace("/api/api", "/api")
+                return line.rstrip("/")
     # 2. credenciales (VITE_API_BASE)
     for v in _vault_paths():
         if not v.exists():

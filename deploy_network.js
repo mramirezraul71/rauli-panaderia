@@ -162,6 +162,9 @@ VITE_API_BASE=${apiBase}
 `;
     fs.writeFileSync(copyPath, copyContent);
     log(`Copia guardada en api_copia.txt`, 'ok');
+    const robotPath = path.join(ROOT, 'api_robot.txt');
+    fs.writeFileSync(robotPath, `# Robot lee la API de aquí\n${apiBase}\n`);
+    log(`api_robot.txt actualizado (robot)`, 'ok');
     console.log('\n=== ¡Listo! ===');
     console.log(`Proxy: ${workerUrl}`);
     console.log(`API:   ${apiBase}`);

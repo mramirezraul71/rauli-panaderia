@@ -1,3 +1,2 @@
-# api_robot.txt — Robot lee la API de aquí para accesos futuros
-# Formato: pegar SOLO la URL en la línea de abajo
-https://puente-rauli.xxx.workers.dev/api
+# Copiar a api_robot.txt y pegar SOLO la URL (robot la usa para accesos)
+# Ej: https://puente-rauli.xxx.workers.dev/api
