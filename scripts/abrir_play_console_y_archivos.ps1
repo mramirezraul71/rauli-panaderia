@@ -2,7 +2,7 @@
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
 # Play Console - Internal testing (ajusta la URL si tu app tiene otro ID)
-$playUrl = "https://play.google.com/console/developers"
+$playUrl = "https://play.google.com/console"
 
 Write-Host "Abriendo Play Console y carpeta de archivos..." -ForegroundColor Cyan
 Start-Process $playUrl
