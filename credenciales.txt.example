@@ -31,3 +31,6 @@ ANDROID_KEY_PASSWORD=rauli2026
 # Ruta al keystore (Escritorio o frontend/). Usa / en lugar de \
 # Ej: C:/Users/TU_USUARIO/Desktop/rauli-upload.keystore
 ANDROID_KEYSTORE_PATH=
+
+# Google Play API (scripts/subir_play_api.py) - opcional para subir AAB sin navegador
+# GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=C:/dev/play-service-account.json

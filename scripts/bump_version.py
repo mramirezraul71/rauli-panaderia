@@ -54,6 +54,15 @@ def main() -> int:
         html = re.sub(r'window\.__APP_BUILD__\s*=\s*["\'][^"\']*["\']', f'window.__APP_BUILD__="{build}"', html)
         INDEX_HTML.write_text(html, encoding="utf-8")
 
+    # 4) Android build.gradle
+    gradle = ROOT / "frontend" / "android" / "app" / "build.gradle"
+    if gradle.exists():
+        gtext = gradle.read_text(encoding="utf-8")
+        version_code = now.strftime("%Y%m%d") + "01"
+        gtext = re.sub(r'versionCode\s+\d+', f'versionCode {version_code}', gtext)
+        gtext = re.sub(r'versionName\s+["\'][^"\']*["\']', f'versionName "{new_ver}"', gtext)
+        gradle.write_text(gtext, encoding="utf-8")
+
     print(new_ver)
     return 0
 
