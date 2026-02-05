@@ -1,0 +1,4 @@
+# Solo pegar la URL de la API (robot la lee para accesos futuros)
+# Ej: https://puente-rauli.xxx.workers.dev/api
+# Copiar api_robot.txt.example a api_robot.txt y pegar debajo:
+
