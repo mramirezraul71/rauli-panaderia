@@ -96,8 +96,17 @@ def main() -> int:
         except Exception as e:
             print("Mapping (opcional):", e)
 
+    if ver_code:
+        print("Asignando a Internal testing...")
+        service.edits().tracks().update(
+            editId=edit_id,
+            packageName=PACKAGE,
+            track="internal",
+            body={"releases": [{"versionCodes": [ver_code], "status": "completed"}]},
+        ).execute()
+
     commit = service.edits().commit(editId=edit_id, packageName=PACKAGE).execute()
-    print("Edit committed:", commit.get("id"))
+    print("Listo. Version", ver_code, "en Internal testing.")
     return 0
 
 
