@@ -3,7 +3,6 @@
  * Usa SOLO la API para mantener la cadena automatizada.
  */
 import { API_BASE } from '../config/api';
-const API_BASE_NORM = (typeof API_BASE === 'string' ? API_BASE : '').replace(/\/+$/, '') || 'https://rauli-panaderia-1.onrender.com/api';
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus, Calendar, TrendingUp, History, Camera, X, Check } from 'lucide-react';
+import { API_BASE } from '../../config/api';
 import RecipeEditor from './RecipeEditor';
 import RecipeList from './RecipeList';
 import ProductionOrder from './ProductionOrder';
@@ -31,17 +32,17 @@ const ProductionModule = () => {
     setLoading(true);
     try {
       // Cargar recetas
-      const recipesRes = await fetch('https://rauli-panaderia-1.onrender.com/api/production/recipes');
+      const recipesRes = await fetch(`${API_BASE}/production/recipes`);
       const recipesData = await recipesRes.json();
       setRecipes(recipesData);
 
       // Cargar productos (inventario)
-      const productsRes = await fetch('https://rauli-panaderia-1.onrender.com/api/products');
+      const productsRes = await fetch(`${API_BASE}/products`);
       const productsData = await productsRes.json();
       setProducts(productsData);
 
       // Cargar órdenes de producción
-      const ordersRes = await fetch('https://rauli-panaderia-1.onrender.com/api/production/production-orders');
+      const ordersRes = await fetch(`${API_BASE}/production/production-orders`);
       const ordersData = await ordersRes.json();
       setProductionOrders(ordersData);
 
@@ -65,8 +66,8 @@ const ProductionModule = () => {
   const handleSaveRecipe = async (recipeData) => {
     try {
       const url = selectedRecipe
-        ? `https://rauli-panaderia-1.onrender.com/api/production/recipes/${selectedRecipe.id}`
-        : 'https://rauli-panaderia-1.onrender.com/api/production/recipes';
+        ? `${API_BASE}/production/recipes/${selectedRecipe.id}`
+        : `${API_BASE}/production/recipes`;
 
       const method = selectedRecipe ? 'PUT' : 'POST';
 
@@ -92,7 +93,7 @@ const ProductionModule = () => {
 
     try {
       const response = await fetch(
-        `https://rauli-panaderia-1.onrender.com/api/production/recipes/${recipeId}`,
+        `${API_BASE}/production/recipes/${recipeId}`,
         { method: 'DELETE' }
       );
 
@@ -137,7 +138,7 @@ const ProductionModule = () => {
     }
 
     try {
-      const response = await fetch('https://rauli-panaderia-1.onrender.com/api/production/production-orders', {
+      const response = await fetch(`${API_BASE}/production/production-orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

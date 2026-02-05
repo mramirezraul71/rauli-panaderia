@@ -2,8 +2,8 @@
  * GENESIS - Servicio API
  * Cliente HTTP para comunicación con el backend
  */
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE || 'https://rauli-panaderia-1.onrender.com/api';
+import { API_BASE as API_BASE_FROM_CONFIG } from '../config/api';
+const API_BASE_URL = API_BASE_FROM_CONFIG;
 
 // Estado de autenticación
 let authToken = localStorage.getItem('token');
@@ -131,7 +131,7 @@ const api = new ApiClient();
 export async function checkBackendAvailable() {
   if (!navigator.onLine) return false;
   try {
-    const base = (import.meta.env.VITE_API_BASE || 'https://rauli-panaderia-1.onrender.com/api').replace(/\/+$/, '');
+    const base = API_BASE_URL.replace(/\/+$/, '');
     const url = base.startsWith('http') ? `${base.replace(/\/api$/, '')}/api/health` : '/api/health';
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 5000);
