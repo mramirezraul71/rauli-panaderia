@@ -12,6 +12,35 @@ const INFRA = path.join(ROOT, 'infrastructure');
 const FRONTEND = path.join(ROOT, 'frontend');
 const BACKEND_URL = 'https://rauli-panaderia-1.onrender.com';
 
+// Cargar CLOUDFLARE_API_TOKEN desde credenciales.txt
+function loadCloudflareToken() {
+  if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
+  const os = require('os');
+  const home = os.homedir();
+  const paths = [
+    path.join(ROOT, 'credenciales.txt'),
+    path.join('C:', 'dev', 'credenciales.txt'),
+    path.join(home, 'credenciales.txt'),
+    path.join(home, 'Desktop', 'credenciales.txt'),
+    path.join(home, 'Escritorio', 'credenciales.txt'),
+  ];
+  for (const p of paths) {
+    try {
+      if (fs.existsSync(p)) {
+        const content = fs.readFileSync(p, 'utf8');
+        for (const line of content.split('\n')) {
+          const m = line.match(/^CLOUDFLARE_API_TOKEN\s*=\s*(.+)$/);
+          if (m) {
+            const t = m[1].trim().replace(/^["']|["']$/g, '');
+            if (t) return t;
+          }
+        }
+      }
+    } catch (_) {}
+  }
+  return '';
+}
+
 function log(msg, type = 'info') {
   const prefix = { info: '[INFO]', ok: '[OK]', err: '[ERROR]', warn: '[WARN]' }[type] || '[INFO]';
   console.log(`${prefix} ${msg}`);
@@ -157,6 +186,13 @@ function writeApiEverywhere(apiBase, workerUrl) {
 // Main
 async function main() {
   console.log('\n=== deploy_network.js - Rauli Panadería ===\n');
+  const token = loadCloudflareToken();
+  if (token) {
+    process.env.CLOUDFLARE_API_TOKEN = token;
+    log('Token Cloudflare cargado desde credenciales', 'ok');
+  } else {
+    log('CLOUDFLARE_API_TOKEN no encontrado (credenciales.txt). Usará fallback si deploy falla.', 'warn');
+  }
   const DIRECT_API = `${BACKEND_URL}/api`;
   try {
     ensureWrangler();
