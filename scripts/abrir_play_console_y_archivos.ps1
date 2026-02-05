@@ -1,8 +1,8 @@
 # Abre Play Console y la carpeta con AAB, mapping y testers listos para subir
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
-# Play Console - Rauli Panaderia - Internal testing
-$playUrl = "https://play.google.com/console/u/0/developers/5203627511329823036/app/4974720668098955651/tracks/internal-testing"
+# Play Console - Internal testing (ajusta la URL si tu app tiene otro ID)
+$playUrl = "https://play.google.com/console/developers"
 
 Write-Host "Abriendo Play Console y carpeta de archivos..." -ForegroundColor Cyan
 Start-Process $playUrl
