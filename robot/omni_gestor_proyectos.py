@@ -391,6 +391,26 @@ async def _handle_voice(update: Any, context: Any) -> None:
             "No detecté ningún proyecto. Prueba: «Despliega la panadería», «Actualiza todo»."
         )
         return
+    if "network" in proyectos:
+        await u.message.reply_text("🌐 Desplegando proxy Cloudflare + configurando api_robot.txt…")
+        _voice_say("Desplegando red y configurando API.")
+        try:
+            r = __import__("subprocess").run(
+                ["node", str(BASE.parent / "deploy_network.js")],
+                cwd=str(BASE.parent),
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            ok = r.returncode == 0
+            msg = (r.stdout or "").strip() or (r.stderr or "").strip() or str(r.returncode)
+            await u.message.reply_text(f"{'✅' if ok else '⚠️'} Network: {'Éxito' if ok else 'Fallback aplicado'}\n{msg[:500]}")
+            _voice_say("Proxy configurado. Robot puede usar la API." if ok else "Fallback directo aplicado.")
+        except Exception as e:
+            await u.message.reply_text(f"❌ Network: Error — {str(e)[:300]}")
+            _voice_say("Error al desplegar la red.")
+        return
+
     if "android" in proyectos:
         await u.message.reply_text("📱 Generando AAB Android…")
         _voice_say("Generando AAB para Internal testing.")
