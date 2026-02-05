@@ -48,7 +48,15 @@ def main() -> int:
         print("Instala: pip install google-auth google-api-python-client")
         return 1
 
+    # Leer version desde version.js
+    vjs = ROOT / "frontend" / "src" / "config" / "version.js"
     version = "2026.02.02"
+    if vjs.exists():
+        import re
+        m = re.search(r'APP_VERSION\s*=\s*["\']([^"\']+)["\']', vjs.read_text(encoding="utf-8"))
+        if m:
+            version = m.group(1)
+    version_code = int(version.replace(".", ""))
     aab = ROOT / f"RauliERP-Panaderia-{version}-release.aab"
     mapping = ROOT / f"mapping-{version}.txt"
 
@@ -66,13 +74,14 @@ def main() -> int:
     edit_id = edit["id"]
 
     print("Subiendo AAB...")
-    service.edits().bundles().upload(
+    bundle = service.edits().bundles().upload(
         editId=edit_id,
         packageName=PACKAGE,
         media_body=MediaFileUpload(str(aab), mimetype="application/octet-stream", resumable=True),
     ).execute()
+    ver_code = bundle.get("versionCode")
 
-    if mapping.exists():
+    if mapping.exists() and ver_code:
         print("Subiendo mapping...")
         # Mapping se sube al bundle; la API v3 lo maneja en deobfuscationFiles
         # Ver docs: edits.deobfuscationfiles.upload
@@ -80,7 +89,7 @@ def main() -> int:
             service.edits().deobfuscationfiles().upload(
                 editId=edit_id,
                 packageName=PACKAGE,
-                apkVersionCode=20260202,
+                apkVersionCode=ver_code,
                 deobfuscationFileType="proguard",
                 media_body=MediaFileUpload(str(mapping), mimetype="application/octet-stream"),
             ).execute()
