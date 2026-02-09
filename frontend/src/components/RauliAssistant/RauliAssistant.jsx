@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -8,7 +8,8 @@ import {
   HiOutlineChip,
   HiOutlineSparkles,
   HiOutlineCamera,
-  HiOutlinePencil
+  HiOutlinePencil,
+  HiOutlineCog
 } from "react-icons/hi";
 import { useVoiceInput } from "../../hooks/useVoiceInput";
 import { useCameraVision } from "../../hooks/useCameraVision";
@@ -16,7 +17,7 @@ import { useVoiceSynthesis } from "../../hooks/useVoiceSynthesis";
 import { useRauli } from "../../context/RauliContext";
 import { RAULI_SYSTEM_PROMPT, getRauliContext } from "../../config/rauliPersonality";
 import { executeAction } from "./actions";
-import { DEFAULT_PROFILES as DEFAULT_PROFILES_IMPORT } from "./permissions";
+import { DEFAULT_PROFILES as DEFAULT_PROFILES_IMPORT, DEFAULT_PERMISSIONS } from "./permissions";
 import AIEngine from "../../services/AIEngine";
 
 const createToneDataUrl = (frequency, durationSeconds, volume = 0.18) => {
@@ -111,29 +112,97 @@ const RECEIVE_WAVE_STYLES = [
   "bg-fuchsia-400/30"
 ];
 
-const QUICK_PROMPTS = [
-  { label: "Abrir POS", text: "Abrir POS", route: "/pos" },
-  { label: "Ventas de hoy", text: "Ventas de hoy", route: "/sales" },
-  { label: "Stock harina", text: "Stock de harina", route: "/inventory" },
-  { label: "Productos mas vendidos", text: "Productos mas vendidos", route: "/products" },
-  { label: "Resumen del dia", text: "Resumen del dia", route: "/" }
-];
+// Características Inteligentes - Acciones Rápidas Profesionales
+const SMART_ACTIONS = {
+  navigation: [
+    { 
+      label: "🏪 POS", 
+      text: "Abrir punto de venta para cobrar", 
+      route: "/pos",
+      description: "Caja rápida para ventas"
+    },
+    { 
+      label: "📦 Inventario", 
+      text: "Ver inventario actual y stock", 
+      route: "/inventory",
+      description: "Control de productos"
+    },
+    { 
+      label: "📊 Ventas", 
+      text: "Mostrar reporte de ventas de hoy", 
+      route: "/sales",
+      description: "Análisis de ventas"
+    },
+    { 
+      label: "🛍️ Productos", 
+      text: "Gestionar catálogo de productos", 
+      route: "/products",
+      description: "Catálogo completo"
+    }
+  ],
+  reports: [
+    { 
+      label: "💰 Cierre del día", 
+      text: "Generar resumen del cierre de caja del día", 
+      action: "daily_report",
+      description: "Reporte diario completo"
+    },
+    { 
+      label: "📈 Análisis", 
+      text: "Mostrar análisis de rendimiento", 
+      action: "performance_analysis",
+      description: "Métricas clave"
+    },
+    { 
+      label: "🎯 Metas", 
+      text: "Ver cumplimiento de metas", 
+      action: "goals_tracking",
+      description: "Seguimiento de objetivos"
+    }
+  ],
+  operations: [
+    { 
+      label: "⚡ Venta rápida", 
+      text: "Iniciar venta rápida", 
+      action: "quick_sale",
+      description: "Venta express"
+    },
+    { 
+      label: "🔍 Buscar producto", 
+      text: "Buscar producto por nombre o código", 
+      action: "search_product",
+      description: "Búsqueda inteligente"
+    },
+    { 
+      label: "📋 Inventario bajo", 
+      text: "Ver productos con bajo stock", 
+      action: "low_stock",
+      description: "Alertas de stock"
+    }
+  ]
+};
 
-const ROUTE_PROMPTS = {
+// Prompts contextuales por ruta
+const ROUTE_CONTEXT_ACTIONS = {
   "/pos": [
-    { label: "Cobrar efectivo", text: "Cobrar en efectivo" },
-    { label: "Cobrar tarjeta", text: "Cobrar con tarjeta" }
+    { label: "💳 Cobrar", text: "Iniciar cobro en efectivo", action: "cash_payment" },
+    { label: "💱 Tarjeta", text: "Procesar pago con tarjeta", action: "card_payment" },
+    { label: "🧾 Ticket", text: "Imprimir último ticket", action: "print_receipt" }
   ],
   "/inventory": [
-    { label: "Stock bajo", text: "Stock bajo" },
-    { label: "Entrada de lote", text: "Registrar entrada de lote" }
+    { label: "📥 Entrada", text: "Registrar entrada de mercancía", action: "stock_in" },
+    { label: "📤 Salida", text: "Registrar salida de producto", action: "stock_out" },
+    { label: "🔢 Conteo", text: "Iniciar conteo de inventario", action: "stock_count" }
   ],
   "/products": [
-    { label: "Crear producto", text: "Crear producto nuevo" },
-    { label: "Buscar pan", text: "Buscar producto pan" }
+    { label: "➕ Nuevo", text: "Crear nuevo producto", action: "new_product" },
+    { label: "✏️ Editar", text: "Editar producto existente", action: "edit_product" },
+    { label: "📷 Foto", text: "Agregar foto a producto", action: "product_photo" }
   ],
   "/sales": [
-    { label: "Ventas de hoy", text: "Ventas de hoy" }
+    { label: "📅 Hoy", text: "Ver ventas de hoy", action: "today_sales" },
+    { label: "📉 Descuentos", text: "Ver descuentos aplicados", action: "discounts_report" },
+    { label: "👥 Clientes", text: "Ver clientes frecuentes", action: "frequent_customers" }
   ]
 };
 
@@ -171,24 +240,6 @@ const setActiveProfileId = (id) => {
 };
 
 const getProfileStorageKey = (profileId, suffix) => `rauli_profile_${profileId}_${suffix}`;
-
-const DEFAULT_PERMISSIONS = {
-  canNavigate: true,
-  canQuery: true,
-  canCreate: true,
-  canUpdate: true,
-  canDelete: false,
-  canAnalyze: true,
-  allowedRoutes: [
-    "/dashboard",
-    "/pos",
-    "/sales",
-    "/products",
-    "/inventory",
-    "/customers",
-    "/reports"
-  ]
-};
 
 const OWNER_PERMISSIONS = {
   canNavigate: true,
@@ -619,7 +670,78 @@ export default function RauliAssistant() {
     receiveSoundRef.current.volume = 0.18;
   }, []);
 
-  // Auto-scroll al último mensaje
+  // Estados para gestión profesional de mensajes (temporalmente desactivado)
+  // const [messagesPerPage] = useState(10);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [showMessageOptions, setShowMessageOptions] = useState(false);
+  // const [autoCleanup, setAutoCleanup] = useState(() => {
+  //   if (typeof window === "undefined") return true;
+  //   return localStorage.getItem(getProfileStorageKey(activeProfileId, "auto_cleanup")) !== "false";
+  // });
+
+  // // Sistema inteligente de limpieza de mensajes (temporalmente desactivado)
+  // const cleanupMessages = useCallback((messagesToClean) => {
+  //   if (!messagesToClean || !Array.isArray(messagesToClean)) return [];
+  //   const cleaned = [...messagesToClean];
+  //   const toRemove = [];
+    
+  //   // Eliminar mensajes duplicados consecutivos
+  //   for (let i = cleaned.length - 1; i > 0; i--) {
+  //     if (cleaned[i] && cleaned[i-1] && 
+  //         cleaned[i].role === cleaned[i-1].role && 
+  //         cleaned[i].content === cleaned[i-1].content) {
+  //       toRemove.push(i);
+  //     }
+  //   }
+    
+  //   // Eliminar mensajes de sistema redundantes
+  //   for (let i = cleaned.length - 1; i >= 0; i--) {
+  //     const msg = cleaned[i];
+  //     if (msg && msg.role === 'assistant' && msg.content && 
+  //         (msg.content.includes('Entendido. Prueba con:') || 
+  //          msg.content.includes('Configura una API Key'))) {
+  //       // Mantener solo el último de este tipo
+  //       const laterSameType = cleaned.slice(i + 1).find(m => 
+  //         m && m.role === 'assistant' && m.content &&
+  //         (m.content.includes('Entendido. Prueba con:') || 
+  //          m.content.includes('Configura una API Key'))
+  //       );
+  //       if (laterSameType) {
+  //         toRemove.push(i);
+  //       }
+  //     }
+  //   }
+    
+  //   // Eliminar en orden inverso para no afectar índices
+  //   toRemove.sort((a, b) => b - a).forEach(index => cleaned.splice(index, 1));
+    
+  //   return cleaned;
+  // }, []);
+
+  // // Mensajes paginados y limpios con seguridad (temporalmente desactivado)
+  // const cleanedMessages = useMemo(() => {
+  //   if (!messages || !Array.isArray(messages)) return [];
+  //   const cleaned = autoCleanup ? cleanupMessages(messages) : messages;
+  //   return cleaned || [];
+  // }, [messages, autoCleanup, cleanupMessages]);
+
+  // const paginatedMessages = useMemo(() => {
+  //   if (!cleanedMessages || cleanedMessages.length === 0) return [];
+  //   const startIndex = (currentPage - 1) * messagesPerPage;
+  //   const endIndex = startIndex + messagesPerPage;
+  //   return cleanedMessages.slice(startIndex, endIndex);
+  // }, [cleanedMessages, currentPage, messagesPerPage]);
+
+  // const totalPages = Math.max(1, Math.ceil((cleanedMessages?.length || 0) / messagesPerPage));
+
+  // // Auto-scroll solo en última página (temporalmente desactivado)
+  // const scrollToBottom = useCallback(() => {
+  //   if (currentPage === totalPages) {
+  //     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // }, [currentPage, totalPages]);
+
+  // Auto-scroll simple
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
@@ -630,12 +752,27 @@ export default function RauliAssistant() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!messages || !Array.isArray(messages)) return;
+    
     const trimmed = messages.slice(-50).map((msg) => ({
       ...msg,
       timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString()
     }));
     localStorage.setItem(getProfileStorageKey(activeProfileId, "chat"), JSON.stringify(trimmed));
-  }, [messages]);
+  }, [messages.length, activeProfileId]);
+
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
+  //   localStorage.setItem(getProfileStorageKey(activeProfileId, "auto_cleanup"), String(autoCleanup));
+  // }, [autoCleanup]);
+
+  // // Ir a última página cuando llega nuevo mensaje
+  // useEffect(() => {
+  //   const newTotalPages = Math.ceil(cleanedMessages.length / messagesPerPage);
+  //   if (newTotalPages > totalPages) {
+  //     setCurrentPage(newTotalPages);
+  //   }
+  // }, [cleanedMessages.length, messagesPerPage]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1112,24 +1249,41 @@ export default function RauliAssistant() {
     }
   }, [cameraVision, faceMode, profiles, activeProfileId, handleProfileChange, faceCaptureStage, faceFirstVector]);
 
-  const handleQuickPrompt = useCallback((promptOrText, e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    const text = typeof promptOrText === "string" ? promptOrText : promptOrText?.text;
-    const route = typeof promptOrText === "object" ? promptOrText?.route : null;
-    if (route) {
-      navigate(route);
-      setTimeout(() => {
-        const outlet = document.querySelector("[data-outlet-content]");
-        if (outlet) outlet.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }, 100);
+  // Manejo profesional de acciones inteligentes
+  const handleSmartAction = useCallback((action, event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    console.log('=== SMART ACTION TRIGGERED ===');
+    console.log('Action:', action);
+    console.log('handleSendMessageRef.current:', !!handleSendMessageRef.current);
+    
+    // 1. Enviar mensaje siempre (esto garantiza respuesta del asistente)
+    if (action.text && handleSendMessageRef.current) {
+      console.log('✅ Sending message:', action.text);
+      handleSendMessageRef.current(action.text);
+    } else {
+      console.log('❌ Cannot send message - missing text or ref');
     }
-    if (text && handleSendMessageRef.current) {
-      handleSendMessageRef.current(text);
+    
+    // 2. Navegación si tiene ruta diferente a la actual
+    if (action.route && action.route !== window.location.pathname) {
+      console.log('✅ Navigating to:', action.route);
+      navigate(action.route);
+    } else if (action.route) {
+      console.log('ℹ️ Already on route:', action.route);
     }
+    
+    // 3. Actualizar input con referencia
+    if (action.text) {
+      console.log('✅ Updating input with:', action.text);
+      setInputText(action.text);
+    }
+    
+    console.log('=== SMART ACTION COMPLETED ===');
   }, [navigate]);
 
-  const currentRoutePrompts = ROUTE_PROMPTS[window.location.pathname] || [];
+  const currentRouteActions = ROUTE_CONTEXT_ACTIONS[window.location.pathname] || [];
 
   const handleAddProfile = useCallback(() => {
     const name = prompt("Nombre del asistente/personal:");
@@ -1308,10 +1462,10 @@ export default function RauliAssistant() {
           <select
             value={activeProfileId}
             onChange={(e) => handleProfileChange(e.target.value)}
-            className="bg-white/10 border border-white/10 text-slate-200 text-xs rounded-lg px-2 py-1 max-w-full"
+            className="bg-white/10 border border-white/10 text-white text-xs rounded-lg px-2 py-1 max-w-full"
           >
             {profiles.map((profile) => (
-              <option key={profile.id} value={profile.id}>
+              <option key={profile.id} value={profile.id} className="bg-slate-800 text-white">
                 {profile.name} · {profile.role}
               </option>
             ))}
@@ -1430,7 +1584,7 @@ export default function RauliAssistant() {
         </div>
       )}
 
-      {/* Mensajes */}
+      {/* Mensajes (temporalmente sin paginación) */}
       <div className="relative flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
         <motion.div
           className="pointer-events-none absolute inset-0"
@@ -1439,6 +1593,8 @@ export default function RauliAssistant() {
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.08),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(217,70,239,0.08),transparent_40%),radial-gradient(circle_at_30%_80%,rgba(99,102,241,0.08),transparent_45%)]" />
         </motion.div>
+        
+        {/* Ondas de recepción */}
         <div className="pointer-events-none absolute left-4 bottom-6 h-20 w-20">
           <AnimatePresence>
             {receiveWaves.map((wave) => (
@@ -1460,6 +1616,8 @@ export default function RauliAssistant() {
             ))}
           </AnimatePresence>
         </div>
+
+        {/* Mensajes */}
         <AnimatePresence>
           {messages.map((message) => (
             <motion.div
@@ -2045,34 +2203,123 @@ export default function RauliAssistant() {
         )}
       </AnimatePresence>
 
-      {/* Input */}
-      <div className="px-4 py-2.5 bg-slate-900/50 border-t border-white/10 backdrop-blur-md flex-shrink-0">
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {QUICK_PROMPTS.map((prompt) => (
-            <motion.button
-              key={prompt.label}
-              type="button"
-              onClick={(e) => handleQuickPrompt(prompt, e)}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className="px-3 py-1.5 rounded-full text-xs text-slate-200 bg-white/10 hover:bg-white/15 transition"
-            >
-              {prompt.label}
-            </motion.button>
-          ))}
-          {currentRoutePrompts.map((prompt) => (
-            <motion.button
-              key={prompt.label}
-              type="button"
-              onClick={(e) => handleQuickPrompt({ ...prompt, route: null }, e)}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className="px-3 py-1.5 rounded-full text-xs text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 transition"
-            >
-              {prompt.label}
-            </motion.button>
-          ))}
+      {/* Panel de Características Inteligentes */}
+      <div className="px-4 py-3 bg-slate-900/50 border-t border-white/10 backdrop-blur-md flex-shrink-0">
+        {/* Navegación Rápida */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Navegación</span>
+            <div className="flex-1 h-px bg-gradient-to-r from-slate-700 to-transparent" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {console.log('🔘 Rendering navigation actions:', SMART_ACTIONS.navigation)}
+            {SMART_ACTIONS.navigation.map((action) => (
+              <motion.button
+                key={action.label}
+                type="button"
+                onClick={(e) => {
+                  console.log('🔘 Navigation button clicked:', action.label);
+                  handleSmartAction(action, e);
+                }}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative px-3 py-2 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 hover:border-violet-500/30 hover:from-violet-500/10 hover:to-violet-600/5 transition-all duration-200"
+                title={action.description}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">{action.label.split(' ')[0]}</span>
+                  <span className="text-xs text-slate-300 group-hover:text-violet-300 transition-colors">
+                    {action.label.split(' ').slice(1).join(' ')}
+                  </span>
+                </div>
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-violet-500/0 to-cyan-500/0 group-hover:from-violet-500/10 group-hover:to-cyan-500/5 transition-all duration-300" />
+              </motion.button>
+            ))}
+          </div>
         </div>
+
+        {/* Reportes y Análisis */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Reportes</span>
+            <div className="flex-1 h-px bg-gradient-to-r from-slate-700 to-transparent" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {console.log('📊 Rendering report actions:', SMART_ACTIONS.reports)}
+            {SMART_ACTIONS.reports.map((action) => (
+              <motion.button
+                key={action.label}
+                type="button"
+                onClick={(e) => {
+                  console.log('📊 Report button clicked:', action.label);
+                  handleSmartAction(action, e);
+                }}
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-400/40 hover:from-emerald-500/20 hover:to-teal-500/15 transition-all duration-200"
+                title={action.description}
+              >
+                <span className="text-xs font-medium text-emerald-200">{action.label}</span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Operaciones Rápidas */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Operaciones</span>
+            <div className="flex-1 h-px bg-gradient-to-r from-slate-700 to-transparent" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {console.log('⚡ Rendering operation actions:', SMART_ACTIONS.operations)}
+            {SMART_ACTIONS.operations.map((action) => (
+              <motion.button
+                key={action.label}
+                type="button"
+                onClick={(e) => {
+                  console.log('⚡ Operation button clicked:', action.label);
+                  handleSmartAction(action, e);
+                }}
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-400/40 hover:from-amber-500/20 hover:to-orange-500/15 transition-all duration-200"
+                title={action.description}
+              >
+                <span className="text-xs font-medium text-amber-200">{action.label}</span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Acciones Contextuales por Ruta */}
+        {currentRouteActions.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-semibold text-violet-400 uppercase tracking-wider">Acciones Actuales</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-violet-700/50 to-transparent" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {currentRouteActions.map((action) => (
+                <motion.button
+                  key={action.label}
+                  type="button"
+                  onClick={(e) => handleSmartAction(action, e)}
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-500/20 to-purple-500/20 border border-violet-400/30 hover:border-violet-300/50 hover:from-violet-500/30 hover:to-purple-500/25 transition-all duration-200"
+                  title={action.description}
+                >
+                  <span className="text-xs font-medium text-violet-100">{action.label}</span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Input de texto */}
+      <div className="px-4 py-2.5 bg-slate-900/50 border-t border-white/10 backdrop-blur-md flex-shrink-0">
         <form onSubmit={handleTextSubmit} className="relative flex items-end gap-3">
           <div className="pointer-events-none absolute right-2 bottom-2 h-16 w-16">
             <AnimatePresence>
@@ -2089,49 +2336,15 @@ export default function RauliAssistant() {
                         opacity: [0, 1, 0],
                         scale: [0, 1, 0]
                       }}
-                      transition={{ duration: 0.6, delay: idx * 0.02, ease: "easeOut" }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
                     />
                   ))}
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
-          {/* Botón de voz */}
-          <motion.button
-            type="button"
-            onClick={handleVoiceToggle}
-            disabled={isProcessing}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`relative group p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              voiceInput.isListening
-                ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/30'
-                : 'bg-white/10 hover:bg-white/15 text-slate-200'
-            }`}
-          >
-            <span className="absolute inset-0 rounded-xl bg-cyan-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <HiOutlineMicrophone className="relative z-10 w-5 h-5" />
-          </motion.button>
 
-          {/* Botón de cámara */}
-          <motion.button
-            type="button"
-            onClick={handleCameraToggle}
-            disabled={isProcessing || isAnalyzingImage}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`relative group p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              showCameraInput
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                : 'bg-white/10 hover:bg-white/15 text-slate-200'
-            }`}
-          >
-            <span className="absolute inset-0 rounded-xl bg-blue-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <HiOutlineCamera className="relative z-10 w-5 h-5" />
-          </motion.button>
-
-          {/* Input de texto */}
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <textarea
               ref={inputRef}
               value={inputText}

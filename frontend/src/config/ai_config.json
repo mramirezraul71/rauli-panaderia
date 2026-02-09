@@ -1,0 +1,61 @@
+{
+  "providers": {
+    "gemini": {
+      "enabled": true,
+      "models": [
+        "gemini-1.5-flash",
+        "gemini-pro",
+        "gemini-1.5-pro"
+      ],
+      "primary": true
+    },
+    "deepseek": {
+      "enabled": true,
+      "models": [
+        "deepseek-chat",
+        "deepseek-coder"
+      ],
+      "cost_effective": true
+    },
+    "ollama": {
+      "enabled": true,
+      "models": [
+        "llama3.2:3b",
+        "llama3.2:8b",
+        "qwen2.5:7b"
+      ],
+      "local": true,
+      "offline": true
+    },
+    "openai": {
+      "enabled": false,
+      "models": [
+        "gpt-4o-mini"
+      ],
+      "premium": true
+    }
+  },
+  "routing": {
+    "simple": [
+      "ollama",
+      "deepseek",
+      "gemini"
+    ],
+    "medium": [
+      "deepseek",
+      "gemini",
+      "ollama"
+    ],
+    "complex": [
+      "gemini",
+      "openai",
+      "deepseek",
+      "ollama"
+    ]
+  },
+  "cache": {
+    "enabled": true,
+    "ttl": 3600,
+    "max_size": 1000
+  }
+}

@@ -1,12 +1,43 @@
-import { db } from "./dataService";
+import { db, logAudit } from "./dataService";
 import { loadAIConfig } from "./aiConfigPersistence";
 import cashSession from "../core/CashSession";
 import { formatCurrency, getBusinessConfig } from "../config/businessConfig";
 import { getLanguageConfig } from "../config/languages";
+import { INTERNATIONAL_PROXY_CONFIG } from "../config/internationalProxy";
+import { tryGemini, tryDeepseek, tryOpenai, tryOllama } from "./AIEngineProxy";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SYSTEM CONTEXT - Estado actual de Caja e Inventario
 // ══════════════════════════════════════════════════════════════════════════════
+
+const validateAndCleanResponse = (text) => {
+  if (!text || typeof text !== 'string') return text;
+  
+  // Eliminar repeticiones obvias
+  let cleaned = text
+    .replace(/(.{20,}?)\1{2,}/g, '$1') // Eliminar repeticiones de 20+ caracteres
+    .replace(/(\b\w+\b)(?:\s+\1){2,}/g, '$1') // Eliminar palabras repetidas
+    .replace(/\n{3,}/g, '\n\n') // Limitar saltos de línea
+    .trim();
+  
+  // Truncar si es muy largo
+  if (cleaned.length > 300) {
+    cleaned = cleaned.substring(0, 297) + '...';
+  }
+  
+  // Si parece incoherente, dar respuesta por defecto
+  const incoherentPatterns = [
+    /^(?:sí|no|ok|bien|entendido|claro|perfecto){3,}$/i,
+    /^(?:a-zA-Z\s?){10,}$/, // Solo letras repetidas
+    /^(?:\d+\s?){10,}$/ // Solo números repetidos
+  ];
+  
+  if (incoherentPatterns.some(pattern => pattern.test(cleaned))) {
+    return "Entendido. ¿En qué puedo ayudarte con la panadería?";
+  }
+  
+  return cleaned;
+};
 
 const getSystemContext = async () => {
   try {
@@ -261,8 +292,7 @@ export const AIEngine = {
     const languagePrompt = getLanguageInstructions(language);
     const businessType = businessConfig.businessType || "cualquier negocio";
     const defaultUnit = businessConfig.defaultUnit || "unidad";
-    const ctx = `Eres GENESIS, un asistente avanzado de gestión empresarial. ${languagePrompt} Usa el locale ${langConfig?.locale || "es-ES"} para fechas y moneda.
-Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moneda "${businessConfig.currency}", impuesto ${businessConfig.taxRate}.` + context + systemContext;
+    const ctx = `Eres RAULI, asistente de panadería. ${languagePrompt} Responde de forma breve y directa (máximo 2-3 frases). Negocio: ${businessType}, moneda: ${businessConfig.currency}.` + context + systemContext;
 
     // FUNCION OLLAMA (local/offline)
     const tryOllama = async () => {
@@ -287,7 +317,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
           const msg = data.message?.content;
           if (msg) {
             console.log("OK Ollama");
-            return { text: msg.trim(), provider: "Ollama", model: ollamaModel || DEFAULT_OLLAMA_MODEL };
+            return { text: validateAndCleanResponse(msg.trim()), provider: "Ollama", model: ollamaModel || DEFAULT_OLLAMA_MODEL };
           }
         }
       } catch (e) {
@@ -296,7 +326,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
       return null;
     };
 
-    // FUNCION GEMINI
+    // FUNCION GEMINI CON PROXY
     const tryGemini = async () => {
       if (!geminiEnabled || !geminiKey) return null;
       
@@ -323,9 +353,9 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
                 parts: [{ text: ctx + "\n\nUsuario: " + text }] 
               }],
               generationConfig: { 
-                temperature: 0.7, 
-                maxOutputTokens: 500,
-                topP: 0.95
+                temperature: 0.3, 
+                maxOutputTokens: 200,
+                topP: 0.8
               }
             })
           });
@@ -339,13 +369,13 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 contents: [{ parts: [{ text: ctx + "\n\nUsuario: " + text }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 500, topP: 0.95 }
+                generationConfig: { temperature: 0.3, maxOutputTokens: 200, topP: 0.8 }
               })
             });
             if (retry.ok) {
               const data = await retry.json();
               const msg = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (msg) return { text: msg.trim(), provider: "Gemini", model: modelId };
+              if (msg) return { text: validateAndCleanResponse(msg.trim()), provider: "Gemini", model: modelId };
             }
           }
           
@@ -359,7 +389,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
             const msg = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (msg) {
               console.log("OK Gemini con:", modelId);
-              return { text: msg.trim(), provider: "Gemini", model: modelId };
+              return { text: validateAndCleanResponse(msg.trim()), provider: "Gemini", model: modelId };
             }
           }
         } catch (e) { 
@@ -379,8 +409,8 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
           { role: "system", content: ctx },
           { role: "user", content: text }
         ],
-        max_tokens: 500,
-        temperature: 0.7
+        max_tokens: 200,
+        temperature: 0.3
       };
 
       const sendDirect = async () => {
@@ -415,7 +445,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
           const msg = data.choices?.[0]?.message?.content;
           if (msg) {
             console.log("OK OpenAI");
-            return { text: msg.trim(), provider: "OpenAI", model: payload.model };
+            return { text: validateAndCleanResponse(msg.trim()), provider: "OpenAI", model: payload.model };
           }
         }
       } catch (e) {
@@ -424,8 +454,8 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
       return null;
     };
 
-    // FUNCION DEEPSEEK (económico)
-    const tryDeepseek = async () => {
+    // FUNCION DEEPSEEK CON PROXY
+    const tryDeepseekOriginal = async () => {
       if (!deepseekEnabled || !deepseekKey) return null;
       const payload = {
         model: "deepseek-chat",
@@ -433,8 +463,8 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
           { role: "system", content: ctx },
           { role: "user", content: text }
         ],
-        max_tokens: 500,
-        temperature: 0.7
+        max_tokens: 200,
+        temperature: 0.3
       };
       try {
         console.log("DeepSeek intentando...");
@@ -452,7 +482,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
           const msg = data.choices?.[0]?.message?.content;
           if (msg) {
             console.log("OK DeepSeek");
-            return { text: msg.trim(), provider: "DeepSeek", model: payload.model };
+            return { text: validateAndCleanResponse(msg.trim()), provider: "DeepSeek", model: payload.model };
           }
         }
         if (response.status === 402 || response.status === 429) {
@@ -468,23 +498,31 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
       return null;
     };
 
-    // EJECUTAR EN ORDEN POR COMPLEJIDAD
+    // EJECUTAR EN ORDEN POR COMPLEJIDAD CON PROXY
     let result = null;
     const complexity = classifyTaskComplexity(text);
     const online = navigator.onLine;
+    
+    // Determinar si usar proxy
+    const useProxy = INTERNATIONAL_PROXY_CONFIG.enabled;
+    
     const chainByComplexity = {
       simple: online
-        ? [tryGemini, tryDeepseek, tryOpenai, tryOllama]
+        ? useProxy ? [tryGemini, tryDeepseek, tryOpenai, tryOllama] : [tryGeminiOriginal, tryDeepseekOriginal, tryOpenaiProxy, tryOllama]
         : [tryOllama],
       media: online
-        ? [tryGemini, tryDeepseek, tryOpenai]
+        ? useProxy ? [tryGemini, tryDeepseek, tryOpenai] : [tryGeminiOriginal, tryDeepseekOriginal, tryOpenaiProxy]
         : [tryOllama],
       alta: online
-        ? [tryOpenai, tryDeepseek, tryGemini, tryOllama]
+        ? useProxy ? [tryOpenai, tryDeepseek, tryGemini, tryOllama] : [tryOpenaiProxy, tryDeepseekOriginal, tryGeminiOriginal, tryOllama]
         : [tryOllama]
     };
-    const chain = chainByComplexity[complexity] || (online ? [tryGemini, tryDeepseek, tryOpenai, tryOllama] : [tryOllama]);
+    
+    const chain = chainByComplexity[complexity] || (online ? (useProxy ? [tryGemini, tryDeepseek, tryOpenai, tryOllama] : [tryGeminiOriginal, tryDeepseekOriginal, tryOpenaiProxy, tryOllama]) : [tryOllama]);
     let balanceWarning = "";
+    
+    console.log(`🤖 Usando proxy: ${useProxy ? 'SÍ' : 'NO'} - Complejidad: ${complexity}`);
+    
     for (const runner of chain) {
       const attempt = await runner();
       if (attempt && typeof attempt === "object" && attempt.text === "__DEEPSEEK_BALANCE__") {
@@ -557,8 +595,8 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
               ]
             }],
             generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 600
+              temperature: 0.1,
+              maxOutputTokens: 150
             }
           })
         });
@@ -566,7 +604,7 @@ Perfil del negocio: Rubro "${businessType}", unidad base "${defaultUnit}", moned
         if (response.ok) {
           const data = await response.json();
           const msg = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (msg) return { text: msg.trim(), action: null };
+          if (msg) return { text: validateAndCleanResponse(msg.trim()), action: null };
         }
       } catch (error) {
         console.log("Error Vision", modelId, ":", error.message);
