@@ -3,8 +3,9 @@ import toast from "react-hot-toast";
 import { db } from "../services/dataService";
 import { loadAIConfig, saveAIConfig, syncGeminiKeyToLocalStorage } from "../services/aiConfigPersistence";
 import { BUSINESS_CONFIG_DEFAULTS, setBusinessConfig } from "../config/businessConfig";
-import { HiOutlineCode, HiOutlineCog } from "react-icons/hi";
+import { HiOutlineCode, HiOutlineCog, HiOutlineGlobeAlt } from "react-icons/hi";
 import { diagnoseGemini } from "../utils/testGeminiAPI";
+import ProxySettings from "../components/ProxySettings/ProxySettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("general");
@@ -394,6 +395,17 @@ export default function Settings() {
           <HiOutlineCode className="w-4 h-4" />
           Motor de IA
         </button>
+        <button
+          onClick={() => setActiveTab("proxy")}
+          className={`px-5 py-3 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2 ${
+            activeTab === "proxy"
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30"
+              : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+          }`}
+        >
+          <HiOutlineGlobeAlt className="w-4 h-4" />
+          Proxy Internacional
+        </button>
       </div>
 
       {activeTab === "general" && (
@@ -694,6 +706,9 @@ export default function Settings() {
             )}
           </div>
         </div>
+      )}
+    {activeTab === "proxy" && (
+        <ProxySettings />
       )}
     </div>
   );

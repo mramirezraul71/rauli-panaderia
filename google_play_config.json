@@ -1,0 +1,38 @@
+{
+  "app_info": {
+    "package_name": "com.raulipanaderia.app",
+    "app_name": "RauliERP Panaderia",
+    "version_code": 1,
+    "version_name": "1.0",
+    "target_sdk": 35,
+    "min_sdk": 23
+  },
+  "testing": {
+    "mode": "internal_testing",
+    "testers": [
+      "elizabethleyva1961@gmail.com",
+      "josereinaldomorales60@gmail.com"
+    ],
+    "auto_update": true,
+    "testing_notes": "Versión inicial para fase de prueba interna"
+  },
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.CAMERA",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.READ_EXTERNAL_STORAGE",
+    "android.permission.ACCESS_NETWORK_STATE"
+  ],
+  "signing": {
+    "keystore": "rauli-upload.keystore",
+    "release_build": true,
+    "debug_build": true
+  },
+  "next_steps": [
+    "1. Subir APK a Google Play Console",
+    "2. Configurar lista de testers internos",
+    "3. Crear release de prueba interna",
+    "4. Esperar aprobación de Google Play",
+    "5. Invitar a testers a probar la app"
+  ]
+}

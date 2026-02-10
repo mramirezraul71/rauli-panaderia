@@ -660,6 +660,7 @@ const Placeholder = ({ name }) => (
 const safeLazy = (fn, name) => lazy(() => fn().catch(() => ({ default: () => <Placeholder name={name} /> })));
 
 const Dashboard = safeLazy(() => import("./pages/Dashboard"), "Dashboard");
+const DashboardNew = safeLazy(() => import("./pages/DashboardNew"), "Dashboard IA");
 const POS = safeLazy(() => import("./pages/POS"), "POS");
 const Products = safeLazy(() => import("./pages/Products"), "Productos");
 const Inventory = safeLazy(() => import("./pages/Inventory"), "Inventario");
@@ -748,7 +749,8 @@ export default function App() {
         <Route path="/rauli-live" element={<Suspense fallback={<Loader />}><RauliLive /></Suspense>} />
         
         <Route path="/" element={<Layout />}>
-          <Route index element={<Suspense fallback={<Loader />}><Dashboard /></Suspense>} />
+          <Route index element={<Suspense fallback={<Loader />}><DashboardNew /></Suspense>} />
+          <Route path="dashboard-classic" element={<Suspense fallback={<Loader />}><Dashboard /></Suspense>} />
           <Route path="pos" element={<Suspense fallback={<Loader />}><POS /></Suspense>} />
           <Route path="sales" element={<Suspense fallback={<Loader />}><Sales /></Suspense>} />
           <Route path="customers" element={<Suspense fallback={<Loader />}><Customers /></Suspense>} />

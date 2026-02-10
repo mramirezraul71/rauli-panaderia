@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-02-09T09:29:30.234838",
+  "apk_path": "C:\\dev\\RauliERP-Panaderia-RAULI\\frontend\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
+  "apk_size_mb": 8.96164321899414,
+  "guide_created": true,
+  "helper_script": "C:\\dev\\RauliERP-Panaderia-RAULI\\google_play_helper.bat",
+  "store_info": "C:\\dev\\RauliERP-Panaderia-RAULI\\store_listing_info.json",
+  "google_play_console_opened": true,
+  "testers": [
+    "elizabethleyva1961@gmail.com",
+    "josereinaldomorales60@gmail.com"
+  ],
+  "next_steps": [
+    "1. Iniciar sesión en Google Play Console",
+    "2. Crear nueva aplicación",
+    "3. Subir APK",
+    "4. Configurar store listing",
+    "5. Agregar testers",
+    "6. Iniciar fase de prueba interna"
+  ],
+  "action_log": [
+    {
+      "timestamp": "2026-02-09 09:29:19",
+      "action": "VERIFICACIÓN APK",
+      "status": "ANALIZANDO",
+      "details": "Comprobando archivo APK"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:19",
+      "action": "APK",
+      "status": "LISTO",
+      "details": "APK encontrado - 8.96 MB"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:19",
+      "action": "CREACIÓN MANUAL",
+      "status": "INICIANDO",
+      "details": "Abriendo guía paso a paso"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:22",
+      "action": "GUÍA",
+      "status": "CREADA",
+      "details": "Guía guardada en C:\\dev\\RauliERP-Panaderia-RAULI\\google_play_creation_guide.md"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:22",
+      "action": "COMANDOS RÁPIDOS",
+      "status": "CREANDO",
+      "details": "Generando scripts de ayuda"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:22",
+      "action": "HELPER",
+      "status": "CREADO",
+      "details": "Script helper creado: C:\\dev\\RauliERP-Panaderia-RAULI\\google_play_helper.bat"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:22",
+      "action": "STORE LISTING",
+      "status": "GENERANDO",
+      "details": "Creando información para la tienda"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:22",
+      "action": "STORE LISTING",
+      "status": "COMPLETADO",
+      "details": "Información guardada en C:\\dev\\RauliERP-Panaderia-RAULI\\store_listing_info.json"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:22",
+      "action": "CARPETA APK",
+      "status": "ABIERTA",
+      "details": "Carpeta del APK abierta"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:22",
+      "action": "PLAY CONSOLE",
+      "status": "ABIERTA",
+      "details": "Google Play Console abierta"
+    },
+    {
+      "timestamp": "2026-02-09 09:29:23",
+      "action": "GUÍA",
+      "status": "ABIERTA",
+      "details": "Guía de creación abierta"
+    }
+  ]
+}

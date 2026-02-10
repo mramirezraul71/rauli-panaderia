@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-02-09T09:20:40.711272",
+  "corrections_applied": {
+    "version_code": true,
+    "permissions": true,
+    "target_sdk_verified": true,
+    "capacitor_sync": true,
+    "debug_build": false
+  },
+  "testers_added": [
+    "elizabethleyva1961@gmail.com",
+    "josereinaldomorales60@gmail.com"
+  ],
+  "apk_generated": null,
+  "files_modified": [
+    "frontend/android/app/src/main/AndroidManifest.xml",
+    "google_play_testing_config.json",
+    "google_play_config.json"
+  ],
+  "action_log": [
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "TESTERS EMAILS",
+      "status": "AGREGADOS",
+      "details": "Correos: elizabethleyva1961@gmail.com, josereinaldomorales60@gmail.com"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "TESTING_CONFIG",
+      "status": "ACTUALIZADA",
+      "details": "Correos de testers agregados"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "VERSION_CODE",
+      "status": "CORRIGIENDO",
+      "details": "Agregando versionCode a AndroidManifest.xml"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "VERSION_CODE",
+      "status": "COMPLETADO",
+      "details": "versionCode=1 agregado"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "PERMISSIONS",
+      "status": "CORRIGIENDO",
+      "details": "Agregando permisos faltantes"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "PERMISSIONS",
+      "status": "COMPLETADO",
+      "details": "Agregados 4 permisos"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "TARGET_SDK",
+      "status": "VERIFICANDO",
+      "details": "Confirmando targetSdk actualizado"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "TARGET_SDK",
+      "status": "CONFIRMADO",
+      "details": "targetSdkVersion = 35 (cumple requisitos)"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "CAPACITOR_SYNC",
+      "status": "INICIANDO",
+      "details": "Sincronizando Capacitor con Android"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "CAPACITOR_SYNC",
+      "status": "ERROR",
+      "details": "[WinError 2] El sistema no puede encontrar el archivo especificado"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "BUILD_DEBUG",
+      "status": "INICIANDO",
+      "details": "Construyendo APK de debug"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "BUILD_DEBUG",
+      "status": "ERROR",
+      "details": "[WinError 193] %1 no es una aplicación Win32 válida"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "PLAY_CONFIG",
+      "status": "ACTUALIZANDO",
+      "details": "Preparando configuración para Google Play"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "PLAY_CONFIG",
+      "status": "COMPLETADO",
+      "details": "Configuración guardada en C:\\dev\\RauliERP-Panaderia-RAULI\\google_play_config.json"
+    },
+    {
+      "timestamp": "2026-02-09 09:20:40",
+      "action": "REPORTE_FINAL",
+      "status": "GENERANDO",
+      "details": "Creando reporte completo"
+    }
+  ],
+  "ready_for_upload": false,
+  "google_play_status": "READY_FOR_INTERNAL_TESTING"
+}

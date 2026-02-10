@@ -1,0 +1,14 @@
+# COMANDOS DE BUILD PARA RAULI ERP
+
+# sync_capacitor
+cd frontend && npx cap sync android
+
+# build_debug
+cd frontend/android && ./gradlew assembleDebug
+
+# build_release
+cd frontend/android && ./gradlew assembleRelease
+
+# install_debug
+cd frontend/android && ./gradlew installDebug
+

@@ -1,0 +1,28 @@
+{
+  "app_name": "RauliERP Panadería",
+  "short_description": "Sistema ERP completo para panaderías. Gestión de inventario, ventas, producción y finanzas.",
+  "full_description": "RauliERP Panadería es un sistema de gestión integral diseñado específicamente para panaderías y negocios de panificación.\n\nCARACTERÍSTICAS PRINCIPALES:\n• 📊 Dashboard con métricas en tiempo real\n• 💻 Punto de venta (POS) con modo offline\n• 📦 Gestión completa de inventario y lotes\n• 🥐 Control de producción y recetas\n• 💰 Gestión de ventas y sesiones de caja\n• 👥 Administración de empleados y nómina\n• 📒 Contabilidad integrada\n• 📈 Reportes avanzados con IA\n• 🔄 Sincronización automática\n\nBENEFICIOS:\n• Ahorra tiempo con automatización de procesos\n• Toma decisiones basadas en datos reales\n• Control total de tu inventario y producción\n• Trabaja offline sin problemas de conexión\n• Interfaz intuitiva y fácil de usar\n\nIDEAL PARA:\n• Panaderías pequeñas y medianas\n• Pastelerías y cafeterías\n• Negocios de panificación familiar\n• Emprendedores del sector panadero",
+  "category": "Business",
+  "tags": [
+    "ERP",
+    "Panadería",
+    "Negocios",
+    "Inventario",
+    "Ventas",
+    "Producción",
+    "Finanzas"
+  ],
+  "contact_info": {
+    "website": "https://rauli-panaderia-app.vercel.app",
+    "email": "soporte@raulipanaderia.app",
+    "phone": "+52 1 800 RAULI"
+  },
+  "privacy_policy": "https://rauli-panaderia-app.vercel.app/privacy",
+  "content_rating": {
+    "violence": "None",
+    "language": "None",
+    "sex": "None",
+    "drugs": "None",
+    "gambling": "None"
+  }
+}

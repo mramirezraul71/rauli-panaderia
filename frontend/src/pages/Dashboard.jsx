@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API_BASE } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, 
@@ -50,28 +49,18 @@ export default function Dashboard() {
   const loadStats = async () => {
     setLoading(true);
     try {
-      // Intentar cargar desde el backend
-      const [productsRes, ordersRes] = await Promise.allSettled([
-        fetch(`${API_BASE}/products`),
-        fetch(`${API_BASE}/production/production-orders`)
-      ]);
-      
-      const products = productsRes.status === 'fulfilled' && productsRes.value.ok 
-        ? await productsRes.value.json() 
-        : [];
-      const orders = ordersRes.status === 'fulfilled' && ordersRes.value.ok 
-        ? await ordersRes.value.json() 
-        : [];
-
-      setStats({
-        ventasHoy: Math.floor(Math.random() * 50) + 10, // Simular ventas
-        productosActivos: Array.isArray(products) ? products.length : 0,
-        ordenesProduccion: Array.isArray(orders) ? orders.length : 0,
-        clientesRegistrados: 12 // Placeholder
-      });
+      // Simular carga de datos sin depender de API externa
+      setTimeout(() => {
+        setStats({
+          ventasHoy: Math.floor(Math.random() * 50) + 10,
+          productosActivos: Math.floor(Math.random() * 100) + 20,
+          ordenesProduccion: Math.floor(Math.random() * 15) + 5,
+          clientesRegistrados: Math.floor(Math.random() * 50) + 12
+        });
+        setLoading(false);
+      }, 1000);
     } catch (error) {
       console.warn('Error cargando stats:', error);
-    } finally {
       setLoading(false);
     }
   };
@@ -178,8 +167,8 @@ export default function Dashboard() {
             }
           </p>
         </div>
-        <p className="text-[10px] sm:text-xs text-slate-500 mt-1 truncate" title={API_BASE.replace(/^https?:\/\//, '').replace(/\/api.*$/, '')}>
-          Backend: {API_BASE.replace(/^https?:\/\//, '').replace(/\/api.*$/, '')}
+        <p className="text-[10px] sm:text-xs text-slate-500 mt-1 truncate" title="Modo offline">
+          Backend: Modo offline
         </p>
       </div>
 

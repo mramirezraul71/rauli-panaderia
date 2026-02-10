@@ -1,0 +1,24 @@
+{
+  "name": "rauli-international-proxy",
+  "version": "1.0.0",
+  "description": "Proxy Cloudflare Worker para operaciones internacionales",
+  "main": "src/worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "proxy",
+    "international",
+    "rauli-erp"
+  ],
+  "author": "RAULI ERP Team",
+  "license": "MIT"
+}

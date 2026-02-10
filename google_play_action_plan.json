@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-02-09T09:15:36.929466",
+  "summary": {
+    "total_missing": 6,
+    "critical": 0,
+    "high": 2,
+    "medium": 4,
+    "configured": 5
+  },
+  "action_steps": [
+    {
+      "step": 1,
+      "priority": "CRITICAL",
+      "actions": [],
+      "estimated_time": "30-45 min"
+    },
+    {
+      "step": 2,
+      "priority": "HIGH",
+      "actions": [
+        {
+          "category": "VERSION",
+          "item": "versionCode",
+          "priority": "HIGH",
+          "solution": "Agregar android:versionCode=\"1\" a AndroidManifest.xml"
+        },
+        {
+          "category": "PLAY_CONSOLE",
+          "item": "targetSdk",
+          "priority": "HIGH",
+          "solution": "Actualizar targetSdk a 33 o 34 en build.gradle"
+        }
+      ],
+      "estimated_time": "15-30 min"
+    },
+    {
+      "step": 3,
+      "priority": "MEDIUM",
+      "actions": [
+        {
+          "category": "PERMISSIONS",
+          "item": "android.permission.CAMERA",
+          "priority": "MEDIUM",
+          "solution": "Agregar <uses-permission android:name=\"android.permission.CAMERA\" /> a AndroidManifest.xml"
+        },
+        {
+          "category": "PERMISSIONS",
+          "item": "android.permission.WRITE_EXTERNAL_STORAGE",
+          "priority": "MEDIUM",
+          "solution": "Agregar <uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" /> a AndroidManifest.xml"
+        },
+        {
+          "category": "PERMISSIONS",
+          "item": "android.permission.READ_EXTERNAL_STORAGE",
+          "priority": "MEDIUM",
+          "solution": "Agregar <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" /> a AndroidManifest.xml"
+        },
+        {
+          "category": "PERMISSIONS",
+          "item": "android.permission.ACCESS_NETWORK_STATE",
+          "priority": "MEDIUM",
+          "solution": "Agregar <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" /> a AndroidManifest.xml"
+        }
+      ],
+      "estimated_time": "10-20 min"
+    }
+  ],
+  "build_commands": "C:\\dev\\RauliERP-Panaderia-RAULI\\build_commands.txt",
+  "final_checklist": [
+    "Generar proyecto Android con Capacitor",
+    "Configurar appId y appName en capacitor.config.json",
+    "Crear/verificar keystore para firma",
+    "Configurar permisos en AndroidManifest.xml",
+    "Generar iconos para todas las densidades",
+    "Actualizar targetSdk a 33+",
+    "Compilar APK de prueba",
+    "Subir a Google Play Console"
+  ]
+}
