@@ -1,9 +1,9 @@
 # Backend + Frontend en Render. Push a main/master = deploy automático.
 # Backend Python: rauli-panaderia.onrender.com
-# Frontend: rauli-panaderia-app.onrender.com
+# Frontend: rauli-panaderia.onrender.com
 services:
   - type: web
-    name: rauli-panaderia
+    name: rauli-panaderia-backend
     runtime: python
     buildCommand: pip install -r requirements.txt && cp backend/version.json backend/version.json 2>/dev/null || echo '{"version":"1.0.0","build":"unknown","code":"0"}' > backend/version.json
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
@@ -18,10 +18,10 @@ services:
       - key: OPENAI_BASE_URL
         value: https://api.openai.com
       - key: CORS_ORIGIN
-        value: https://rauli-panaderia-app.vercel.app,https://rauli-panaderia-app.onrender.com,http://localhost:5173
+        value: https://rauli-panaderia.vercel.app,https://rauli-panaderia.onrender.com,http://localhost:5173
 
   - type: web
-    name: rauli-panaderia-app
+    name: rauli-panaderia-frontend
     runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
@@ -30,7 +30,7 @@ services:
       paths: [frontend/**]
     envVars:
       - key: VITE_API_BASE
-        value: https://rauli-panaderia-1.onrender.com/api
+        value: https://rauli-panaderia.onrender.com/api
     headers:
       - path: /*
         name: Cache-Control
