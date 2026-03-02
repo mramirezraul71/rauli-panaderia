@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database/connection.js';
 import { authMiddleware, requireRole } from './auth.js';
+import { emitAtlasEvent } from '../services/AtlasBridge.js';
 
 const router = Router();
 
@@ -111,6 +112,18 @@ router.post('/lots', authMiddleware, requireRole('admin', 'gerente', 'inventario
     createLot();
     
     const lot = db.prepare('SELECT * FROM inventory_lots WHERE id = ?').get(id);
+
+    void emitAtlasEvent({
+      message: `Lote de inventario creado: ${lot.id}`,
+      level: 'low',
+      subsystem: 'panaderia.inventory',
+      data: {
+        lot_id: lot.id,
+        product_id: lot.product_id,
+        quantity: lot.quantity
+      }
+    });
+
     res.status(201).json({ success: true, lot });
   } catch (err) {
     console.error('Error creating lot:', err);
@@ -221,6 +234,18 @@ router.post('/adjustment', authMiddleware, requireRole('admin', 'gerente', 'inve
     });
     
     adjust();
+
+    void emitAtlasEvent({
+      message: `Ajuste de inventario aplicado para producto ${product_id}`,
+      level: 'med',
+      subsystem: 'panaderia.inventory',
+      data: {
+        product_id,
+        previous_stock: previousStock,
+        new_stock: newStock,
+        adjustment: quantity
+      }
+    });
     
     res.json({ 
       success: true, 
@@ -508,6 +533,17 @@ router.post('/production/:id/complete', authMiddleware, requireRole('admin', 'ge
     completeProduction();
     
     const completedOrder = db.prepare('SELECT * FROM production_orders WHERE id = ?').get(req.params.id);
+
+    void emitAtlasEvent({
+      message: `Producción completada: ${completedOrder.id}`,
+      level: 'med',
+      subsystem: 'panaderia.production',
+      data: {
+        order_id: completedOrder.id,
+        quantity_produced: completedOrder.quantity_produced
+      }
+    });
+
     res.json({ success: true, order: completedOrder });
   } catch (err) {
     console.error('Error completing production:', err);
