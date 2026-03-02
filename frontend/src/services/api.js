@@ -8,6 +8,17 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE || '/api';
 // Estado de autenticación
 let authToken = localStorage.getItem('token');
 
+export function hasAuthToken() {
+  if (authToken) return true;
+  try {
+    const stored = localStorage.getItem('token');
+    if (stored) authToken = stored;
+    return Boolean(stored);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Cliente API con configuración de autenticación
  */

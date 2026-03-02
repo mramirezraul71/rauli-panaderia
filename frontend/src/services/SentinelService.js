@@ -9,7 +9,7 @@
 
 import localDB, { logAudit } from './dataService';
 import accountingCore from '../core/AccountingCore';
-import { inventory, products, accounting, checkBackendAvailable } from './api';
+import { inventory, products, accounting, checkBackendAvailable, hasAuthToken } from './api';
 
 const readWithMigration = (key, legacyKey) => {
   try {
@@ -254,10 +254,11 @@ class SentinelService {
     this.lastCheck = new Date().toISOString();
 
     const backendOk = await checkBackendAvailable();
+    const canUseProtectedApi = backendOk && hasAuthToken();
 
     try {
       // Verificar ecuación contable (usa API si backend disponible)
-      await this.checkAccountingBalance();
+      await this.checkAccountingBalance({ canUseProtectedApi });
 
       // Verificar integridad de asientos contables
       await this.checkJournalIntegrity();
@@ -279,10 +280,14 @@ class SentinelService {
         await this.checkCashIntegrity();
       }
 
-      // Solo llamar API de stock/vencimientos si backend responde JSON (evita HTML en cold start)
-      if (backendOk) {
+      // Solo llamar API protegida cuando backend responde JSON y existe token (evita 401 en local dev).
+      if (canUseProtectedApi) {
         await this.checkLowStock();
         await this.checkExpiringProducts();
+      } else {
+        this.alerts = this.alerts.filter(
+          a => a.type !== ALERT_TYPES.LOW_STOCK && a.type !== ALERT_TYPES.EXPIRING_PRODUCTS
+        );
       }
 
       // Verificar estado de conexión
@@ -311,9 +316,9 @@ class SentinelService {
   }
 
   // Verificar ecuación contable (usa API si backend disponible, sino local)
-  async checkAccountingBalance() {
+  async checkAccountingBalance({ canUseProtectedApi = false } = {}) {
     try {
-      if (await checkBackendAvailable()) {
+      if (canUseProtectedApi) {
         const { data } = await accounting.balanceCheck();
         if (data.balanced === false) {
           this.addAlert(
@@ -606,6 +611,10 @@ class SentinelService {
 
   // Verificar productos con stock bajo (usa API con token para evitar 401)
   async checkLowStock() {
+    if (!hasAuthToken()) {
+      this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.LOW_STOCK);
+      return;
+    }
     try {
       const res = await products.lowStock();
       const lowStockProducts = (res?.data?.products) || [];
@@ -625,6 +634,10 @@ class SentinelService {
 
   // Verificar productos por vencer (usa API con token para evitar 401)
   async checkExpiringProducts() {
+    if (!hasAuthToken()) {
+      this.alerts = this.alerts.filter(a => a.type !== ALERT_TYPES.EXPIRING_PRODUCTS);
+      return;
+    }
     try {
       const res = await inventory.expiringLots(7);
       const expiringLots = (res?.data?.lots) || [];

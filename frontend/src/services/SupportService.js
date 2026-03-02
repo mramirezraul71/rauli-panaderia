@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
 
 let consoleInitialized = false;
 let consoleBuffer = [];
+let emitScheduled = false;
 
 const readJSON = (key, fallback) => {
   try {
@@ -30,6 +31,15 @@ const emitUpdate = () => {
   try {
     window.dispatchEvent(new CustomEvent("support-updated"));
   } catch {}
+};
+
+const scheduleEmitUpdate = () => {
+  if (emitScheduled) return;
+  emitScheduled = true;
+  setTimeout(() => {
+    emitScheduled = false;
+    emitUpdate();
+  }, 0);
 };
 
 const serializeArgs = (args) =>
@@ -57,7 +67,8 @@ export const SupportService = {
           };
           consoleBuffer = [...consoleBuffer, entry].slice(-50);
           writeJSON(STORAGE_KEYS.console, consoleBuffer);
-          emitUpdate();
+          // Avoid synchronous state updates while React is rendering.
+          scheduleEmitUpdate();
         } catch {}
         return original.apply(console, args);
       };
