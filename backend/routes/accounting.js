@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GENESIS - Accounting Routes
  */
 
@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database/connection.js';
 import { createExpenseEntry } from '../services/accounting.js';
+import { routeAccountingEvent } from '../services/AccountingGovernance.js';
 import { authMiddleware, requireRole } from './auth.js';
 
 const router = Router();
@@ -34,6 +35,36 @@ const ensureExpensesTable = () => {
   }
 };
 
+const ensureInvestmentTables = () => {
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS investment_config (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        total_amount REAL NOT NULL,
+        recovered_amount REAL DEFAULT 0,
+        description TEXT,
+        start_date TEXT,
+        target_date TEXT,
+        return_percentage REAL DEFAULT 5,
+        profit_percentage REAL DEFAULT 10,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS investment_amortizations (
+        id TEXT PRIMARY KEY,
+        amount REAL NOT NULL,
+        source TEXT,
+        reference TEXT,
+        date TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+    `);
+  } catch (err) {
+    console.error('Error ensuring investment tables:', err);
+  }
+};
+
 // ==================== CUENTAS CONTABLES ====================
 
 // GET /api/accounting/accounts - Plan de cuentas
@@ -54,19 +85,35 @@ router.get('/accounts', authMiddleware, (req, res) => {
 });
 
 // POST /api/accounting/accounts
-router.post('/accounts', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
+router.post('/accounts', authMiddleware, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const { code, name, type, parent_id } = req.body;
     
     if (!code || !name || !type) {
-      return res.status(400).json({ error: true, message: 'Código, nombre y tipo son requeridos' });
+      return res.status(400).json({ error: true, message: 'CÃ³digo, nombre y tipo son requeridos' });
     }
     
     const existing = db.prepare('SELECT id FROM accounts WHERE code = ?').get(code);
     if (existing) {
-      return res.status(400).json({ error: true, message: 'Código de cuenta ya existe' });
+      return res.status(400).json({ error: true, message: 'CÃ³digo de cuenta ya existe' });
     }
     
+    const governance = await routeAccountingEvent({
+      action: 'account_create',
+      mode: 'manual',
+      amount: 0,
+      actor_id: req.user?.id,
+      payload: { code, type }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
+      });
+    }
+
     const id = uuidv4();
     db.prepare(`
       INSERT INTO accounts (id, code, name, type, parent_id)
@@ -74,7 +121,7 @@ router.post('/accounts', authMiddleware, requireRole('admin', 'gerente'), (req, 
     `).run(id, code, name, type, parent_id);
     
     const account = db.prepare('SELECT * FROM accounts WHERE id = ?').get(id);
-    res.status(201).json({ success: true, account });
+    res.status(201).json({ success: true, account, atlas_decision: governance });
   } catch (err) {
     res.status(500).json({ error: true, message: 'Error al crear cuenta' });
   }
@@ -115,7 +162,7 @@ router.get('/entries', authMiddleware, (req, res) => {
     
     const entries = db.prepare(sql).all(...params);
     
-    // Obtener líneas de cada asiento
+    // Obtener lÃ­neas de cada asiento
     const getLines = db.prepare(`
       SELECT jl.*, a.code as account_code, a.name as account_name
       FROM journal_lines jl
@@ -161,12 +208,12 @@ router.get('/entries/:id', authMiddleware, (req, res) => {
 });
 
 // POST /api/accounting/entries - Crear asiento manual
-router.post('/entries', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
+router.post('/entries', authMiddleware, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const { date, description, lines, reference_type, reference_id } = req.body;
     
     if (!date || !description || !lines || lines.length < 2) {
-      return res.status(400).json({ error: true, message: 'Datos incompletos (mínimo 2 líneas)' });
+      return res.status(400).json({ error: true, message: 'Datos incompletos (mÃ­nimo 2 lÃ­neas)' });
     }
     
     // Verificar balance
@@ -174,12 +221,32 @@ router.post('/entries', authMiddleware, requireRole('admin', 'gerente'), (req, r
     const totalCredit = lines.reduce((sum, l) => sum + (l.credit || 0), 0);
     
     if (Math.abs(totalDebit - totalCredit) > 0.01) {
-      return res.status(400).json({ error: true, message: 'El asiento no está balanceado' });
+      return res.status(400).json({ error: true, message: 'El asiento no estÃ¡ balanceado' });
     }
     
+    const governance = await routeAccountingEvent({
+      action: 'journal_entry_manual',
+      mode: 'manual',
+      amount: totalDebit,
+      actor_id: req.user?.id,
+      payload: {
+        description,
+        reference_type: reference_type || 'manual',
+        reference_id: reference_id || null
+      }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
+      });
+    }
+
     const id = uuidv4();
     
-    // Obtener siguiente número de asiento
+    // Obtener siguiente nÃºmero de asiento
     const lastEntry = db.prepare('SELECT MAX(entry_number) as max FROM journal_entries').get();
     const entryNumber = (lastEntry.max || 0) + 1;
     
@@ -220,7 +287,7 @@ router.post('/entries', authMiddleware, requireRole('admin', 'gerente'), (req, r
     const entry = db.prepare('SELECT * FROM journal_entries WHERE id = ?').get(id);
     entry.lines = db.prepare('SELECT * FROM journal_lines WHERE entry_id = ?').all(id);
     
-    res.status(201).json({ success: true, entry });
+    res.status(201).json({ success: true, entry, atlas_decision: governance });
   } catch (err) {
     console.error('Error creating journal entry:', err);
     res.status(500).json({ error: true, message: 'Error al crear asiento' });
@@ -228,17 +295,33 @@ router.post('/entries', authMiddleware, requireRole('admin', 'gerente'), (req, r
 });
 
 // POST /api/accounting/expenses - Registrar gasto / salida de caja
-router.post('/expenses', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
+router.post('/expenses', authMiddleware, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     ensureExpensesTable();
     const { date, vendor, category, description, amount, payment_method, account_code } = req.body;
 
     const numericAmount = Number(amount);
     if (!numericAmount || numericAmount <= 0) {
-      return res.status(400).json({ error: true, message: 'Monto inválido' });
+      return res.status(400).json({ error: true, message: 'Monto invÃ¡lido' });
     }
     if (!description && !category) {
-      return res.status(400).json({ error: true, message: 'Descripción o categoría requerida' });
+      return res.status(400).json({ error: true, message: 'DescripciÃ³n o categorÃ­a requerida' });
+    }
+
+    const governance = await routeAccountingEvent({
+      action: 'expense_manual',
+      mode: 'manual',
+      amount: numericAmount,
+      actor_id: req.user?.id,
+      payload: { category, description, payment_method }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
+      });
     }
 
     const id = uuidv4();
@@ -280,14 +363,19 @@ router.post('/expenses', authMiddleware, requireRole('admin', 'gerente'), (req, 
     });
 
     const entryId = createExpense();
-    res.status(201).json({ success: true, expense_id: id, journal_entry_id: entryId });
+    res.status(201).json({
+      success: true,
+      expense_id: id,
+      journal_entry_id: entryId,
+      atlas_decision: governance
+    });
   } catch (err) {
     console.error('Error creating expense:', err);
     res.status(500).json({ error: true, message: 'Error al registrar gasto' });
   }
 });
 
-// ==================== CONCILIACIÓN BANCARIA ====================
+// ==================== CONCILIACIÃ“N BANCARIA ====================
 
 // GET /api/accounting/bank-accounts
 router.get('/bank-accounts', authMiddleware, (req, res) => {
@@ -370,15 +458,15 @@ router.post('/bank-transactions', authMiddleware, requireRole('admin', 'gerente'
     const transaction = db.prepare('SELECT * FROM bank_transactions WHERE id = ?').get(id);
     res.status(201).json({ success: true, transaction });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al crear transacción' });
+    res.status(500).json({ error: true, message: 'Error al crear transacciÃ³n' });
   }
 });
 
-// POST /api/accounting/reconcile - Conciliar transacción
-router.post('/reconcile', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
+// POST /api/accounting/reconcile - Conciliar transacciÃ³n
+router.post('/reconcile', authMiddleware, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const { transaction_id, journal_entry_id } = req.body;
-    
+
     db.prepare(`
       UPDATE bank_transactions SET
         reconciled = 1,
@@ -386,8 +474,20 @@ router.post('/reconcile', authMiddleware, requireRole('admin', 'gerente'), (req,
         reconciled_at = datetime('now')
       WHERE id = ?
     `).run(journal_entry_id, transaction_id);
-    
-    res.json({ success: true, message: 'Transacción conciliada' });
+
+    const governance = await routeAccountingEvent({
+      action: 'reconcile_manual',
+      mode: 'manual',
+      amount: 0,
+      actor_id: req.user?.id,
+      payload: { transaction_id, journal_entry_id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Transaccion conciliada',
+      atlas_decision: governance
+    });
   } catch (err) {
     res.status(500).json({ error: true, message: 'Error al conciliar' });
   }
@@ -497,7 +597,7 @@ router.get('/reports/tax-summary', authMiddleware, (req, res) => {
     const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
     const endDate = new Date(targetYear, targetMonth, 0).toISOString().split('T')[0];
     
-    // Ventas del período
+    // Ventas del perÃ­odo
     const salesSummary = db.prepare(`
       SELECT 
         COUNT(*) as total_sales,
@@ -508,7 +608,7 @@ router.get('/reports/tax-summary', authMiddleware, (req, res) => {
       WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'completed'
     `).get(startDate, endDate);
     
-    // Ventas por método de pago
+    // Ventas por mÃ©todo de pago
     const byPaymentMethod = db.prepare(`
       SELECT 
         payment_method,
@@ -553,7 +653,7 @@ router.get('/dashboard', authMiddleware, (req, res) => {
       GROUP BY type
     `).all();
     
-    // Últimos asientos
+    // Ãšltimos asientos
     const recentEntries = db.prepare(`
       SELECT je.*, 
         (SELECT SUM(debit) FROM journal_lines WHERE entry_id = je.id) as total_amount
@@ -583,7 +683,7 @@ router.get('/dashboard', authMiddleware, (req, res) => {
   }
 });
 
-// ==================== VERIFICACIÓN DE ECUACIÓN CONTABLE ====================
+// ==================== VERIFICACIÃ“N DE ECUACIÃ“N CONTABLE ====================
 
 // GET /api/accounting/balance-check - Verificar A = P + C
 router.get('/balance-check', authMiddleware, (req, res) => {
@@ -621,7 +721,7 @@ router.get('/balance-check', authMiddleware, (req, res) => {
     });
   } catch (err) {
     console.error('Error verificando balance:', err);
-    res.status(500).json({ error: true, message: 'Error al verificar ecuación contable' });
+    res.status(500).json({ error: true, message: 'Error al verificar ecuaciÃ³n contable' });
   }
 });
 
@@ -703,7 +803,7 @@ router.get('/income-statement', authMiddleware, (req, res) => {
 // ==================== CRUD COMPLETO DE CUENTAS ====================
 
 // PUT /api/accounting/accounts/:id - Actualizar cuenta
-router.put('/accounts/:id', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
+router.put('/accounts/:id', authMiddleware, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const { id } = req.params;
     const { code, name, type, parent_id } = req.body;
@@ -718,14 +818,30 @@ router.put('/accounts/:id', authMiddleware, requireRole('admin', 'gerente'), (re
       return res.status(400).json({ error: true, message: 'No se pueden modificar cuentas del sistema' });
     }
     
-    // Verificar código único si cambió
+    // Verificar cÃ³digo Ãºnico si cambiÃ³
     if (code && code !== account.code) {
       const existing = db.prepare('SELECT id FROM accounts WHERE code = ? AND id != ?').get(code, id);
       if (existing) {
-        return res.status(400).json({ error: true, message: 'Código de cuenta ya existe' });
+        return res.status(400).json({ error: true, message: 'CÃ³digo de cuenta ya existe' });
       }
     }
     
+    const governance = await routeAccountingEvent({
+      action: 'account_update',
+      mode: 'manual',
+      amount: 0,
+      actor_id: req.user?.id,
+      payload: { id, code, type }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
+      });
+    }
+
     db.prepare(`
       UPDATE accounts SET
         code = COALESCE(?, code),
@@ -737,14 +853,14 @@ router.put('/accounts/:id', authMiddleware, requireRole('admin', 'gerente'), (re
     `).run(code, name, type, parent_id, id);
     
     const updated = db.prepare('SELECT * FROM accounts WHERE id = ?').get(id);
-    res.json({ success: true, account: updated });
+    res.json({ success: true, account: updated, atlas_decision: governance });
   } catch (err) {
     res.status(500).json({ error: true, message: 'Error al actualizar cuenta' });
   }
 });
 
 // DELETE /api/accounting/accounts/:id - Eliminar cuenta
-router.delete('/accounts/:id', authMiddleware, requireRole('admin'), (req, res) => {
+router.delete('/accounts/:id', authMiddleware, requireRole('admin'), async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -767,18 +883,35 @@ router.delete('/accounts/:id', authMiddleware, requireRole('admin'), (req, res) 
       return res.status(400).json({ error: true, message: 'No se puede eliminar una cuenta con movimientos' });
     }
     
+    const governance = await routeAccountingEvent({
+      action: 'account_delete',
+      mode: 'manual',
+      amount: 0,
+      actor_id: req.user?.id,
+      payload: { id, code: account.code }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
+      });
+    }
+
     db.prepare('UPDATE accounts SET active = 0 WHERE id = ?').run(id);
-    res.json({ success: true, message: 'Cuenta eliminada' });
+    res.json({ success: true, message: 'Cuenta eliminada', atlas_decision: governance });
   } catch (err) {
     res.status(500).json({ error: true, message: 'Error al eliminar cuenta' });
   }
 });
 
-// ==================== SISTEMA DE INVERSIÓN Y AMORTIZACIÓN ====================
+// ==================== SISTEMA DE INVERSIÃ“N Y AMORTIZACIÃ“N ====================
 
-// GET /api/accounting/investment - Obtener configuración de inversión
+// GET /api/accounting/investment - Obtener configuraciÃ³n de inversiÃ³n
 router.get('/investment', authMiddleware, (req, res) => {
   try {
+    ensureInvestmentTables();
     const investment = db.prepare(`
       SELECT * FROM investment_config WHERE id = 1
     `).get();
@@ -787,7 +920,7 @@ router.get('/investment', authMiddleware, (req, res) => {
       return res.json({ 
         success: true, 
         investment: null,
-        message: 'No hay inversión configurada'
+        message: 'No hay inversiÃ³n configurada'
       });
     }
     
@@ -806,12 +939,12 @@ router.get('/investment', authMiddleware, (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al obtener inversión' });
+    res.status(500).json({ error: true, message: 'Error al obtener inversiÃ³n' });
   }
 });
 
-// POST /api/accounting/investment - Crear/Configurar inversión
-router.post('/investment', authMiddleware, requireRole('admin'), (req, res) => {
+// POST /api/accounting/investment - Crear/Configurar inversiÃ³n
+router.post('/investment', authMiddleware, requireRole('admin'), async (req, res) => {
   try {
     const { 
       total_amount, 
@@ -823,33 +956,10 @@ router.post('/investment', authMiddleware, requireRole('admin'), (req, res) => {
     } = req.body;
     
     if (!total_amount || total_amount <= 0) {
-      return res.status(400).json({ error: true, message: 'Monto de inversión inválido' });
+      return res.status(400).json({ error: true, message: 'Monto de inversiÃ³n invÃ¡lido' });
     }
     
-    // Crear tabla si no existe
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS investment_config (
-        id INTEGER PRIMARY KEY DEFAULT 1,
-        total_amount REAL NOT NULL,
-        recovered_amount REAL DEFAULT 0,
-        description TEXT,
-        start_date TEXT,
-        target_date TEXT,
-        return_percentage REAL DEFAULT 5,
-        profit_percentage REAL DEFAULT 10,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now'))
-      );
-      
-      CREATE TABLE IF NOT EXISTS investment_amortizations (
-        id TEXT PRIMARY KEY,
-        amount REAL NOT NULL,
-        source TEXT,
-        reference TEXT,
-        date TEXT NOT NULL,
-        created_at TEXT DEFAULT (datetime('now'))
-      );
-    `);
+    ensureInvestmentTables();
     
     // Verificar si ya existe
     const existing = db.prepare('SELECT id FROM investment_config WHERE id = 1').get();
@@ -857,7 +967,23 @@ router.post('/investment', authMiddleware, requireRole('admin'), (req, res) => {
     if (existing) {
       return res.status(400).json({ 
         error: true, 
-        message: 'Ya existe una inversión configurada. Use PUT para actualizar.' 
+        message: 'Ya existe una inversiÃ³n configurada. Use PUT para actualizar.' 
+      });
+    }
+
+    const governance = await routeAccountingEvent({
+      action: 'investment_create',
+      mode: 'manual',
+      amount: Number(total_amount || 0),
+      actor_id: req.user?.id,
+      payload: { description, start_date, target_date }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
       });
     }
     
@@ -867,15 +993,15 @@ router.post('/investment', authMiddleware, requireRole('admin'), (req, res) => {
     `).run(total_amount, description, start_date, target_date, return_percentage || 5, profit_percentage || 10);
     
     const investment = db.prepare('SELECT * FROM investment_config WHERE id = 1').get();
-    res.status(201).json({ success: true, investment });
+    res.status(201).json({ success: true, investment, atlas_decision: governance });
   } catch (err) {
-    console.error('Error creando inversión:', err);
-    res.status(500).json({ error: true, message: 'Error al crear inversión' });
+    console.error('Error creando inversiÃ³n:', err);
+    res.status(500).json({ error: true, message: 'Error al crear inversiÃ³n' });
   }
 });
 
-// PUT /api/accounting/investment - Actualizar inversión
-router.put('/investment', authMiddleware, requireRole('admin'), (req, res) => {
+// PUT /api/accounting/investment - Actualizar inversiÃ³n
+router.put('/investment', authMiddleware, requireRole('admin'), async (req, res) => {
   try {
     const { 
       total_amount, 
@@ -885,6 +1011,24 @@ router.put('/investment', authMiddleware, requireRole('admin'), (req, res) => {
       profit_percentage 
     } = req.body;
     
+    ensureInvestmentTables();
+
+    const governance = await routeAccountingEvent({
+      action: 'investment_update',
+      mode: 'manual',
+      amount: Number(total_amount || 0),
+      actor_id: req.user?.id,
+      payload: { description, target_date }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
+      });
+    }
+
     db.prepare(`
       UPDATE investment_config SET
         total_amount = COALESCE(?, total_amount),
@@ -897,38 +1041,56 @@ router.put('/investment', authMiddleware, requireRole('admin'), (req, res) => {
     `).run(total_amount, description, target_date, return_percentage, profit_percentage);
     
     const investment = db.prepare('SELECT * FROM investment_config WHERE id = 1').get();
-    res.json({ success: true, investment });
+    res.json({ success: true, investment, atlas_decision: governance });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al actualizar inversión' });
+    res.status(500).json({ error: true, message: 'Error al actualizar inversiÃ³n' });
   }
 });
 
-// POST /api/accounting/investment/amortization - Registrar amortización
-router.post('/investment/amortization', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
+// POST /api/accounting/investment/amortization - Registrar amortizaciÃ³n
+router.post('/investment/amortization', authMiddleware, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const { amount, source, reference, date } = req.body;
     
+    ensureInvestmentTables();
+
     if (!amount || amount <= 0) {
-      return res.status(400).json({ error: true, message: 'Monto inválido' });
+      return res.status(400).json({ error: true, message: 'Monto invÃ¡lido' });
     }
     
     const investment = db.prepare('SELECT * FROM investment_config WHERE id = 1').get();
     if (!investment) {
-      return res.status(400).json({ error: true, message: 'No hay inversión configurada' });
+      return res.status(400).json({ error: true, message: 'No hay inversiÃ³n configurada' });
     }
     
     const remaining = investment.total_amount - investment.recovered_amount;
     const actualAmount = Math.min(amount, remaining);
     
     if (actualAmount <= 0) {
-      return res.status(400).json({ error: true, message: 'La inversión ya está completamente recuperada' });
+      return res.status(400).json({ error: true, message: 'La inversiÃ³n ya estÃ¡ completamente recuperada' });
     }
     
+    const governance = await routeAccountingEvent({
+      action: 'investment_amortization',
+      mode: 'manual',
+      amount: Number(actualAmount || 0),
+      actor_id: req.user?.id,
+      payload: { source, reference }
+    });
+    if (governance.requires_owner_approval) {
+      return res.status(202).json({
+        success: true,
+        pending_approval: true,
+        atlas_decision: governance,
+        message: governance.user_message
+      });
+    }
+
     const id = uuidv4();
     const amortDate = date || new Date().toISOString().split('T')[0];
     
     const recordAmortization = db.transaction(() => {
-      // Registrar amortización
+      // Registrar amortizaciÃ³n
       db.prepare(`
         INSERT INTO investment_amortizations (id, amount, source, reference, date)
         VALUES (?, ?, ?, ?, ?)
@@ -951,15 +1113,16 @@ router.post('/investment/amortization', authMiddleware, requireRole('admin', 'ge
     res.status(201).json({ 
       success: true, 
       amortization,
-      investment: updatedInvestment
+      investment: updatedInvestment,
+      atlas_decision: governance
     });
   } catch (err) {
-    console.error('Error registrando amortización:', err);
-    res.status(500).json({ error: true, message: 'Error al registrar amortización' });
+    console.error('Error registrando amortizaciÃ³n:', err);
+    res.status(500).json({ error: true, message: 'Error al registrar amortizaciÃ³n' });
   }
 });
 
-// ==================== DATOS PARA GRÁFICOS ====================
+// ==================== DATOS PARA GRÃFICOS ====================
 
 // GET /api/accounting/cash-balance - Balance real en caja/bancos
 router.get('/cash-balance', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
@@ -987,7 +1150,7 @@ router.get('/cash-balance', authMiddleware, requireRole('admin', 'gerente'), (re
   }
 });
 
-// GET /api/accounting/charts/income-expense - Datos para gráfico ingresos vs gastos
+// GET /api/accounting/charts/income-expense - Datos para grÃ¡fico ingresos vs gastos
 router.get('/charts/income-expense', authMiddleware, (req, res) => {
   try {
     const { months = 6 } = req.query;
@@ -1006,7 +1169,7 @@ router.get('/charts/income-expense', authMiddleware, (req, res) => {
         WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'completed'
       `).get(startDate, endDate);
       
-      // Simular gastos (en producción vendría de asientos contables)
+      // Simular gastos (en producciÃ³n vendrÃ­a de asientos contables)
       const expenses = db.prepare(`
         SELECT COALESCE(SUM(jl.debit), 0) as total
         FROM journal_lines jl
@@ -1028,11 +1191,11 @@ router.get('/charts/income-expense', authMiddleware, (req, res) => {
     
     res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al obtener datos de gráfico' });
+    res.status(500).json({ error: true, message: 'Error al obtener datos de grÃ¡fico' });
   }
 });
 
-// GET /api/accounting/charts/expense-distribution - Distribución de gastos
+// GET /api/accounting/charts/expense-distribution - DistribuciÃ³n de gastos
 router.get('/charts/expense-distribution', authMiddleware, (req, res) => {
   try {
     const expenses = db.prepare(`
@@ -1045,8 +1208,9 @@ router.get('/charts/expense-distribution', authMiddleware, (req, res) => {
     
     res.json({ success: true, data: expenses });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al obtener distribución de gastos' });
+    res.status(500).json({ error: true, message: 'Error al obtener distribuciÃ³n de gastos' });
   }
 });
 
 export default router;
+

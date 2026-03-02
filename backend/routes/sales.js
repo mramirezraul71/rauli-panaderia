@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import db from '../database/connection.js';
 import { authMiddleware } from './auth.js';
 import { createSaleJournalEntry, reverseEntry } from '../services/accounting.js';
-import { emitAtlasEvent } from '../services/AtlasBridge.js';
+import { routeAccountingEvent } from '../services/AccountingGovernance.js';
 
 const router = Router();
 
@@ -295,13 +295,13 @@ router.post('/', authMiddleware, (req, res) => {
     const sale = db.prepare('SELECT * FROM sales WHERE id = ?').get(saleId);
     sale.items = db.prepare('SELECT * FROM sale_items WHERE sale_id = ?').all(saleId);
 
-    void emitAtlasEvent({
-      message: `Venta registrada: ${sale.id}`,
-      level: 'low',
-      subsystem: 'panaderia.sales',
-      data: {
+    void routeAccountingEvent({
+      action: 'sale_auto_post',
+      mode: 'auto',
+      amount: Number(sale.total || 0),
+      actor_id: req.user?.id,
+      payload: {
         sale_id: sale.id,
-        total: sale.total,
         payment_method: sale.payment_method
       }
     });
@@ -363,13 +363,12 @@ router.post('/:id/cancel', authMiddleware, (req, res) => {
     
     cancelSale();
 
-    void emitAtlasEvent({
-      message: `Venta cancelada: ${req.params.id}`,
-      level: 'med',
-      subsystem: 'panaderia.sales',
-      data: {
-        sale_id: req.params.id
-      }
+    void routeAccountingEvent({
+      action: 'sale_auto_reversal',
+      mode: 'auto',
+      amount: Number(sale.total || 0),
+      actor_id: req.user?.id,
+      payload: { sale_id: req.params.id }
     });
     
     res.json({ success: true, message: 'Venta cancelada' });

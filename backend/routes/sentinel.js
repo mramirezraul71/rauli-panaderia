@@ -1,34 +1,54 @@
-/**
+﻿/**
  * GENESIS - Sentinel Routes
- * API endpoints para el sistema de monitoreo Centinela
+ * API endpoints for health monitoring.
  */
 
 import { Router } from 'express';
-import { authMiddleware, requireRole } from './auth.js';
+import { authMiddleware } from './auth.js';
+import * as SentinelService from '../services/SentinelService.js';
 
 const router = Router();
 
-// Importar servicio (usando require para compatibilidad)
-let SentinelService;
-try {
-  SentinelService = require('../services/SentinelService.js');
-} catch (e) {
-  console.log('SentinelService will be loaded dynamically');
-}
+const quickStatus = async () => {
+  const accountingCheck = await SentinelService.checkAccountingEquation();
+  const stockCheck = await SentinelService.checkCriticalStock();
 
-// GET /api/sentinel/diagnostic - Diagnóstico completo
-router.get('/diagnostic', authMiddleware, async (req, res) => {
-  try {
-    if (!SentinelService) {
-      SentinelService = require('../services/SentinelService.js');
+  let status = 'green';
+  if (accountingCheck.status === 'red' || stockCheck.status === 'red') {
+    status = 'red';
+  } else if (accountingCheck.status === 'yellow' || stockCheck.status === 'yellow') {
+    status = 'yellow';
+  }
+
+  return {
+    status,
+    quickChecks: {
+      accounting: accountingCheck.status,
+      stock: stockCheck.status
     }
+  };
+};
+
+// GET /api/sentinel/health - Cheap health endpoint (no auth)
+router.get('/health', async (_req, res) => {
+  try {
+    const result = await quickStatus();
+    res.json({ success: true, ...result, timestamp: new Date().toISOString() });
+  } catch {
+    res.json({ success: true, status: 'yellow', timestamp: new Date().toISOString() });
+  }
+});
+
+// GET /api/sentinel/diagnostic - Full diagnostic
+router.get('/diagnostic', authMiddleware, async (_req, res) => {
+  try {
     const diagnostic = await SentinelService.runFullDiagnostic();
     res.json({ success: true, diagnostic });
   } catch (error) {
     console.error('Sentinel diagnostic error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Error ejecutando diagnóstico',
+    res.status(500).json({
+      success: false,
+      error: 'Error ejecutando diagnostico',
       diagnostic: {
         overallStatus: 'red',
         checks: [],
@@ -38,58 +58,30 @@ router.get('/diagnostic', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/sentinel/status - Estado rápido (para polling)
-router.get('/status', authMiddleware, async (req, res) => {
+// GET /api/sentinel/status - Quick poll status
+router.get('/status', authMiddleware, async (_req, res) => {
   try {
-    if (!SentinelService) {
-      SentinelService = require('../services/SentinelService.js');
-    }
-    
-    // Ejecutar checks críticos solamente
-    const accountingCheck = await SentinelService.checkAccountingEquation();
-    const stockCheck = await SentinelService.checkCriticalStock();
-    
-    let status = 'green';
-    if (accountingCheck.status === 'red' || stockCheck.status === 'red') {
-      status = 'red';
-    } else if (accountingCheck.status === 'yellow' || stockCheck.status === 'yellow') {
-      status = 'yellow';
-    }
-
-    res.json({ 
-      success: true, 
-      status,
-      quickChecks: {
-        accounting: accountingCheck.status,
-        stock: stockCheck.status
-      },
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
+    const result = await quickStatus();
+    res.json({ success: true, ...result, timestamp: new Date().toISOString() });
+  } catch {
     res.json({ success: true, status: 'yellow', timestamp: new Date().toISOString() });
   }
 });
 
-// GET /api/sentinel/alerts - Historial de alertas
+// GET /api/sentinel/alerts - Alert history
 router.get('/alerts', authMiddleware, async (req, res) => {
   try {
-    if (!SentinelService) {
-      SentinelService = require('../services/SentinelService.js');
-    }
-    const limit = parseInt(req.query.limit) || 50;
+    const limit = parseInt(req.query.limit, 10) || 50;
     const alerts = await SentinelService.getAlertHistory(limit);
     res.json({ success: true, alerts });
-  } catch (error) {
+  } catch {
     res.json({ success: true, alerts: [] });
   }
 });
 
-// POST /api/sentinel/alerts/:id/acknowledge - Marcar alerta como vista
+// POST /api/sentinel/alerts/:id/acknowledge - Ack alert
 router.post('/alerts/:id/acknowledge', authMiddleware, async (req, res) => {
   try {
-    if (!SentinelService) {
-      SentinelService = require('../services/SentinelService.js');
-    }
     const result = await SentinelService.acknowledgeAlert(req.params.id);
     res.json({ success: result });
   } catch (error) {
@@ -97,12 +89,9 @@ router.post('/alerts/:id/acknowledge', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/sentinel/metrics - Métricas del sistema
-router.get('/metrics', authMiddleware, async (req, res) => {
+// GET /api/sentinel/metrics - System metrics
+router.get('/metrics', authMiddleware, async (_req, res) => {
   try {
-    if (!SentinelService) {
-      SentinelService = require('../services/SentinelService.js');
-    }
     const metrics = await SentinelService.getSystemMetrics();
     res.json({ success: true, metrics });
   } catch (error) {

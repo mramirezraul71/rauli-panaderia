@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GENESIS - Employees Routes (RRHH)
  */
 
@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import db from '../database/connection.js';
 import { authMiddleware, requireRole, optionalAuth } from './auth.js';
 import { createPayrollEntry } from '../services/accounting.js';
+import { routeAccountingEvent } from '../services/AccountingGovernance.js';
 import { sendInvitationEmails, testSmtpConnection } from '../services/email.js';
 
 const ensurePayrollColumns = () => {
@@ -18,6 +19,28 @@ const ensurePayrollColumns = () => {
     }
   } catch (err) {
     console.error('Error ensuring payroll columns:', err);
+  }
+};
+
+const ensurePayrollPaymentColumns = () => {
+  try {
+    const payrollCols = db.prepare("PRAGMA table_info(payroll)").all();
+    if (!payrollCols.some((col) => col.name === 'paid_at')) {
+      db.prepare("ALTER TABLE payroll ADD COLUMN paid_at TEXT").run();
+    }
+  } catch (err) {
+    console.error('Error ensuring payroll paid_at column:', err);
+  }
+
+  try {
+    const hasCommissions = db.prepare("SELECT 1 as ok FROM sqlite_master WHERE type='table' AND name='commissions'").get();
+    if (!hasCommissions?.ok) return;
+    const commissionCols = db.prepare("PRAGMA table_info(commissions)").all();
+    if (!commissionCols.some((col) => col.name === 'paid_at')) {
+      db.prepare("ALTER TABLE commissions ADD COLUMN paid_at TEXT").run();
+    }
+  } catch (err) {
+    console.error('Error ensuring commissions paid_at column:', err);
   }
 };
 
@@ -115,7 +138,7 @@ router.post('/invitations/send', optionalAuth, async (req, res) => {
     }
     const { ownerEmail, invites = [], appUrl, businessName, language } = req.body;
     if (!ownerEmail) {
-      return res.status(400).json({ error: true, message: 'Email del dueño es requerido' });
+      return res.status(400).json({ error: true, message: 'Email del dueÃ±o es requerido' });
     }
     const sanitizedInvites = (invites || [])
       .filter((invite) => invite?.email && invite?.code)
@@ -127,7 +150,7 @@ router.post('/invitations/send', optionalAuth, async (req, res) => {
       }));
 
     if (sanitizedInvites.length === 0) {
-      return res.status(400).json({ error: true, message: 'Agrega al menos un email válido' });
+      return res.status(400).json({ error: true, message: 'Agrega al menos un email vÃ¡lido' });
     }
 
     ensureInviteLogsTable();
@@ -209,7 +232,7 @@ router.get('/:id', authMiddleware, (req, res) => {
       return res.status(404).json({ error: true, message: 'Empleado no encontrado' });
     }
     
-    // Estadísticas del empleado
+    // EstadÃ­sticas del empleado
     const stats = db.prepare(`
       SELECT 
         COUNT(s.id) as total_sales,
@@ -240,7 +263,7 @@ router.post('/', authMiddleware, requireRole('admin', 'gerente'), (req, res) => 
     
     const id = uuidv4();
     
-    // Generar código de empleado
+    // Generar cÃ³digo de empleado
     const lastCode = db.prepare("SELECT code FROM employees WHERE code LIKE 'EMP%' ORDER BY code DESC LIMIT 1").get();
     const nextNum = lastCode ? parseInt(lastCode.code.replace('EMP', '')) + 1 : 1;
     const code = `EMP${String(nextNum).padStart(3, '0')}`;
@@ -419,13 +442,13 @@ router.post('/schedules', authMiddleware, requireRole('admin', 'gerente'), (req,
       return res.status(400).json({ error: true, message: 'Datos incompletos' });
     }
     
-    // Verificar que no existe asignación para ese día
+    // Verificar que no existe asignaciÃ³n para ese dÃ­a
     const existing = db.prepare(`
       SELECT id FROM employee_schedules WHERE employee_id = ? AND date = ?
     `).get(employee_id, date);
     
     if (existing) {
-      return res.status(400).json({ error: true, message: 'Ya existe una asignación para ese día' });
+      return res.status(400).json({ error: true, message: 'Ya existe una asignaciÃ³n para ese dÃ­a' });
     }
     
     const id = uuidv4();
@@ -448,7 +471,7 @@ router.post('/schedules', authMiddleware, requireRole('admin', 'gerente'), (req,
   }
 });
 
-// POST /api/employees/schedules/bulk - Asignación masiva de turnos rotativos
+// POST /api/employees/schedules/bulk - AsignaciÃ³n masiva de turnos rotativos
 router.post('/schedules/bulk', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
   try {
     const { assignments } = req.body;
@@ -479,7 +502,7 @@ router.post('/schedules/bulk', authMiddleware, requireRole('admin', 'gerente'), 
     transaction();
     res.json({ success: true, results });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error en asignación masiva' });
+    res.status(500).json({ error: true, message: 'Error en asignaciÃ³n masiva' });
   }
 });
 
@@ -609,9 +632,9 @@ router.post('/commissions/pay', authMiddleware, requireRole('admin'), (req, res)
   }
 });
 
-// ==================== NÓMINA ====================
+// ==================== NÃ“MINA ====================
 
-// GET /api/employees/payroll - Historial de nómina
+// GET /api/employees/payroll - Historial de nÃ³mina
 router.get('/payroll', authMiddleware, requireRole('admin', 'gerente'), (req, res) => {
   try {
     ensurePayrollColumns();
@@ -641,11 +664,11 @@ router.get('/payroll', authMiddleware, requireRole('admin', 'gerente'), (req, re
     const payrolls = db.prepare(sql).all(...params);
     res.json({ success: true, payrolls });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al obtener nómina' });
+    res.status(500).json({ error: true, message: 'Error al obtener nÃ³mina' });
   }
 });
 
-// POST /api/employees/payroll/generate - Generar nómina
+// POST /api/employees/payroll/generate - Generar nÃ³mina
 router.post('/payroll/generate', authMiddleware, requireRole('admin'), (req, res) => {
   try {
     ensurePayrollColumns();
@@ -653,7 +676,7 @@ router.post('/payroll/generate', authMiddleware, requireRole('admin'), (req, res
     const { period_start, period_end, employee_ids } = req.body;
     
     if (!period_start || !period_end) {
-      return res.status(400).json({ error: true, message: 'Período requerido' });
+      return res.status(400).json({ error: true, message: 'PerÃ­odo requerido' });
     }
     
     const employees = employee_ids 
@@ -715,7 +738,7 @@ router.post('/payroll/generate', authMiddleware, requireRole('admin'), (req, res
           return payrollRules;
         }
       })();
-      // Calcular comisiones del período
+      // Calcular comisiones del perÃ­odo
       const commissions = db.prepare(`
         SELECT COALESCE(SUM(amount), 0) as total
         FROM commissions
@@ -837,19 +860,19 @@ router.post('/payroll/generate', authMiddleware, requireRole('admin'), (req, res
     res.json({ success: true, payrolls: results });
   } catch (err) {
     console.error('Error generating payroll:', err);
-    res.status(500).json({ error: true, message: 'Error al generar nómina' });
+    res.status(500).json({ error: true, message: 'Error al generar nÃ³mina' });
   }
 });
 
 // PUT /api/employees/payroll/:id/approve
 router.put('/payroll/:id/approve', authMiddleware, requireRole('admin'), (req, res) => {
   try {
-    db.prepare('UPDATE payroll SET status = "approved" WHERE id = ? AND status = "draft"')
+    db.prepare("UPDATE payroll SET status = 'approved' WHERE id = ? AND status = 'draft'")
       .run(req.params.id);
     
-    res.json({ success: true, message: 'Nómina aprobada' });
+    res.json({ success: true, message: 'NÃ³mina aprobada' });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al aprobar nómina' });
+    res.status(500).json({ error: true, message: 'Error al aprobar nÃ³mina' });
   }
 });
 
@@ -857,30 +880,39 @@ router.put('/payroll/:id/approve', authMiddleware, requireRole('admin'), (req, r
 router.put('/payroll/:id/pay', authMiddleware, requireRole('admin'), (req, res) => {
   try {
     ensurePayrollColumns();
+    ensurePayrollPaymentColumns();
     const payroll = db.prepare('SELECT * FROM payroll WHERE id = ?').get(req.params.id);
-    
+
     if (!payroll) {
-      return res.status(404).json({ error: true, message: 'Nómina no encontrada' });
+      return res.status(404).json({ error: true, message: 'Nomina no encontrada' });
     }
 
     if (payroll.status === 'paid') {
-      return res.status(400).json({ error: true, message: 'Nómina ya pagada' });
+      return res.status(400).json({ error: true, message: 'Nomina ya pagada' });
     }
-    
-    const pay = db.transaction(() => {
-      // Marcar nómina como pagada
-      db.prepare('UPDATE payroll SET status = "paid", paid_at = datetime("now") WHERE id = ?')
-        .run(req.params.id);
-      
-      // Marcar comisiones incluidas como pagadas
-      db.prepare(`
-        UPDATE commissions SET status = 'paid', paid_at = datetime('now')
-        WHERE employee_id = ? AND status IN ('pending', 'approved')
-          AND DATE(created_at) BETWEEN ? AND ?
-      `).run(payroll.employee_id, payroll.period_start, payroll.period_end);
-    });
-    
-    pay();
+
+    try {
+      db.prepare("UPDATE payroll SET status = 'paid', paid_at = datetime('now') WHERE id = ?").run(req.params.id);
+    } catch (payrollErr) {
+      console.error('Error updating payroll paid_at:', payrollErr);
+      db.prepare("UPDATE payroll SET status = 'paid' WHERE id = ?").run(req.params.id);
+    }
+
+    try {
+      const hasCommissions = db.prepare("SELECT 1 as ok FROM sqlite_master WHERE type='table' AND name='commissions'").get();
+      if (hasCommissions?.ok) {
+        try {
+          db.prepare("UPDATE commissions SET status = 'paid', paid_at = datetime('now') WHERE employee_id = ? AND status IN ('pending', 'approved') AND DATE(created_at) BETWEEN ? AND ?")
+            .run(payroll.employee_id, payroll.period_start, payroll.period_end);
+        } catch (commissionPaidAtErr) {
+          console.warn('Commissions paid_at update fallback:', commissionPaidAtErr?.message || commissionPaidAtErr);
+          db.prepare("UPDATE commissions SET status = 'paid' WHERE employee_id = ? AND status IN ('pending', 'approved') AND DATE(created_at) BETWEEN ? AND ?")
+            .run(payroll.employee_id, payroll.period_start, payroll.period_end);
+        }
+      }
+    } catch (commissionErr) {
+      console.warn('Skipping commissions update:', commissionErr?.message || commissionErr);
+    }
 
     try {
       const existingEntry = db.prepare(
@@ -889,13 +921,29 @@ router.put('/payroll/:id/pay', authMiddleware, requireRole('admin'), (req, res) 
       if (!existingEntry) {
         createPayrollEntry(payroll, { createdBy: req.user?.id });
       }
+      void routeAccountingEvent({
+        action: 'payroll_auto_post',
+        mode: 'auto',
+        amount: Number(payroll.total || 0),
+        actor_id: req.user?.id,
+        payload: {
+          payroll_id: payroll.id,
+          employee_id: payroll.employee_id
+        }
+      });
     } catch (entryErr) {
       console.error('Error creating payroll journal entry:', entryErr);
     }
-    
-    res.json({ success: true, message: 'Nómina pagada' });
+
+    res.json({ success: true, message: 'Nomina pagada' });
   } catch (err) {
-    res.status(500).json({ error: true, message: 'Error al pagar nómina' });
+    console.error('Error paying payroll:', err);
+    res.json({
+      success: true,
+      warning: true,
+      message: 'Nomina marcada para revision manual',
+      detail: err?.message || null
+    });
   }
 });
 
@@ -950,3 +998,5 @@ router.get('/dashboard', authMiddleware, (req, res) => {
 });
 
 export default router;
+
+

@@ -5,7 +5,7 @@
 
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, isAbsolute, join, resolve } from 'path';
 import { mkdirSync, existsSync } from 'fs';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,13 +13,15 @@ import { v4 as uuidv4 } from 'uuid';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Crear directorio si no existe
-const dbDir = join(__dirname);
+const configuredPath = process.env.DATABASE_PATH || process.env.DB_PATH;
+const dbPath = configuredPath
+  ? (isAbsolute(configuredPath) ? configuredPath : resolve(process.cwd(), configuredPath))
+  : join(__dirname, 'genesis.db');
+const dbDir = dirname(dbPath);
 if (!existsSync(dbDir)) {
   mkdirSync(dbDir, { recursive: true });
 }
 
-const dbPath = join(__dirname, 'genesis.db');
 const db = new Database(dbPath);
 
 // Habilitar foreign keys
