@@ -24,6 +24,7 @@ import sentinelRoutes from './routes/sentinel.js';
 import productionRoutes from './routes/production.js';
 import openaiProxyRoutes from './routes/openaiProxy.js';
 import invitesRoutes from './routes/invites.js';
+import feedbackBrainRoutes from './routes/feedbackBrain.js';
 
 // Cargar variables de entorno (forzar .env del backend)
 const __filename = fileURLToPath(import.meta.url);
@@ -67,7 +68,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: pkg.version || '1.0.0',
+    version: '1.0.0',
     name: 'GENESIS API'
   });
 });
@@ -86,6 +87,7 @@ app.use('/api/sentinel', sentinelRoutes);
 app.use('/api/production', productionRoutes);
 app.use('/api/ai', openaiProxyRoutes);
 app.use('/api/invites', invitesRoutes);
+app.use('/api/feedback', feedbackBrainRoutes);
 
 // Manejo de errores global
 app.use((err, req, res, next) => {

@@ -20,6 +20,7 @@ export default function Feedback() {
   const [message, setMessage] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const [sending, setSending] = useState(false);
+  const [decisionMeta, setDecisionMeta] = useState(null);
 
   useEffect(() => {
     SupportService.trackActivity();
@@ -34,6 +35,7 @@ export default function Feedback() {
     e.preventDefault();
     if (!message.trim()) return;
     setSending(true);
+
     const context = {
       url: window.location.href,
       route: location.pathname,
@@ -59,13 +61,54 @@ export default function Feedback() {
     SupportService.trackActivity();
 
     try {
-      const ai = await AIEngine.processText(
-        `Usuario reporta (${type}): ${message}. Responde empático y breve.`,
-        "Responde en español."
-      );
-      setAiResponse(ai?.text || "Entiendo el problema, ya notifiqué a Raúl.");
+      const payload = {
+        feedback: {
+          id: ticket.id,
+          type,
+          category: type,
+          title: `Reporte ${type} en ${location.pathname}`,
+          description: message,
+          severity: type === "bug" ? "high" : "medium",
+          userId: user?.id || "anon",
+          url: window.location.href,
+          timestamp: ticket.created_at,
+          systemInfo: context
+        }
+      };
+
+      const response = await fetch("/api/feedback/brain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data?.success) {
+        setAiResponse(data.message || "ATLAS proceso tu reporte.");
+      } else {
+        setAiResponse(data?.message || "ATLAS registro el reporte para revision.");
+      }
+
+      setDecisionMeta({
+        decision: data?.decision || "wait_owner_approval",
+        status: data?.status || "pending_owner_approval",
+        approvalId: data?.approvalId || null
+      });
     } catch {
-      setAiResponse("Entiendo el problema, ya notifiqué a Raúl.");
+      try {
+        const ai = await AIEngine.processText(
+          `Usuario reporta (${type}): ${message}. Responde empatico y breve.`,
+          "Responde en espanol."
+        );
+        setAiResponse(ai?.text || "Entiendo el problema, ya notifique a Raul.");
+      } catch {
+        setAiResponse("Entiendo el problema, ya notifique a Raul.");
+      }
+      setDecisionMeta({
+        decision: "wait_owner_approval",
+        status: "pending_owner_approval",
+        approvalId: null
+      });
     } finally {
       setSending(false);
       setMessage("");
@@ -77,7 +120,7 @@ export default function Feedback() {
       <div className="glass-panel p-6 border border-slate-700/50 rounded-2xl">
         <h2 className="text-2xl font-semibold text-white mb-2">Feedback y Soporte</h2>
         <p className="text-sm text-slate-400">
-          Tu reporte ayuda a mejorar la plataforma. Adjuntamos contexto técnico automáticamente.
+          Tu reporte ayuda a mejorar la plataforma. Se adjunta contexto tecnico automaticamente.
         </p>
       </div>
 
@@ -97,6 +140,7 @@ export default function Feedback() {
             ))}
           </div>
         </div>
+
         <div>
           <label className="block text-sm text-slate-300 mb-2">Detalle</label>
           <textarea
@@ -107,6 +151,7 @@ export default function Feedback() {
             placeholder="Describe el problema o sugerencia..."
           />
         </div>
+
         <button
           type="submit"
           disabled={sending}
@@ -118,7 +163,16 @@ export default function Feedback() {
 
       {aiResponse && (
         <div className="glass-panel p-4 border border-emerald-500/30 rounded-2xl text-sm text-emerald-200">
-          {aiResponse}
+          <p>{aiResponse}</p>
+          {decisionMeta && (
+            <div className="mt-2 text-xs text-slate-300">
+              <p>Decision ATLAS: <span className="text-white">{decisionMeta.decision}</span></p>
+              <p>Estado: <span className="text-white">{decisionMeta.status}</span></p>
+              {decisionMeta.approvalId ? (
+                <p>ID aprobacion: <span className="text-white">{decisionMeta.approvalId}</span></p>
+              ) : null}
+            </div>
+          )}
         </div>
       )}
     </div>
