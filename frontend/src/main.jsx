@@ -10,7 +10,12 @@ import { AuthProvider } from './context/AuthContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import './index.css';
 
-// Limpiar URL tras "Actualizar ahora" (param _=timestamp)
+import './utils/testGeminiAPI';
+
+const isLocalDev =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 if (typeof window !== 'undefined') {
   const params = new URLSearchParams(window.location.search);
   if (params.has('_')) {
@@ -21,15 +26,28 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Utilidades de diagnóstico de Gemini (disponibles en consola)
-import './utils/testGeminiAPI';
+async function clearLocalServiceWorkersAndCaches() {
+  if (!isLocalDev) return;
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if (window.caches?.keys) {
+      const keys = await window.caches.keys();
+      await Promise.all(keys.map((k) => window.caches.delete(k)));
+    }
+    console.log('[local-clean] service workers and caches cleared');
+  } catch (error) {
+    console.warn('Local SW/cache cleanup failed:', error);
+  }
+}
 
-// React Query Client (escudo: mínima caché para forzar datos frescos)
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 0,
-      gcTime: 1000 * 60, // 1 min (antes cacheTime)
+      gcTime: 1000 * 60,
       retry: 1,
       refetchOnWindowFocus: true,
     },
@@ -42,22 +60,27 @@ const ensurePersistentStorage = async () => {
     const persisted = await navigator.storage.persisted();
     if (!persisted) await navigator.storage.persist();
   } catch (error) {
-    console.warn("Persistencia de storage no disponible:", error);
+    console.warn('Storage persistence not available:', error);
   }
 };
 
-// Registrar Service Worker (updateViaCache: none para que "Buscar actualizaciones" traiga la versión nueva)
-if ('serviceWorker' in navigator) {
+if (!isLocalDev && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     ensurePersistentStorage();
     navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(
       (registration) => {
-        console.log('✓ Service Worker registrado:', registration.scope);
+        console.log('Service Worker registered:', registration.scope);
       },
       (error) => {
-        console.log('✗ Service Worker error:', error);
+        console.log('Service Worker error:', error);
       }
     );
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    clearLocalServiceWorkersAndCaches();
   });
 }
 
